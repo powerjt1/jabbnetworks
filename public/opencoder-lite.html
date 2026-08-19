@@ -254,18 +254,18 @@
         { cat: "Workflow", title: "Commit Message", desc: "Conventional commit from a diff.", body: "Write a Conventional Commits message for this diff (type(scope): summary under 72 chars + body explaining WHY).\n\n```\n<paste diff>\n```" },
       ];
 
-      // ---------- Bridge detection ----------
-      const BRIDGE = window.__BRIDGE__ || null;
-      const isBridged = !!BRIDGE?.available;
-      const ollamaBase = isBridged ? BRIDGE.ollama : (settings.ollama || 'http://localhost:11434');
-      const lmstudioBase = isBridged ? BRIDGE.lmstudio : 'http://localhost:1234';
-
       // ---------- State ----------
       const LS = {
         get: (k, d) => { try { return JSON.parse(localStorage.getItem("ocl." + k)) ?? d; } catch { return d; } },
         set: (k, v) => localStorage.setItem("ocl." + k, JSON.stringify(v)),
       };
       let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "" });
+
+      // ---------- Bridge detection ----------
+      const BRIDGE = window.__BRIDGE__ || null;
+      const isBridged = !!BRIDGE?.available;
+      const ollamaBase = isBridged ? BRIDGE.ollama : (settings.ollama || 'http://localhost:11434');
+      const lmstudioBase = isBridged ? BRIDGE.lmstudio : 'http://localhost:1234';
       let customModels = LS.get("models", []);
       let messages = [];
       let streaming = false, autoSpeak = false, listening = false, recognition = null;
