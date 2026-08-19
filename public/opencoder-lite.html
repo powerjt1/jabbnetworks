@@ -467,7 +467,17 @@
           if (autoSpeak && asst.content.trim()) speak(asst.content);
         } catch (e) {
           messages.pop(); render();
-          showErr(e.message || "Request failed. Check the model endpoint / CORS / key in Settings.");
+          let msg = e.message || "Request failed.";
+          if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+            if (model.provider === "ollama") {
+              msg = "Failed to reach Ollama. Make sure it's running with CORS enabled: OLLAMA_ORIGINS=* ollama serve";
+            } else if (model.provider === "openai-compat") {
+              msg = "Failed to reach local server. Is it running and accessible? Check the base URL in Settings.";
+            } else {
+              msg = "Failed to fetch. Check the endpoint URL, CORS settings, and API key in Settings.";
+            }
+          }
+          showErr(msg);
         } finally { streaming = false; $("sendBtn").disabled = false; }
       }
 
