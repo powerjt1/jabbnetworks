@@ -148,6 +148,7 @@
       <li><a href="#process" onclick={(e) => { e.preventDefault(); scrollTo('process'); }}>Process</a></li>
       <li><a href="#solutions" onclick={(e) => { e.preventDefault(); scrollTo('solutions'); }}>Solutions</a></li>
       <li><a href="#contact" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Contact</a></li>
+      <li><a href="/opencoder-lite.html" class="nav-tool">AI Coder</a></li>
       <li><a href="#contact" class="nav-cta" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Get Started</a></li>
     </ul>
   </div>
@@ -450,6 +451,7 @@
           <li><a href="#process" onclick={(e) => { e.preventDefault(); scrollTo('process'); }}>Process</a></li>
           <li><a href="#solutions" onclick={(e) => { e.preventDefault(); scrollTo('solutions'); }}>Solutions</a></li>
           <li><a href="#contact" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Contact</a></li>
+          <li><a href="/opencoder-lite.html">AI Coder</a></li>
         </ul>
       </div>
     </div>
@@ -538,6 +540,12 @@
     font-weight: 600; transition: transform 0.2s, box-shadow 0.2s;
   }
   .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,120,212,0.3); }
+  .nav-tool {
+    background: rgba(34,211,238,0.1); color: #0ea5e9 !important; padding: 10px 20px;
+    border-radius: 8px; font-weight: 600; border: 1px solid rgba(34,211,238,0.3);
+    transition: all 0.2s;
+  }
+  .nav-tool:hover { background: #0ea5e9; color: white !important; border-color: #0ea5e9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(14,165,233,0.3); }
   .mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; z-index: 110; }
   .hamburger { display: block; width: 24px; height: 2px; background: #333; position: relative; transition: background 0.3s; }
   .hamburger::before, .hamburger::after {
