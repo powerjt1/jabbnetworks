@@ -30,7 +30,6 @@
       ::-webkit-scrollbar { width: 8px; height: 8px; }
       ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
 
-      /* Sidebar */
       aside {
         width: 210px; flex-shrink: 0; background: rgba(12,19,28,.6);
         border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -67,7 +66,6 @@
       .icon-btn.on { background: var(--accent); color: #06121a; box-shadow: 0 0 var(--glow) rgba(34,211,238,.55); }
       .icon-btn.speak { color: var(--accent2); }
 
-      /* Messages */
       .scroll { flex: 1; overflow-y: auto; padding: 20px; }
       .wrap { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
       .empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
@@ -88,7 +86,6 @@
       code { font-family: var(--mono); font-size: 13px; }
       .bubble :not(pre) > code { background: var(--surface2); color: var(--accent2); padding: 1px 5px; border-radius: 4px; }
 
-      /* Composer */
       .composer-wrap { padding: 12px 16px 16px; max-width: 820px; margin: 0 auto; width: 100%; }
       .composer {
         display: flex; align-items: flex-end; gap: 8px; padding: 8px;
@@ -97,7 +94,6 @@
       .composer textarea { flex: 1; resize: none; background: none; border: 0; max-height: 180px; color: var(--fg); }
       .err { color: var(--accent2); background: rgba(245,197,66,.1); border: 1px solid rgba(245,197,66,.3); border-radius: var(--radius); padding: 8px 12px; font-size: 12px; margin-bottom: 8px; }
 
-      /* Modal */
       .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 50; }
       .modal-bg.open { display: flex; }
       .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: min(680px, 92vw); max-height: 86vh; overflow-y: auto; padding: 20px; }
@@ -119,6 +115,9 @@
       .tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(34,211,238,.2); color: var(--accent); }
       .note { font-size: 12px; color: var(--muted); line-height: 1.5; }
       .note code { color: var(--accent2); }
+      .speed-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(34,211,238,.15); color: var(--accent); margin-left: 6px; }
+      .speed-badge.fast { background: rgba(34,197,94,.15); color: #22c55e; }
+      .speed-badge.medium { background: rgba(245,197,66,.15); color: #f5c542; }
       @media (max-width: 640px) { aside { display: none; } .prompt-grid { grid-template-columns: 1fr; } }
     </style>
   </head>
@@ -142,6 +141,7 @@
         <div class="left">
           <select id="agentSel" title="Agent preset"></select>
           <select id="modelSel" title="Model"></select>
+          <span class="speed-badge" id="speedBadge"></span>
         </div>
         <div class="left">
           <button class="icon-btn" id="micBtn" title="Speak" onclick="toggleMic()">🎤</button>
@@ -174,7 +174,6 @@
       </div>
     </main>
 
-    <!-- Modals -->
     <div class="modal-bg" id="modal-prompts">
       <div class="modal">
         <button class="icon-btn close-x" onclick="closeModal()">✕</button>
@@ -263,16 +262,18 @@
       let customModels = LS.get("models", []);
       let messages = [];
       let streaming = false, autoSpeak = false, listening = false, recognition = null;
+      let renderQueued = false, lastRenderTime = 0;
+      const RENDER_THROTTLE = 16; // ~60fps max
 
       function defaultModels() {
         return [
-          { id: "free-cpu", label: "Free · CPU — no GPU needed (slower)", provider: "transformers", model: "onnx-community/Qwen2.5-0.5B-Instruct" },
-          { id: "free-gpu", label: "Free · GPU — fast (needs WebGPU)", provider: "webllm", model: "Llama-3.2-1B-Instruct-q4f16_1-MLC" },
-          { id: "ollama-llama3.1", label: "Llama 3.1 (Ollama)", provider: "ollama", model: "llama3.1", base: settings.ollama },
-          { id: "ollama-qwen-coder", label: "Qwen2.5 Coder (Ollama)", provider: "ollama", model: "qwen2.5-coder", base: settings.ollama },
-          { id: "lmstudio", label: "LM Studio (loaded model)", provider: "openai-compat", model: "local-model", base: "http://localhost:1234/v1" },
-          { id: "gpt-4o", label: "OpenAI GPT-4o", provider: "openai", model: "gpt-4o", base: "https://api.openai.com/v1" },
-          { id: "claude", label: "Claude Sonnet", provider: "anthropic", model: "claude-sonnet-4-20250514", base: "https://api.anthropic.com" },
+          { id: "free-cpu", label: "Free · CPU — no GPU needed", provider: "transformers", model: "onnx-community/Qwen2.5-0.5B-Instruct", speed: "slow" },
+          { id: "free-gpu", label: "Free · GPU — fast (needs WebGPU)", provider: "webllm", model: "Llama-3.2-1B-Instruct-q4f16_1-MLC", speed: "fast" },
+          { id: "ollama-llama3.1", label: "Llama 3.1 (Ollama)", provider: "ollama", model: "llama3.1", base: settings.ollama, speed: "fast" },
+          { id: "ollama-qwen-coder", label: "Qwen2.5 Coder (Ollama)", provider: "ollama", model: "qwen2.5-coder", base: settings.ollama, speed: "fast" },
+          { id: "lmstudio", label: "LM Studio (loaded model)", provider: "openai-compat", model: "local-model", base: "http://localhost:1234/v1", speed: "fast" },
+          { id: "gpt-4o", label: "OpenAI GPT-4o", provider: "openai", model: "gpt-4o", base: "https://api.openai.com/v1", speed: "fast" },
+          { id: "claude", label: "Claude Sonnet", provider: "anthropic", model: "claude-sonnet-4-20250514", base: "https://api.anthropic.com", speed: "fast" },
         ];
       }
       function allModels() { return [...defaultModels(), ...customModels]; }
@@ -284,12 +285,21 @@
         allModels().forEach((m) => { const o = document.createElement("option"); o.value = m.id; o.textContent = m.label; ms.appendChild(o); });
         const saved = LS.get("currentModel", null);
         if (saved && allModels().some(m => m.id === saved)) ms.value = saved;
-        else ms.value = ("gpu" in navigator) ? "free-gpu" : "free-cpu"; // pick a working free default
+        else ms.value = ("gpu" in navigator) ? "free-gpu" : "free-cpu";
         const as = $("agentSel"); as.innerHTML = "";
         AGENTS.forEach((a) => { const o = document.createElement("option"); o.value = a.id; o.textContent = a.name; as.appendChild(o); });
         const savedA = LS.get("currentAgent", null); if (savedA) as.value = savedA;
+        updateSpeedBadge();
       }
-      $("modelSel").addEventListener("change", (e) => LS.set("currentModel", e.target.value));
+      function updateSpeedBadge() {
+        const model = allModels().find(m => m.id === $("modelSel").value);
+        const badge = $("speedBadge");
+        if (!model || !model.speed) { badge.style.display = "none"; return; }
+        badge.style.display = "inline-flex";
+        badge.className = "speed-badge " + model.speed;
+        badge.textContent = model.speed === "fast" ? "⚡ Fast" : model.speed === "medium" ? "⏱ Medium" : "🐢 Slow";
+      }
+      $("modelSel").addEventListener("change", (e) => { LS.set("currentModel", e.target.value); updateSpeedBadge(); });
       $("agentSel").addEventListener("change", (e) => LS.set("currentAgent", e.target.value));
 
       const input = $("input");
@@ -328,7 +338,7 @@
       function addModel() {
         const label = $("m_label").value.trim(), model = $("m_model").value.trim();
         if (!label || !model) return alert("Label and model name are required.");
-        const m = { id: "custom-" + Date.now(), label, provider: $("m_provider").value, model, base: $("m_base").value.trim() || undefined, key: $("m_key").value.trim() || undefined };
+        const m = { id: "custom-" + Date.now(), label, provider: $("m_provider").value, model, base: $("m_base").value.trim() || undefined, key: $("m_key").value.trim() || undefined, speed: "fast" };
         customModels.push(m); LS.set("models", customModels);
         $("m_label").value = $("m_model").value = $("m_base").value = $("m_key").value = "";
         renderModels(); refreshSelectors();
@@ -346,7 +356,7 @@
           (d.models || []).forEach((t) => {
             const id = "custom-ollama-" + t.name.replace(/[:/]/g, "-");
             if (customModels.some((c) => c.id === id)) return;
-            customModels.push({ id, label: t.name + " (Ollama)", provider: "ollama", model: t.name, base }); added++;
+            customModels.push({ id, label: t.name + " (Ollama)", provider: "ollama", model: t.name, base, speed: "fast" }); added++;
           });
           LS.set("models", customModels); renderModels(); refreshSelectors();
           $("discoverMsg").textContent = ` added ${added} model(s).`;
@@ -357,10 +367,27 @@
       function newChat() { messages = []; render(); input.value = ""; input.style.height = "auto"; stopSpeak(); }
       function showErr(m) { const e = $("err"); e.textContent = m; e.style.display = m ? "block" : "none"; }
 
-      function render() {
+      // Optimized render: only updates the last assistant message if streaming
+      function render(incremental = false) {
         const box = $("messages");
         if (messages.length === 0) { box.style.display = "none"; $("empty").style.display = "flex"; return; }
-        $("empty").style.display = "none"; box.style.display = "flex"; box.innerHTML = "";
+        $("empty").style.display = "none"; box.style.display = "flex";
+
+        if (incremental && box.lastElementChild) {
+          // Just update the last assistant bubble's content
+          const lastMsg = messages[messages.length - 1];
+          if (lastMsg && lastMsg.role === "assistant") {
+            const lastBubble = box.lastElementChild.querySelector('.bubble');
+            if (lastBubble) {
+              lastBubble.innerHTML = `<div class="role">Assistant</div>` + md(lastMsg.content);
+              $("scroll").scrollTop = $("scroll").scrollHeight;
+              return;
+            }
+          }
+        }
+
+        // Full render
+        box.innerHTML = "";
         messages.forEach((m) => {
           const wrap = document.createElement("div"); wrap.className = "msg " + m.role;
           const b = document.createElement("div"); b.className = "bubble " + m.role;
@@ -369,22 +396,29 @@
         });
         $("scroll").scrollTop = $("scroll").scrollHeight;
       }
+
       function escapeHtml(s) { return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+      // Optimized markdown: cache compiled patterns
+      const MD_PATTERNS = [
+        [/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>'],
+        [/`([^`]+)`/g, '<code>$1</code>'],
+        [/\*\*([^*]+)\*\*/g, '<b>$1</b>'],
+      ];
       function md(s) {
-        // minimal markdown: code fences, inline code, bold, line breaks
-        let out = "", i = 0; const parts = s.split(/(```[\s\S]*?```)/g);
-        parts.forEach((p) => {
-          if (p.startsWith("```")) {
-            const body = p.replace(/^```[a-zA-Z0-9]*\n?/, "").replace(/```$/, "");
-            out += "<pre><code>" + escapeHtml(body) + "</code></pre>";
-          } else {
-            out += escapeHtml(p)
-              .replace(/`([^`]+)`/g, "<code>$1</code>")
-              .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
-              .replace(/\n/g, "<br>");
-          }
+        let out = escapeHtml(s);
+        for (const [pat, rep] of MD_PATTERNS) { out = out.replace(pat, rep); }
+        return out.replace(/\n/g, "<br>");
+      }
+
+      // Throttled render for streaming
+      function queueRender() {
+        if (renderQueued) return;
+        renderQueued = true;
+        requestAnimationFrame(() => {
+          renderQueued = false;
+          render(true);
         });
-        return out;
       }
 
       async function send() {
@@ -400,7 +434,11 @@
         const asst = { role: "assistant", content: "" }; messages.push(asst); render();
 
         try {
-          await streamChat(model, agent.prompt, messages.slice(0, -1), (chunk) => { asst.content += chunk; render(); });
+          await streamChat(model, agent.prompt, messages.slice(0, -1), (chunk) => {
+            asst.content += chunk;
+            queueRender();
+          });
+          render(false); // Final full render
           if (autoSpeak && asst.content.trim()) speak(asst.content);
         } catch (e) {
           messages.pop(); render();
@@ -408,50 +446,56 @@
         } finally { streaming = false; $("sendBtn").disabled = false; }
       }
 
-      // Free GPU model via WebLLM (WebGPU). Loaded from CDN on first use.
+      // Free GPU model via WebLLM (WebGPU).
       let webllmEngine = null, webllmModelId = null;
       async function streamWebLLM(model, system, history, onChunk) {
-        if (!("gpu" in navigator)) throw new Error("No WebGPU on this device. Switch the model to “Free · CPU” (top of the list) — it needs no GPU.");
+        if (!("gpu" in navigator)) throw new Error("No WebGPU on this device. Switch to \"Free · CPU\" — it needs no GPU.");
         if (!webllmEngine || webllmModelId !== model.model) {
-          showErr("Preparing free GPU model (first run downloads ~0.9 GB, then it's cached)…");
+          showErr("Loading GPU model (first run ~0.9 GB, then cached)…");
           const webllm = await import("https://esm.run/@mlc-ai/web-llm");
           try {
-            webllmEngine = await webllm.CreateMLCEngine(model.model, { initProgressCallback: (p) => showErr("Loading model: " + (p.text || "")) });
+            webllmEngine = await webllm.CreateMLCEngine(model.model, {
+              initProgressCallback: (p) => showErr("Loading: " + (p.text || "")),
+              temperature: 0.7,
+              top_p: 0.9,
+            });
           } catch (e) {
-            throw new Error("Couldn't start the GPU model (no compatible WebGPU). Switch to “Free · CPU” at the top of the model list — it runs without a GPU.");
+            throw new Error("Couldn't start GPU model. Switch to \"Free · CPU\" — it runs without a GPU.");
           }
           webllmModelId = model.model;
         }
         showErr("");
         const msgs = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
-        const chunks = await webllmEngine.chat.completions.create({ messages: msgs, stream: true });
+        const chunks = await webllmEngine.chat.completions.create({
+          messages: msgs, stream: true,
+          temperature: 0.7, top_p: 0.9,
+        });
         for await (const c of chunks) { const t = c.choices?.[0]?.delta?.content; if (t) onChunk(t); }
       }
 
-      // Free CPU model via transformers.js (WebAssembly — no GPU required).
+      // Free CPU model via transformers.js (WebAssembly).
       let tjsPipe = null, tjsModelId = null, tjsLib = null;
       async function streamTransformers(model, system, history, onChunk) {
         if (!tjsLib) tjsLib = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
         if (!tjsPipe || tjsModelId !== model.model) {
-          showErr("Preparing free CPU model (first run downloads once, then it's cached)…");
+          showErr("Loading CPU model (first run downloads once)…");
           tjsPipe = await tjsLib.pipeline("text-generation", model.model, {
             device: "wasm", dtype: "q4",
             progress_callback: (p) => { if (p && p.status === "progress" && p.file) showErr("Loading " + p.file + " " + Math.round(p.progress || 0) + "%"); },
           });
           tjsModelId = model.model;
         }
-        showErr("CPU model is generating (this is slower than GPU)…");
+        showErr("Generating…");
         const msgs = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
         const streamer = new tjsLib.TextStreamer(tjsPipe.tokenizer, {
           skip_prompt: true,
           callback_function: (t) => { if (t) { showErr(""); onChunk(t); } },
         });
-        await tjsPipe(msgs, { max_new_tokens: 512, do_sample: false, streamer });
+        await tjsPipe(msgs, { max_new_tokens: 1024, temperature: 0.7, do_sample: true, streamer });
         showErr("");
       }
 
       async function streamChat(model, system, history, onChunk) {
-        const msgs = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
         if (model.provider === "transformers") return streamTransformers(model, system, history, onChunk);
         if (model.provider === "webllm") return streamWebLLM(model, system, history, onChunk);
         if (model.provider === "anthropic") return streamAnthropic(model, system, history, onChunk);
@@ -459,10 +503,11 @@
         let base = (model.base || "").replace(/\/$/, "");
         if (model.provider === "ollama" && !/\/v1$/.test(base)) base += "/v1";
         const key = model.key || (model.provider === "openai" ? settings.openai : "") || "not-needed";
+        const msgs = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
         const resp = await fetch(base + "/chat/completions", {
           method: "POST",
           headers: { "content-type": "application/json", authorization: "Bearer " + key },
-          body: JSON.stringify({ model: model.model, messages: msgs, stream: true }),
+          body: JSON.stringify({ model: model.model, messages: msgs, stream: true, temperature: 0.7, top_p: 0.9 }),
         });
         if (!resp.ok) throw new Error("HTTP " + resp.status + " from " + base);
         await readSSE(resp, (obj) => { const c = obj.choices?.[0]?.delta?.content; if (c) onChunk(c); });
@@ -479,7 +524,8 @@
             "anthropic-version": "2023-06-01",
             "anthropic-dangerous-direct-browser-access": "true",
           },
-          body: JSON.stringify({ model: model.model, max_tokens: 2048, system, stream: true, messages: history.map((m) => ({ role: m.role, content: m.content })) }),
+          body: JSON.stringify({ model: model.model, max_tokens: 2048, system, stream: true, temperature: 0.7,
+            messages: history.map((m) => ({ role: m.role, content: m.content })) }),
         });
         if (!resp.ok) throw new Error("HTTP " + resp.status + " from Anthropic");
         await readSSE(resp, (obj) => { if (obj.type === "content_block_delta" && obj.delta?.text) onChunk(obj.delta.text); });
