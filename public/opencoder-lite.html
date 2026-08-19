@@ -468,14 +468,12 @@
         } catch (e) {
           messages.pop(); render();
           let msg = e.message || "Request failed.";
-          if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
-            if (model.provider === "ollama") {
-              msg = "Failed to reach Ollama. Make sure it's running with CORS enabled: OLLAMA_ORIGINS=* ollama serve";
-            } else if (model.provider === "openai-compat") {
-              msg = "Failed to reach local server. Is it running and accessible? Check the base URL in Settings.";
-            } else {
-              msg = "Failed to fetch. Check the endpoint URL, CORS settings, and API key in Settings.";
-            }
+          if (model.provider === "ollama") {
+            msg = "Ollama error: " + msg + " — Make sure Ollama is running with: OLLAMA_ORIGINS=* ollama serve";
+          } else if (model.provider === "openai-compat") {
+            msg = "Local server error: " + msg + " — Is the server running? Check the base URL in Settings.";
+          } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+            msg = "Failed to reach " + model.provider + ". Check the endpoint, CORS, and API key in Settings.";
           }
           showErr(msg);
         } finally { streaming = false; $("sendBtn").disabled = false; }
