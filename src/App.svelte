@@ -351,7 +351,7 @@
             </div>
             <div>
               <span class="contact-label">Email</span>
-              <span>contact@jabb-networks.com</span>
+              <span>info@jabbnetworks.com</span>
             </div>
           </div>
           <div class="contact-item">
