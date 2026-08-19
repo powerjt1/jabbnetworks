@@ -275,7 +275,7 @@
       function defaultModels() {
         const models = [
           { id: "free-cpu", label: "Free · CPU — no GPU needed", provider: "transformers", model: "onnx-community/Qwen2.5-0.5B-Instruct", speed: "slow" },
-          { id: "free-gpu", label: "Free · GPU — fast (needs WebGPU)", provider: "webllm", model: "Llama-3.2-1B-Instruct-q4f16_1-MLC", speed: "fast" },
+          { id: "free-gpu", label: "Free · GPU — Gemma 3 (fast, needs WebGPU)", provider: "webllm", model: "gemma3-1b-it-q4f16_1-MLC", speed: "fast" },
           { id: "ollama-llama3.1", label: "Llama 3.1 (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "llama3.1", base: ollamaBase, speed: "fast" },
           { id: "ollama-qwen-coder", label: "Qwen2.5 Coder (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "qwen2.5-coder", base: ollamaBase, speed: "fast" },
           { id: "lmstudio", label: "LM Studio" + (isBridged ? " [via PC]" : ""), provider: "openai-compat", model: "local-model", base: lmstudioBase + "/v1", speed: "fast" },
