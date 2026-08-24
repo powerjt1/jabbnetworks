@@ -875,6 +875,11 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         "voice": { label: "Voice I/O", icon: "🔊" },
         "code": { label: "Code / Power Platform", icon: "⌘" },
         "proposals": { label: "Proposals & Comms", icon: "✉" },
+        "gmail": { label: "Gmail", icon: "✉" },
+        "drive": { label: "Drive / OneDrive", icon: "🗂" },
+        "sheets": { label: "Sheets", icon: "▦" },
+        "docs": { label: "Docs", icon: "📄" },
+        "appsscript": { label: "Apps Script", icon: "⚡" },
       };
       const COLORS = ["#22d3ee", "#f5c542", "#34d399", "#a78bfa", "#fb7185", "#60a5fa"];
       const GLYPHS = ["🛰", "✈", "⚙", "✉", "🧠", "🔭", "⌘", "▣", "🛡", "⚡"];
@@ -911,6 +916,12 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
             model: "gemini-flash", tools: ["company-kb", "code"],
             tag: "Gemini-powered research & synthesis. Turns sources and crew docs into structured briefs, then sends them to Gemini Notebook.",
             prompt: "You are Notebook, a Gemini-powered research & synthesis agent for JABB Networks, serving {OPERATOR}. You gather, summarize and structure information into clear, well-organized briefs with sources and assumptions called out, and you prepare content for Gemini Notebook (NotebookLM). Be concise, cite what you rely on, and format with headings and bullets so the output is ready to save to the Library or open in Gemini Notebook.",
+          },
+          {
+            id: "workspace", name: "Workspace", role: "Google & Cloud Ops", color: "#ea4335", glyph: "🗂",
+            model: "gemini-flash", tools: ["gmail", "drive", "docs", "sheets", "appsscript", "calendar"],
+            tag: "Gemini-powered ops across Gmail, Google Drive & OneDrive, Sheets, Docs, and Apps Script projects — drafts, organizes, builds formulas and automations.",
+            prompt: "You are Workspace, a Gemini-powered Google & cloud operations agent for JABB Networks, serving {OPERATOR}. You handle Google Workspace and OneDrive end to end: draft and triage Gmail; organize, name and locate files in Google Drive and OneDrive; build and explain Google Sheets formulas, pivots and structures; outline and write Google Docs; and design and write Google Apps Script projects (clear code, triggers, scopes and deployment steps). When a task needs live account access, produce the exact content, steps or code to run and state which connector or OAuth scope is required. Be precise and security-conscious; never expose credentials or tokens.",
           },
         ];
       }
@@ -1022,6 +1033,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         architect: { code: "A-02", badge: "ARCHITECT", share: 22, sessions: 48, messages: 410, tokens: 1100000, tasks: 44, events: 96, peak: "14:00", channel: "Local · Solutioning", outcomes: "43 done · 1 running · 0 failed" },
         ops:       { code: "O-03", badge: "CLIENT OPS", share: 10, sessions: 22, messages: 190, tokens: 320000, tasks: 18, events: 40, peak: "16:00", channel: "Local · Client comms", outcomes: "18 done · 0 running · 0 failed" },
         notebook:  { code: "N-04", badge: "NOTEBOOK", share: 16, sessions: 38, messages: 300, tokens: 640000, tasks: 33, events: 74, peak: "13:00", channel: "Gemini · Notebook", outcomes: "31 done · 1 running · 1 failed" },
+        workspace: { code: "W-05", badge: "WORKSPACE", share: 12, sessions: 40, messages: 330, tokens: 700000, tasks: 36, events: 82, peak: "10:00", channel: "Gemini · Workspace", outcomes: "34 done · 1 running · 1 failed" },
       };
       const SAMPLE_OPS = [
         { t: "07:40", who: "Comms", msg: "Scanned remote Power Platform roles — 11 tracked" },
@@ -1274,6 +1286,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         architect: ["Scope a Power Apps + Dataverse solution", "Compare Power Automate vs Logic Apps", "Estimate effort for a client portal"],
         ops: ["Draft a proposal for a Small Business client", "Explain our hosting service", "Summarize today's crew activity"],
         notebook: ["Research remote Power Platform hiring trends", "Turn my last doc into a structured brief", "Summarize sources for a client one-pager"],
+        workspace: ["Draft a client follow-up email in Gmail", "Build a Sheets formula for pipeline totals", "Write an Apps Script to log form responses to a Sheet"],
       };
 
       function renderComms() {
