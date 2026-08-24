@@ -128,6 +128,7 @@ function speak(text) {
 
 /* ---------- Model calls ---------- */
 function baseUrl() {
+  if (cfg.provider === "gemini") return "https://generativelanguage.googleapis.com/v1beta/openai";
   let b = (cfg.base || "").replace(/\/$/, "");
   if ((cfg.provider === "ollama" || cfg.provider === "openai-compat" || cfg.provider === "openai") && !/\/v1$/.test(b)) b += "/v1";
   return b;

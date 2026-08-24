@@ -624,7 +624,10 @@
           </div>
 
           <div class="glass card">
-            <div class="card-title"><span class="dot"></span> Crew Documents · everything the crew writes</div>
+            <div class="section-head" style="margin-bottom:12px">
+              <div class="card-title" style="margin:0"><span class="dot"></span> Crew Documents · everything the crew writes</div>
+              <button class="btn ghost sm" onclick="openNotebook()" style="display:inline-flex;align-items:center;gap:6px"><span id="nbTileLogo"></span> Open Gemini Notebook ↗</button>
+            </div>
             <div id="crewDocs"></div>
           </div>
 
@@ -694,7 +697,10 @@
               <div class="field"><label>OpenAI API key</label><input id="s_openai" type="password" placeholder="sk-…" /></div>
               <div class="field"><label>Anthropic API key</label><input id="s_anthropic" type="password" placeholder="sk-ant-…" /></div>
             </div>
-            <div class="field"><label>SerpAPI key (Google Jobs search for Talent Scout)</label><input id="s_serpapi" type="password" placeholder="serpapi key…" /></div>
+            <div class="row2">
+              <div class="field"><label>SerpAPI key (Google Jobs for Talent Scout)</label><input id="s_serpapi" type="password" placeholder="serpapi key…" /></div>
+              <div class="field"><label>Google Gemini API key (Notebook agent + Gemini models)</label><input id="s_gemini" type="password" placeholder="AIza…" /></div>
+            </div>
             <button class="btn" onclick="saveSettings()">Save endpoints</button>
           </div>
 
@@ -798,7 +804,7 @@
       };
       const $ = (id) => document.getElementById(id);
 
-      let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "", serpapi: "" });
+      let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "", serpapi: "", gemini: "" });
       let prefs = LS.get("prefs", { operator: "Alexander", feed: "", greet: true });
 
       /* ==================== BRIDGE (optional PC proxy) ==================== */
@@ -819,6 +825,8 @@
           { id: "lmstudio", label: "LM Studio" + (isBridged ? " [via PC]" : ""), provider: "openai-compat", model: "local-model", base: lmstudioBase + "/v1", speed: "fast" },
           { id: "gpt-4o", label: "OpenAI GPT-4o (cloud)", provider: "openai", model: "gpt-4o", base: "https://api.openai.com/v1", speed: "fast" },
           { id: "claude", label: "Claude Sonnet (cloud)", provider: "anthropic", model: "claude-sonnet-4-20250514", base: "https://api.anthropic.com", speed: "fast" },
+          { id: "gemini-flash", label: "Google Gemini 2.0 Flash (cloud)", provider: "gemini", model: "gemini-2.0-flash", base: "https://generativelanguage.googleapis.com/v1beta/openai", speed: "fast" },
+          { id: "gemini-pro", label: "Google Gemini 1.5 Pro (cloud)", provider: "gemini", model: "gemini-1.5-pro", base: "https://generativelanguage.googleapis.com/v1beta/openai", speed: "fast" },
         ];
       }
       const allModels = () => [...defaultModels(), ...customModels];
@@ -898,9 +906,22 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
             tag: "Handles proposals, hosting & website questions, client communications, and end-of-day summaries.",
             prompt: "You are Ops & Client Success at JABB Networks, serving {OPERATOR}. You draft client-ready proposals and emails, answer questions about JABB's website-application and hosting services, map needs to engagement plans (Startup/Small Business/Mid-Market/Enterprise), and produce crisp daily summaries of crew activity. Professional, warm, and outcomes-focused. Never over-promise beyond the documented services.",
           },
+          {
+            id: "notebook", name: "Notebook", role: "Research · Gemini Notebook", color: "#4285f4", glyph: "📓",
+            model: "gemini-flash", tools: ["company-kb", "code"],
+            tag: "Gemini-powered research & synthesis. Turns sources and crew docs into structured briefs, then sends them to Gemini Notebook.",
+            prompt: "You are Notebook, a Gemini-powered research & synthesis agent for JABB Networks, serving {OPERATOR}. You gather, summarize and structure information into clear, well-organized briefs with sources and assumptions called out, and you prepare content for Gemini Notebook (NotebookLM). Be concise, cite what you rely on, and format with headings and bullets so the output is ready to save to the Library or open in Gemini Notebook.",
+          },
         ];
       }
       let crew = LS.get("crew", defaultCrew());
+      // migration: ensure newer default agents (e.g. Notebook) appear for existing users
+      (function () {
+        const defs = defaultCrew();
+        let changed = false;
+        defs.forEach((d) => { if (!crew.some((a) => a.id === d.id)) { crew.push(d); changed = true; } });
+        if (changed) LS.set("crew", crew);
+      })();
       const agentById = (id) => crew.find((a) => a.id === id) || crew[0];
 
       /* ==================== SEED JOBS (real, remote) ==================== */
@@ -1000,6 +1021,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         scout:     { code: "S-01", badge: "TALENT SCOUT", share: 27, sessions: 64, messages: 540, tokens: 920000, tasks: 61, events: 132, peak: "11:00", channel: "Local · Job feed", outcomes: "58 done · 2 running · 1 failed" },
         architect: { code: "A-02", badge: "ARCHITECT", share: 22, sessions: 48, messages: 410, tokens: 1100000, tasks: 44, events: 96, peak: "14:00", channel: "Local · Solutioning", outcomes: "43 done · 1 running · 0 failed" },
         ops:       { code: "O-03", badge: "CLIENT OPS", share: 10, sessions: 22, messages: 190, tokens: 320000, tasks: 18, events: 40, peak: "16:00", channel: "Local · Client comms", outcomes: "18 done · 0 running · 0 failed" },
+        notebook:  { code: "N-04", badge: "NOTEBOOK", share: 16, sessions: 38, messages: 300, tokens: 640000, tasks: 33, events: 74, peak: "13:00", channel: "Gemini · Notebook", outcomes: "31 done · 1 running · 1 failed" },
       };
       const SAMPLE_OPS = [
         { t: "07:40", who: "Comms", msg: "Scanned remote Power Platform roles — 11 tracked" },
@@ -1251,6 +1273,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         scout: ["Show me the best remote roles right now", "Draft outreach for the top match", "How do I handle an RTR?"],
         architect: ["Scope a Power Apps + Dataverse solution", "Compare Power Automate vs Logic Apps", "Estimate effort for a client portal"],
         ops: ["Draft a proposal for a Small Business client", "Explain our hosting service", "Summarize today's crew activity"],
+        notebook: ["Research remote Power Platform hiring trends", "Turn my last doc into a structured brief", "Summarize sources for a client one-pager"],
       };
 
       function renderComms() {
@@ -1499,6 +1522,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
 
       /* ==================== LIBRARY ==================== */
       function renderLibrary() {
+        const nb = $("nbTileLogo"); if (nb) nb.innerHTML = geminiLogo(15);
         renderCrewDocs();
         $("kbServices").innerHTML = COMPANY.services.map((s) => `<div class="glass kb-card"><h4>${s.title}</h4><p>${s.desc}</p></div>`).join("");
         $("kbPlans").innerHTML = COMPANY.plans.map((p) => `<div class="glass price"><div class="pt">${p.tier}</div><div class="pv">${p.price}</div><div class="pt" style="font-size:11px">${p.note}</div></div>`).join("");
@@ -1535,6 +1559,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
             <h3>${escapeHtml(openDoc.title)}</h3>
             <div class="doc-actions">
               <button class="btn sm" onclick="downloadDoc('${openDoc.id}')">⬇ Download .md</button>
+              <button class="btn ghost sm" onclick="sendToNotebook('${openDoc.id}')">${geminiLogo(16)} Open in Gemini Notebook</button>
               <button class="btn ghost sm" onclick="copyDoc('${openDoc.id}')">⧉ Copy text</button>
               <button class="btn ghost sm" onclick="deleteDoc('${openDoc.id}')">✕ Delete</button>
             </div>
@@ -1565,13 +1590,30 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         setTimeout(() => URL.revokeObjectURL(url), 1500);
       }
       function copyDoc(id) { const d = docs.find((x) => x.id === id); if (d) navigator.clipboard?.writeText(d.body).then(() => toast("Copied", "ok")); }
+      const NOTEBOOK_URL = "https://notebooklm.google.com/";
+      function geminiLogo(w) {
+        w = w || 22;
+        return `<svg viewBox="0 0 48 40" width="${w}" height="${Math.round(w * 0.83)}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-linecap="round" aria-label="Gemini Notebook">
+          <path d="M6 38 V22 a18 18 0 0 1 36 0 V38" stroke="#3b82f6" stroke-width="5"/>
+          <path d="M14 38 V22 a10 10 0 0 1 20 0 V38" stroke="#60a5fa" stroke-width="4.6"/>
+          <path d="M21 38 V23 a3 3 0 0 1 6 0 V38" stroke="#a78bfa" stroke-width="4.2"/>
+        </svg>`;
+      }
+      function openNotebook() { window.open(NOTEBOOK_URL, "_blank", "noopener"); }
+      function sendToNotebook(id) {
+        const d = docs.find((x) => x.id === id); if (!d) return;
+        const a = agentById(d.agentId);
+        const text = `${d.title}\n\n(${a.name} · JABB Networks Mission Control)\n\n${d.body}`;
+        const go = () => { window.open(NOTEBOOK_URL, "_blank", "noopener"); toast("Copied — paste into Gemini Notebook", "ok"); logTask("Notebook", "Sent to Gemini Notebook: " + d.title.slice(0, 40)); };
+        if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(go, go); else go();
+      }
       function deleteDoc(id) { if (!confirm("Delete this document?")) return; docs = docs.filter((x) => x.id !== id); LS.set("docs", docs); openDocId = null; renderCrewDocs(); }
       function saveLastReply() { const m = (chats[activeAgent] || []).filter((x) => x.role === "assistant").pop(); if (m) saveDoc(activeAgent, m.content); }
 
       /* ==================== CONTROL ==================== */
       function renderControl() {
         $("s_ollama").value = isBridged ? BRIDGE.ollama : settings.ollama;
-        $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic; $("s_serpapi").value = settings.serpapi || "";
+        $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic; $("s_serpapi").value = settings.serpapi || ""; $("s_gemini").value = settings.gemini || "";
         $("s_operator").value = prefs.operator; $("s_feed").value = prefs.feed; $("s_greet").checked = !!prefs.greet;
         if (isBridged) { const b = $("bridgeBanner"); b.style.display = "block"; b.innerHTML = "🔗 <b>Bridge active</b> — local models routed via " + BRIDGE.url + " (Ollama: " + BRIDGE.ollama + ")"; }
         renderModels(); renderAgentModels(); renderVoice();
@@ -1606,7 +1648,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       function rmModel(id) { customModels = customModels.filter((c) => c.id !== id); LS.set("models", customModels); renderModels(); }
       function saveSettings() {
-        settings = { ollama: $("s_ollama").value.trim() || "http://localhost:11434", openai: $("s_openai").value.trim(), anthropic: $("s_anthropic").value.trim(), serpapi: $("s_serpapi").value.trim() };
+        settings = { ollama: $("s_ollama").value.trim() || "http://localhost:11434", openai: $("s_openai").value.trim(), anthropic: $("s_anthropic").value.trim(), serpapi: $("s_serpapi").value.trim(), gemini: $("s_gemini").value.trim() };
         LS.set("settings", settings); toast("Endpoints saved", "ok");
       }
 
@@ -1708,6 +1750,18 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         if (model.provider === "transformers") return streamTransformers(model, system, history, onChunk);
         if (model.provider === "webllm") return streamWebLLM(model, system, history, onChunk);
         if (model.provider === "anthropic") return streamAnthropic(model, system, history, onChunk);
+        if (model.provider === "gemini") {
+          const gbase = (model.base || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/$/, "");
+          const gkey = model.key || settings.gemini;
+          if (!gkey) throw new Error("Set your Google Gemini API key in Control → Endpoints.");
+          const gmsgs = [{ role: "system", content: system }, ...history];
+          const gresp = await fetch(gbase + "/chat/completions", {
+            method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + gkey },
+            body: JSON.stringify({ model: model.model, messages: gmsgs, stream: true, temperature: 0.7 }),
+          });
+          if (!gresp.ok) throw new Error("HTTP " + gresp.status + " from Gemini");
+          return readSSE(gresp, (o) => { const c = o.choices?.[0]?.delta?.content; if (c) onChunk(c); });
+        }
         let base = (model.base || "").replace(/\/$/, "");
         if (model.provider === "ollama" && !/\/v1$/.test(base)) base += "/v1";
         const key = model.key || (model.provider === "openai" ? settings.openai : "") || "not-needed";
