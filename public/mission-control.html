@@ -356,8 +356,85 @@
 
       .empty-hint { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 13px; }
 
+      /* ===== LIBRARY · crew documents ===== */
+      .lib { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
+      .lib-search { width: 100%; background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg); padding: 9px 12px; border-radius: 10px; font-size: 12.5px; outline: none; margin-bottom: 10px; }
+      .lib-search:focus { border-color: var(--stroke2); }
+      .lib-folder { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px; cursor: pointer; font-size: 12.5px; border: 1px solid transparent; }
+      .lib-folder:hover { background: var(--glass2); }
+      .lib-folder.sel { background: var(--accent-dim); border-color: var(--stroke2); }
+      .lib-folder .ct { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+      .lib-folder .fav { width: 22px; height: 22px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #05080e; }
+      .doc-item { padding: 12px; border: 1px solid var(--stroke); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: .16s; }
+      .doc-item:hover { border-color: var(--stroke2); background: var(--glass2); }
+      .doc-item .dt { font-size: 14px; font-weight: 700; }
+      .doc-item .dm { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+      .doc-reader { padding: 4px 2px; }
+      .doc-reader h3 { font-size: 20px; margin: 6px 0 4px; }
+      .doc-reader .body { font-size: 13.5px; line-height: 1.65; color: var(--fg); white-space: pre-wrap; margin-top: 12px; }
+      .doc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+      .msg-actions { margin-top: 6px; }
+      .msg-actions button { font-size: 10.5px; background: none; border: 1px solid var(--stroke); color: var(--muted); padding: 3px 8px; border-radius: 7px; }
+      .msg-actions button:hover { color: var(--fg); border-color: var(--stroke2); }
+
+      /* ===== PREMIUM AGENT PROFILE (JARVIS operatives) ===== */
+      .op-select { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+      .op-pick { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border-radius: 14px; border: 1px solid var(--stroke); background: var(--glass); cursor: pointer; transition: .16s; }
+      .op-pick:hover { border-color: var(--stroke2); }
+      .op-pick.sel { border-color: var(--accent); box-shadow: 0 0 20px rgba(34,211,238,.16) inset; }
+      .op-pick .pic { width: 40px; height: 40px; border-radius: 11px; overflow: hidden; flex-shrink: 0; background: #05080e; }
+      .op-pick .pic svg { width: 100%; height: 100%; display: block; }
+      .op-pick .nm { font-size: 13px; font-weight: 800; }
+      .op-pick .rl { font-size: 10.5px; color: var(--muted); }
+
+      .op-layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+      .op-portrait-card { padding: 0; overflow: hidden; position: relative; }
+      .op-portrait-card .portrait { width: 100%; display: block; }
+      .op-portrait-card .code { position: absolute; bottom: 10px; left: 14px; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+      .op-portrait-card .active-badge { position: absolute; top: 12px; right: 12px; }
+      .op-donut-card { padding: 16px; margin-bottom: 16px; }
+      .op-donut-wrap { display: grid; place-items: center; }
+      .op-donut-legend { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; width: 100%; }
+      .op-legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+      .op-legend-row .sw { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+      .op-legend-row .pc { margin-left: auto; font-family: var(--mono); color: var(--muted); }
+
+      .op-detail { padding: 20px; }
+      .op-detail .op-name { font-size: 26px; font-weight: 900; letter-spacing: -.3px; line-height: 1; }
+      .op-detail .op-role { color: var(--muted); font-size: 13px; margin: 4px 0 2px; }
+      .op-detail .op-tag { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 8px 0 18px; max-width: 560px; }
+      .op-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; margin-bottom: 20px; }
+      .op-stat .sv { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+      .op-stat .sk { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+      .op-rows { border-top: 1px solid var(--stroke); }
+      .op-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--stroke); font-size: 12.5px; }
+      .op-row .rk { color: var(--muted); letter-spacing: .5px; text-transform: uppercase; font-size: 11px; }
+      .op-row .rv { font-family: var(--mono); text-align: right; color: var(--fg); }
+      .op-row .rv.accent { color: var(--accent); }
+
+      .op-lower { grid-template-columns: 1.1fr 1fr; margin-top: 16px; }
+      .hourbars { display: flex; align-items: flex-end; gap: 3px; height: 90px; margin-top: 6px; }
+      .hourbars i { flex: 1; background: linear-gradient(180deg, var(--gold), rgba(245,197,66,.12)); border-radius: 2px 2px 0 0; min-height: 3px; }
+      .hourbars i.peak { background: linear-gradient(180deg, #ffe082, var(--gold)); box-shadow: 0 0 10px rgba(245,197,66,.5); }
+      .hour-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--muted2); margin-top: 4px; }
+      .opsfeed { display: flex; flex-direction: column; max-height: 210px; overflow-y: auto; }
+      .opsfeed .r { display: grid; grid-template-columns: 60px 1fr 28px; gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--stroke); font-size: 12px; align-items: baseline; }
+      .opsfeed .r:last-child { border-bottom: 0; }
+      .opsfeed .r .tm { font-family: var(--mono); font-size: 10.5px; color: var(--muted2); }
+      .opsfeed .r .tx { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .opsfeed .r .ok { font-family: var(--mono); font-size: 10px; color: var(--green); text-align: right; }
+      .heat { display: grid; grid-template-columns: 40px 1fr; gap: 8px; margin-top: 8px; }
+      .heat-days { display: flex; flex-direction: column; gap: 3px; }
+      .heat-days span { font-size: 9.5px; color: var(--muted2); height: 15px; line-height: 15px; font-family: var(--mono); }
+      .heat-grid { display: grid; grid-template-rows: repeat(7, 15px); gap: 3px; }
+      .heat-row { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; }
+      .heat-cell { border-radius: 3px; background: var(--accent); }
+
+      @media (max-width: 1024px) { .op-layout { grid-template-columns: 300px 1fr; } }
       @media (max-width: 900px) {
         .hero-row, .split-2, .comms { grid-template-columns: 1fr; }
+        .op-layout, .op-lower { grid-template-columns: 1fr !important; }
+        .op-stats { grid-template-columns: repeat(2, 1fr); }
         .stat-grid { grid-template-columns: repeat(2, 1fr); }
         .kanban { grid-template-columns: 1fr; }
         .comms { height: auto; }
@@ -408,12 +485,7 @@
                 <button class="btn ghost" onclick="jarvisGreet(true)">🔊 Replay greeting</button>
               </div>
             </div>
-            <div class="glass core-orb-wrap">
-              <div>
-                <div class="core-orb" id="coreOrb"></div>
-                <div class="core-label">J.A.R.V.I.S · CORE</div>
-              </div>
-            </div>
+            <div class="glass core-orb-wrap" id="heroVisual"></div>
           </div>
 
           <div class="grid stat-grid">
@@ -550,6 +622,12 @@
             </div>
             <a class="btn ghost" href="https://jabbnetworks.com" target="_blank" rel="noopener">jabbnetworks.com ↗</a>
           </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Crew Documents · everything the crew writes</div>
+            <div id="crewDocs"></div>
+          </div>
+
           <div class="glass card">
             <div class="card-title"><span class="dot"></span> Services</div>
             <div class="grid kb-grid" id="kbServices"></div>
@@ -604,13 +682,44 @@
           </div>
 
           <div class="glass card">
+            <div class="card-title violet"><span class="dot"></span> Agent Models · which model each agent thinks with</div>
+            <p style="margin:-6px 0 12px;color:var(--muted);font-size:12px">A change applies on that agent's next message.</p>
+            <div id="agentModels" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))"></div>
+          </div>
+
+          <div class="glass card">
             <div class="card-title gold"><span class="dot"></span> Endpoints & keys</div>
             <div class="field"><label>Ollama base URL</label><input id="s_ollama" placeholder="http://localhost:11434" /></div>
             <div class="row2">
               <div class="field"><label>OpenAI API key</label><input id="s_openai" type="password" placeholder="sk-…" /></div>
               <div class="field"><label>Anthropic API key</label><input id="s_anthropic" type="password" placeholder="sk-ant-…" /></div>
             </div>
+            <div class="field"><label>SerpAPI key (Google Jobs search for Talent Scout)</label><input id="s_serpapi" type="password" placeholder="serpapi key…" /></div>
             <button class="btn" onclick="saveSettings()">Save endpoints</button>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Reports · downloadable summaries</div>
+            <p style="margin:-6px 0 12px;color:var(--muted);font-size:12px">Generate a Markdown summary of the crew's work and download it.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" onclick="downloadDocsSummary()">⬇ Documents summary (.md)</button>
+              <button class="btn ghost" onclick="downloadMissionSummary()">⬇ Full mission summary (.md)</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Voice · how the crew listens &amp; speaks</div>
+            <div class="banner info">Voice input &amp; spoken replies apply to <b>every agent and every model</b> — local (Ollama/Nemotron), in-browser, and cloud alike. Uses your browser's built-in voices (free, private, no credits).</div>
+            <div class="row2">
+              <div class="field"><label>Voice</label><select id="v_voice"></select></div>
+              <div class="field"><label>Applies to</label><input value="All agents · all models" disabled /></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Rate <span id="v_rate_l" style="color:var(--muted)"></span></label><input id="v_rate" type="range" min="0.6" max="1.6" step="0.02" /></div>
+              <div class="field"><label>Pitch <span id="v_pitch_l" style="color:var(--muted)"></span></label><input id="v_pitch" type="range" min="0.5" max="1.5" step="0.02" /></div>
+            </div>
+            <label class="toolopt" style="max-width:320px"><input type="checkbox" id="v_autospeak" /> Auto-speak crew replies (all models)</label>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveVoice()">Save voice</button><button class="btn ghost" onclick="testVoice()">🔊 Test voice</button></div>
           </div>
 
           <div class="glass card">
@@ -670,7 +779,9 @@
         <div class="mh"><h2>Refresh job feed</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
         <p class="sub">Pull from a JSON feed URL, or paste roles the crew should track. Seeded set stays unless you clear it.</p>
         <div class="field"><label>Feed URL (JSON array of jobs)</label><input id="feed_url" placeholder="https://…/jobs.json" /></div>
-        <button class="btn ghost sm" onclick="fetchFeed()">⟳ Fetch from URL</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="fetchFeed()">⟳ Fetch from URL</button>
+        <button class="btn sm" onclick="fetchSerpapi()">🔎 Fetch from SerpAPI (Google Jobs)</button></div>
+        <p style="margin:8px 0 0;color:var(--muted);font-size:11px">SerpAPI pulls live remote Power Platform roles from Google Jobs. Add your key in Control → Endpoints. Runs through the PC bridge when available (avoids CORS).</p>
         <div class="field" style="margin-top:16px"><label>Paste jobs — one per line: <code>Title | Company | Salary | Type | URL</code></label>
           <textarea id="feed_paste" rows="6" placeholder="Power Platform Developer | Acme | $120k | Full-time | https://…"></textarea></div>
         <div style="display:flex;gap:8px"><button class="btn" onclick="importPaste()">+ Add pasted jobs</button><button class="btn ghost" onclick="restoreSeed()">↺ Restore seeded jobs</button></div>
@@ -687,7 +798,7 @@
       };
       const $ = (id) => document.getElementById(id);
 
-      let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "" });
+      let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "", serpapi: "" });
       let prefs = LS.get("prefs", { operator: "Alexander", feed: "", greet: true });
 
       /* ==================== BRIDGE (optional PC proxy) ==================== */
@@ -867,10 +978,13 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
 
         $("homeCrew").innerHTML = crew.map((a) => `
           <div class="agent-mini" onclick="openChatWith('${a.id}')" style="cursor:pointer">
-            <div class="agent-av" style="background:${a.color}22;color:${a.color}">${a.glyph}</div>
+            <div class="agent-av" style="background:#05080e;padding:0;overflow:hidden">${portraitSVG(a, { compact: true })}</div>
             <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
             <div class="st"><span class="pulse-dot"></span></div>
           </div>`).join("");
+
+        const hv = $("heroVisual");
+        if (hv) hv.innerHTML = `<div style="width:100%"><div style="border-radius:14px;overflow:hidden;border:1px solid var(--stroke)">${portraitSVG(agentById("jarvis"), { compact: true })}</div><div class="core-label" style="margin-top:10px">J.A.R.V.I.S · CHIEF OF STAFF</div><span class="core-orb" id="coreOrb" style="display:none"></span></div>`;
 
         const bars = $("activityBars");
         const seed = taskLog.length;
@@ -880,26 +994,219 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         }).join("");
       }
 
-      /* ==================== CREW / AGENTS ==================== */
+      /* ==================== CREW / AGENTS (premium profiles) ==================== */
+      const AGENT_STATS = {
+        jarvis:    { code: "J-00", badge: "ORCHESTRATOR", share: 41, sessions: 92, messages: 868, tokens: 1750000, tasks: 89, events: 181, peak: "09:00", channel: "Local · Live thread", outcomes: "87 done · 1 running · 1 failed" },
+        scout:     { code: "S-01", badge: "TALENT SCOUT", share: 27, sessions: 64, messages: 540, tokens: 920000, tasks: 61, events: 132, peak: "11:00", channel: "Local · Job feed", outcomes: "58 done · 2 running · 1 failed" },
+        architect: { code: "A-02", badge: "ARCHITECT", share: 22, sessions: 48, messages: 410, tokens: 1100000, tasks: 44, events: 96, peak: "14:00", channel: "Local · Solutioning", outcomes: "43 done · 1 running · 0 failed" },
+        ops:       { code: "O-03", badge: "CLIENT OPS", share: 10, sessions: 22, messages: 190, tokens: 320000, tasks: 18, events: 40, peak: "16:00", channel: "Local · Client comms", outcomes: "18 done · 0 running · 0 failed" },
+      };
+      const SAMPLE_OPS = [
+        { t: "07:40", who: "Comms", msg: "Scanned remote Power Platform roles — 11 tracked" },
+        { t: "07:38", who: "Talent Scout", msg: "Drafted tailored outreach for top match" },
+        { t: "07:36", who: "Comms", msg: "Run my morning briefing" },
+        { t: "07:35", who: "JARVIS", msg: "Good morning, Alexander" },
+        { t: "07:32", who: "Ops", msg: "Prepared Small Business proposal" },
+        { t: "07:30", who: "Architect", msg: "Scoped Power Apps + Dataverse solution" },
+      ];
+      function statsFor(a) {
+        const idx = crew.indexOf(a);
+        const base = AGENT_STATS[a.id] || { code: "A-" + String(idx < 0 ? 9 : idx).padStart(2, "0"), badge: (a.role || "AGENT").toUpperCase().slice(0, 12), share: 10, sessions: 20, messages: 160, tokens: 280000, tasks: 16, events: 36, peak: "12:00", channel: "Local · Live thread", outcomes: "16 done · 0 running · 0 failed" };
+        const live = taskLog.filter((e) => e.who === a.name).length;
+        return { ...base, tasks: base.tasks + live, events: base.events + live };
+      }
+      function fmtTok(n) { return n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "K" : "" + n; }
+      function agentStatus(a) { return (a.id === "jarvis" || (chats[a.id] && chats[a.id].length > 1)) ? "ACTIVE" : "STANDBY"; }
+
+      // ---- Inline-SVG JARVIS operative portrait (JABB Networks) ----
+      let _pid = 0;
+      function suitSVG(uid, c, badge) {
+        return `
+          <path d="M46 400 L58 306 C70 292 108 282 160 282 C212 282 250 292 262 306 L274 400 Z" fill="#0e1723" stroke="#243444" stroke-width="1"/>
+          <path d="M120 288 L160 320 L200 288" fill="none" stroke="#243444" stroke-width="2"/>
+          <path d="M160 320 L160 400" stroke="#1a2836" stroke-width="2"/>
+          <rect x="118" y="310" width="84" height="72" rx="12" fill="#0a111c" stroke="${c}" stroke-opacity="0.55" stroke-width="1.4"/>
+          <text x="160" y="335" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="11" font-weight="700" fill="#dbeeff" letter-spacing="0.5" textLength="70" lengthAdjust="spacingAndGlyphs">${badge}</text>
+          <line x1="138" y1="344" x2="182" y2="344" stroke="${c}" stroke-opacity="0.6" stroke-width="1"/>
+          <text x="160" y="359" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="${c}" letter-spacing="3">AGENT</text>
+          <circle cx="160" cy="372" r="6" fill="none" stroke="${c}" stroke-opacity="0.6" stroke-width="1.2"/>
+          <path d="M157 372 h6 M160 369 v6" stroke="${c}" stroke-opacity="0.7" stroke-width="1"/>
+          <circle cx="236" cy="312" r="12" fill="#0a111c" stroke="${c}" stroke-opacity="0.5" stroke-width="1.2"/>
+          <text x="236" y="317" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="12" font-weight="900" fill="${c}">J</text>
+          <text x="160" y="395" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="9" font-weight="700" fill="#7f9cb5" letter-spacing="4" textLength="150" lengthAdjust="spacingAndGlyphs">JABB NETWORKS</text>`;
+      }
+      function portraitSVG(a, opts) {
+        opts = opts || {};
+        const uid = a.id + "-" + (_pid++);
+        const c = a.color;
+        const name = (a.name || "").toUpperCase();
+        const compact = !!opts.compact;
+        const H = compact ? 320 : 400;
+        return `<svg class="portrait" viewBox="0 0 320 ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${name} — JABB Networks operative">
+          <defs>
+            <radialGradient id="glow-${uid}" cx="50%" cy="32%" r="62%">
+              <stop offset="0%" stop-color="${c}" stop-opacity="0.45"/><stop offset="55%" stop-color="${c}" stop-opacity="0.1"/><stop offset="100%" stop-color="${c}" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="steel-${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a4a5e"/><stop offset="45%" stop-color="#1a2636"/><stop offset="100%" stop-color="#0a121d"/></linearGradient>
+            <linearGradient id="visor-${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0c131f"/><stop offset="100%" stop-color="#04070d"/></linearGradient>
+            <linearGradient id="rim-${uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${c}"/><stop offset="100%" stop-color="${c}" stop-opacity="0"/></linearGradient>
+            <filter id="soft-${uid}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.4"/></filter>
+          </defs>
+          <rect width="320" height="${H}" fill="#060b14"/>
+          <ellipse cx="160" cy="146" rx="150" ry="150" fill="url(#glow-${uid})"/>
+          ${compact ? "" : suitSVG(uid, c, statsFor(a).badge)}
+          <g>
+            <path d="M160 44 C214 44 250 84 250 146 C250 188 238 214 220 232 L214 258 C207 270 188 278 160 278 C132 278 113 270 106 258 L100 232 C82 214 70 188 70 146 C70 84 106 44 160 44 Z" fill="url(#steel-${uid})" stroke="#46586e" stroke-width="1.2"/>
+            <path d="M92 150 C92 120 108 96 132 86 L140 104 C120 118 112 140 114 168 Z" fill="#22323f" opacity="0.75"/>
+            <path d="M228 150 C228 120 212 96 188 86 L180 104 C200 118 208 140 206 168 Z" fill="#141f2b" opacity="0.85"/>
+            <path d="M160 92 C196 92 212 122 212 160 C212 200 190 234 160 240 C130 234 108 200 108 160 C108 122 124 92 160 92 Z" fill="url(#visor-${uid})" stroke="#2b3b4d" stroke-width="1"/>
+            <path d="M120 116 C140 106 180 106 200 116 L196 128 C178 120 142 120 124 128 Z" fill="#2a3a4c"/>
+            <line x1="160" y1="96" x2="160" y2="238" stroke="#0a121d" stroke-width="2"/>
+            <path d="M126 150 L150 158 L150 168 L126 162 Z" fill="${c}" opacity="0.85" filter="url(#soft-${uid})"/>
+            <path d="M194 150 L170 158 L170 168 L194 162 Z" fill="${c}" opacity="0.85" filter="url(#soft-${uid})"/>
+            <path d="M126 150 L150 158 L150 168 L126 162 Z" fill="#cff6ff"/>
+            <path d="M194 150 L170 158 L170 168 L194 162 Z" fill="#cff6ff"/>
+            <path d="M100 232 C82 214 70 188 70 146 C70 104 88 72 118 56" fill="none" stroke="url(#rim-${uid})" stroke-width="6" stroke-linecap="round" filter="url(#soft-${uid})"/>
+            <path d="M100 232 C82 214 70 188 70 146 C70 104 88 72 118 56" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/>
+          </g>
+          ${compact ? `<text x="160" y="300" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="19" font-weight="700" fill="#dbeeff" letter-spacing="2" textLength="${Math.min(name.length * 15, 220)}" lengthAdjust="spacingAndGlyphs">${name}</text>` : ""}
+        </svg>`;
+      }
+
+      // ---- Share-of-activity donut ----
+      function donutSVG(selId) {
+        const list = crew.map((a) => ({ a, share: statsFor(a).share }));
+        const total = list.reduce((s, x) => s + x.share, 0) || 1;
+        const r = 78, C = 2 * Math.PI * r, gap = C * 0.012;
+        let off = 0;
+        const arcs = list.map(({ a, share }) => {
+          const frac = share / total, len = Math.max(C * frac - gap, 0.001);
+          const seg = `<circle cx="110" cy="110" r="${r}" fill="none" stroke="${a.color}" stroke-width="15" stroke-linecap="round" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 110 110)" opacity="${a.id === selId ? 1 : 0.45}"/>`;
+          off += C * frac; return seg;
+        }).join("");
+        const sel = agentById(selId), st = statsFor(sel);
+        return `<svg viewBox="0 0 220 220" width="196" height="196" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="110" cy="110" r="78" fill="none" stroke="#12202e" stroke-width="15"/>${arcs}
+          <circle cx="110" cy="110" r="57" fill="#070d16" stroke="${sel.color}" stroke-width="1.4" stroke-opacity="0.6"/>
+          <text x="110" y="104" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="17" font-weight="800" fill="#e4f2ff" textLength="${Math.min(sel.name.length * 12, 96)}" lengthAdjust="spacingAndGlyphs">${sel.name.toUpperCase()}</text>
+          <text x="110" y="122" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#7f9cb5">${st.share}% OF ACTIVITY</text>
+          <text x="110" y="138" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="${sel.color}" letter-spacing="2">${agentStatus(sel)}</text>
+        </svg>`;
+      }
+
+      let selectedAgentId = LS.get("selectedAgent", "jarvis");
+      function setSelectedAgent(id) { selectedAgentId = id; LS.set("selectedAgent", id); renderCrew(); }
+
       function renderCrew() {
-        $("crewGrid").innerHTML = crew.map((a) => `
-          <div class="glass crew-card">
-            <div class="crew-top" style="background:linear-gradient(120deg, ${a.color}18, transparent)">
-              <div class="agent-av" style="background:${a.color}22;color:${a.color}">${a.glyph}</div>
-              <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
-            </div>
-            <div class="crew-body">
-              <div class="tag">${a.tag}</div>
-              <div class="crew-meta">
-                <span class="chip muted">${modelById(a.model).label.split(" (")[0]}</span>
-                ${a.tools.map((t) => `<span class="chip">${TOOLS[t]?.icon || "•"} ${TOOLS[t]?.label || t}</span>`).join("")}
+        const grid = $("crewGrid");
+        grid.style.display = "block"; grid.style.gridTemplateColumns = "none";
+        if (!agentById(selectedAgentId)) selectedAgentId = crew[0].id;
+        const sel = agentById(selectedAgentId), st = statsFor(sel), status = agentStatus(sel);
+
+        const selector = `<div class="op-select">${crew.map((a) => `
+          <div class="op-pick ${a.id === selectedAgentId ? "sel" : ""}" onclick="setSelectedAgent('${a.id}')">
+            <div class="pic">${portraitSVG(a, { compact: true })}</div>
+            <div><div class="nm">${a.name}</div><div class="rl">${statsFor(a).badge}</div></div>
+          </div>`).join("")}</div>`;
+
+        const legend = crew.map((a) => `<div class="op-legend-row"><span class="sw" style="background:${a.color};opacity:${a.id === selectedAgentId ? 1 : 0.5}"></span>${a.name}<span class="pc">${statsFor(a).share}%</span></div>`).join("");
+        const donutCard = `<div class="glass op-donut-card"><div class="card-title"><span class="dot"></span> Share of Activity</div><div class="op-donut-wrap">${donutSVG(selectedAgentId)}</div><div class="op-donut-legend">${legend}</div></div>`;
+        const portraitCard = `<div class="glass op-portrait-card">${portraitSVG(sel)}<span class="active-badge chip ${status === "ACTIVE" ? "green" : "muted"}">● ${status}</span><span class="code">${st.code} · ${sel.role}</span></div>`;
+
+        const stat = (v, k) => `<div class="op-stat"><div class="sv">${v}</div><div class="sk">${k}</div></div>`;
+        const row = (k, v, acc) => `<div class="op-row"><span class="rk">${k}</span><span class="rv ${acc ? "accent" : ""}">${escapeHtml(String(v))}</span></div>`;
+        const detail = `<div class="glass op-detail">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div><div class="op-name">${sel.name}</div><div class="op-role">${st.badge} · ${sel.role}</div></div>
+            <button class="btn ghost sm" onclick="editAgent('${sel.id}')">⚙ Configure look &amp; tools</button>
+          </div>
+          <div class="op-tag">${escapeHtml(sel.tag)}</div>
+          <div class="op-stats">
+            ${stat(st.share + "%", "Share of activity")}${stat(st.sessions, "Sessions")}${stat(st.messages, "Messages")}
+            ${stat(fmtTok(st.tokens), "Tokens")}${stat(st.tasks, "Logged tasks")}${stat(st.events, "Events · 80h")}
+          </div>
+          <div class="op-rows">
+            ${row("Model", modelById(sel.model).label.split(" (")[0], true)}
+            ${row("Channel", st.channel)}
+            ${row("Tools", sel.tools.map((t) => TOOLS[t]?.label || t).join(" · "))}
+            ${row("Own session store", "YES")}
+            ${row("Outcomes", st.outcomes)}
+            ${row("Peak hour", st.peak)}
+          </div>
+          <button class="btn block" style="margin-top:16px" onclick="openChatWith('${sel.id}')">❯ Open Comms with ${sel.name}</button>
+        </div>`;
+
+        const peakH = parseInt(st.peak) || 9;
+        const bars = Array.from({ length: 24 }).map((_, h) => {
+          const d = Math.abs(h - peakH);
+          const v = Math.min(88, Math.max(6, 74 * Math.exp(-(d * d) / 40) + (Math.sin(h * 1.7 + crew.indexOf(sel)) + 1) * 8));
+          return `<i class="${h === peakH ? "peak" : ""}" style="height:${v}px"></i>`;
+        }).join("");
+        const hourCard = `<div class="glass card"><div class="card-title gold"><span class="dot"></span> Hour of day · last 7 days</div><div class="hourbars">${bars}</div><div class="hour-axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div></div>`;
+
+        const agentOps = taskLog.filter((e) => e.who === sel.name).slice(0, 8);
+        const opsRows = agentOps.length ? agentOps.map((o) => `<div class="r"><span class="tm">${o.t}</span><span class="tx">${escapeHtml(o.msg)}</span><span class="ok">OK</span></div>`).join("")
+          : `<div class="r"><span class="tm">--:--</span><span class="tx" style="color:var(--muted2)">Nothing recorded for this agent yet</span><span class="ok"></span></div>`;
+        const opsCard = `<div class="glass card"><div class="card-title"><span class="dot"></span> Recent operations · ${sel.name}</div><div class="opsfeed">${opsRows}</div></div>`;
+
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const heat = `<div class="glass card"><div class="card-title violet"><span class="dot"></span> Activity heatmap · who is busy when (last 7 days)</div>
+          <div class="heat"><div class="heat-days">${days.map((d) => `<span>${d}</span>`).join("")}</div>
+          <div class="heat-grid">${days.map((_, di) => `<div class="heat-row">${Array.from({ length: 24 }).map((_, h) => {
+            const d = Math.abs(h - peakH); let o = Math.max(0.05, Math.exp(-(d * d) / 55) * (0.5 + 0.5 * Math.abs(Math.sin(h * 1.3 + di * 2.1)))); if (di > 4) o *= 0.4;
+            return `<div class="heat-cell" style="opacity:${o.toFixed(2)};background:${h === peakH ? "var(--gold)" : "var(--accent)"}"></div>`;
+          }).join("")}</div>`).join("")}</div></div></div>`;
+
+        grid.innerHTML = selector + `<div class="op-layout"><div>${donutCard}${portraitCard}</div>${detail}</div>` + `<div class="grid op-lower" style="margin-top:16px">${hourCard}${opsCard}</div>` + `<div style="margin-top:16px">${heat}</div>` + standingOrdersCard();
+      }
+
+      /* ==================== STANDING ORDERS (crew cron) ==================== */
+      function defaultOrders() {
+        return [
+          { id: "o1", title: "Scan new remote Power Platform roles", schedule: "Daily at 08:00", agentId: "scout", prompt: "Scan for new remote-only Power Platform roles and summarize the top 5 with apply links and why they fit.", active: true, last: "08:00 today" },
+          { id: "o2", title: "Morning briefing", schedule: "Daily at 09:00", agentId: "jarvis", prompt: "Give me a concise morning briefing: application pipeline status, top remote roles, and today's priorities.", active: true, last: "09:00 today" },
+        ];
+      }
+      let orders = LS.get("orders", defaultOrders());
+      function standingOrdersCard() {
+        return `<div class="glass card" style="margin-top:16px">
+          <div class="section-head" style="margin-bottom:12px"><div><div class="card-title gold" style="margin:0"><span class="dot"></span> Standing Orders · created by the crew</div><p style="margin:6px 0 0;color:var(--muted);font-size:12px">${orders.length} scheduled ${orders.length === 1 ? "job" : "jobs"} · ${orders.filter((o) => o.active).length} active</p></div><button class="btn ghost sm" onclick="addOrder()">+ New order</button></div>
+          ${orders.length ? orders.map((o) => {
+            const ag = agentById(o.agentId);
+            return `<div class="ktask" style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+                <div><div class="kt">${escapeHtml(o.title)} ${o.active ? '<span class="chip green">active</span>' : '<span class="chip muted">paused</span>'}</div>
+                <div class="kc" style="text-transform:uppercase;letter-spacing:.5px;margin:3px 0">${escapeHtml(o.schedule)} · routes to ${ag ? ag.name : o.agentId}${o.last ? " · last " + escapeHtml(o.last) : ""}</div>
+                <div class="kc">${escapeHtml(o.prompt)}</div></div>
+                <div class="pic" style="width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0">${ag ? portraitSVG(ag, { compact: true }) : ""}</div>
               </div>
-            </div>
-            <div class="crew-foot">
-              <button class="btn sm" style="flex:1;justify-content:center" onclick="openChatWith('${a.id}')">❯ Message</button>
-              <button class="btn ghost sm" style="flex:1;justify-content:center" onclick="editAgent('${a.id}')">⚙ Configure</button>
-            </div>
-          </div>`).join("");
+              <div style="display:flex;gap:6px;margin-top:9px">
+                <button class="btn sm" onclick="runOrderNow('${o.id}')">▶ Run now</button>
+                <button class="btn ghost sm" onclick="toggleOrder('${o.id}')">${o.active ? "⏸ Pause" : "▶ Resume"}</button>
+                <button class="btn ghost sm" onclick="delOrder('${o.id}')">✕ Delete</button>
+              </div></div>`;
+          }).join("") : `<div class="empty-hint">No standing orders. Add one to have the crew run recurring work.</div>`}
+        </div>`;
+      }
+      function runOrderNow(id) {
+        const o = orders.find((x) => x.id === id); if (!o) return;
+        o.last = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); LS.set("orders", orders);
+        activeAgent = o.agentId; LS.set("activeAgent", o.agentId);
+        go("comms");
+        chats[o.agentId] = chats[o.agentId] || []; if (!chats[o.agentId].length) greetAgent(o.agentId);
+        $("chatInput").value = o.prompt; autosize();
+        logTask("JARVIS", "Ran standing order: " + o.title);
+        setTimeout(() => sendChat(), 250);
+      }
+      function toggleOrder(id) { const o = orders.find((x) => x.id === id); if (o) { o.active = !o.active; LS.set("orders", orders); renderCrew(); } }
+      function delOrder(id) { orders = orders.filter((x) => x.id !== id); LS.set("orders", orders); renderCrew(); }
+      function addOrder() {
+        const title = prompt("Order title (e.g. Scan new remote roles):"); if (!title) return;
+        const schedule = prompt("Schedule (e.g. Daily at 08:00):", "Daily at 08:00") || "Daily";
+        const agentId = prompt("Route to agent id (jarvis / scout / architect / ops):", "scout") || "scout";
+        const p = prompt("Prompt to send the agent:"); if (!p) return;
+        orders.unshift({ id: "o" + Date.now(), title, schedule, agentId, prompt: p, active: true, last: "" });
+        LS.set("orders", orders); renderCrew(); toast("Standing order added", "ok");
       }
       function resetCrew() { crew = defaultCrew(); LS.set("crew", crew); renderCrew(); toast("Crew reset to defaults", "ok"); }
 
@@ -949,11 +1256,11 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       function renderComms() {
         $("commsSide").innerHTML = crew.map((a) => `
           <div class="agent-pick ${a.id === activeAgent ? "active" : ""}" onclick="openChatWith('${a.id}')">
-            <div class="agent-av" style="background:${a.color}22;color:${a.color}">${a.glyph}</div>
+            <div class="agent-av" style="background:#05080e;padding:0;overflow:hidden">${portraitSVG(a, { compact: true })}</div>
             <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
           </div>`).join("");
         const a = agentById(activeAgent);
-        $("chatAv").textContent = a.glyph; $("chatAv").style.background = a.color + "22"; $("chatAv").style.color = a.color;
+        $("chatAv").innerHTML = portraitSVG(a, { compact: true }); $("chatAv").style.background = "#05080e"; $("chatAv").style.padding = "0"; $("chatAv").style.overflow = "hidden";
         $("chatNm").textContent = a.name; $("chatRl").textContent = a.role;
         $("chatTools").innerHTML = a.tools.map((t) => `<span class="chip muted">${TOOLS[t]?.icon || "•"}</span>`).join("");
         $("quickRow").innerHTML = (QUICKS[a.id] || QUICKS.jarvis).map((q) => `<button class="quick" onclick="quickFill(this)">${q}</button>`).join("");
@@ -976,10 +1283,12 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         const box = $("chatScroll"); const a = agentById(activeAgent);
         const msgs = chats[activeAgent] || [];
         if (!msgs.length) { box.innerHTML = `<div class="empty-hint">Say hello to ${a.name}.</div>`; return; }
-        box.innerHTML = msgs.map((m) => `
+        box.innerHTML = msgs.map((m, i) => `
           <div class="msg ${m.role}">
             <div class="mav" ${m.role === "assistant" ? `style="background:${a.color}22;color:${a.color}"` : ""}>${m.role === "assistant" ? a.glyph : "◆"}</div>
-            <div class="bubble ${m.role}"><div class="rolen">${m.role === "user" ? prefs.operator : a.name}</div>${m.role === "user" ? escapeHtml(m.content) : md(m.content)}</div>
+            <div class="bubble ${m.role}"><div class="rolen">${m.role === "user" ? prefs.operator : a.name}</div>${m.role === "user" ? escapeHtml(m.content) : md(m.content)}
+              ${m.role === "assistant" && m.content.trim().length > 40 ? `<div class="msg-actions"><button onclick="saveDoc('${activeAgent}', chats['${activeAgent}'][${i}].content)">💾 Save to Library</button></div>` : ""}
+            </div>
           </div>`).join("");
         box.scrollTop = box.scrollHeight;
       }
@@ -1123,13 +1432,27 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         const p = pipeline.find((x) => x.id === id); if (!p || !p.date) return;
         makeCalendar(p.role, p.company, p.date, p.time || "10:00", p.notes || "", p.rate || "");
       }
-      function makeCalendar(role, co, date, time, notes, rate) {
+      async function makeCalendar(role, co, date, time, notes, rate) {
         const start = new Date(`${date}T${time}:00`);
         const end = new Date(start.getTime() + 45 * 60000);
         const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
         const title = `RTR / Interview — ${role} @ ${co}`;
         const details = `Right to Represent submitted via JABB Networks Mission Control.\nRole: ${role}\nCompany/Recruiter: ${co}${rate ? "\nRate: " + rate : ""}${notes ? "\nNotes: " + notes : ""}`;
-        // 1) .ics download
+
+        // 1) Live Google Calendar via bridge (auto-create, no click) when available
+        if (isBridged && BRIDGE.calendar?.configured) {
+          try {
+            const r = await fetch(BRIDGE.url + "/calendar/create", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({ title, description: details, start: start.toISOString(), end: end.toISOString() }),
+            });
+            const d = await r.json();
+            if (r.ok && d.ok) { toast("Event created on your Google Calendar ✅", "ok"); logTask("Ops & Client Success", "Google Calendar event created for " + role); if (d.htmlLink) window.open(d.htmlLink, "_blank", "noopener"); return; }
+            if (r.status === 401 && d.authUrl) { toast("Authorize Google Calendar, then re-add", "err"); window.open(d.authUrl, "_blank", "noopener"); }
+          } catch (e) { /* fall through to .ics + link */ }
+        }
+
+        // 2) .ics download (always reliable, no login)
         const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//JABB Networks//Mission Control//EN", "BEGIN:VEVENT",
           "UID:" + Date.now() + "@jabbnetworks", "DTSTAMP:" + fmt(new Date()), "DTSTART:" + fmt(start), "DTEND:" + fmt(end),
           "SUMMARY:" + title, "DESCRIPTION:" + details.replace(/\n/g, "\\n"), "BEGIN:VALARM", "TRIGGER:-PT30M", "ACTION:DISPLAY",
@@ -1138,7 +1461,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         const url = URL.createObjectURL(blob);
         const dl = document.createElement("a"); dl.href = url; dl.download = `RTR-${co.replace(/\W+/g, "-")}.ics`; document.body.appendChild(dl); dl.click(); dl.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1500);
-        // 2) Google Calendar prefilled event (opens in new tab)
+        // 3) Google Calendar prefilled event (opens in new tab, one click to save)
         const g = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) +
           "&dates=" + fmt(start) + "/" + fmt(end) + "&details=" + encodeURIComponent(details);
         window.open(g, "_blank", "noopener");
@@ -1176,19 +1499,97 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
 
       /* ==================== LIBRARY ==================== */
       function renderLibrary() {
+        renderCrewDocs();
         $("kbServices").innerHTML = COMPANY.services.map((s) => `<div class="glass kb-card"><h4>${s.title}</h4><p>${s.desc}</p></div>`).join("");
         $("kbPlans").innerHTML = COMPANY.plans.map((p) => `<div class="glass price"><div class="pt">${p.tier}</div><div class="pv">${p.price}</div><div class="pt" style="font-size:11px">${p.note}</div></div>`).join("");
         $("kbProcess").innerHTML = COMPANY.process.map((p) => `<div class="glass kb-card"><h4><span style="color:var(--accent);font-family:var(--mono)">${p.num}</span> ${p.title}</h4><p>${p.desc}</p></div>`).join("");
       }
 
+      /* ==================== CREW DOCUMENTS (Library) ==================== */
+      let docs = LS.get("docs", []); // {id, title, agentId, body, created}
+      let libFolder = "all", libSearch = "", openDocId = null;
+      function saveDoc(agentId, body, titleHint) {
+        const a = agentById(agentId);
+        const firstLine = (titleHint || body.split("\n").find((l) => l.trim()) || "Untitled").replace(/[#*`>]/g, "").trim().slice(0, 80);
+        const doc = { id: "d" + Date.now(), title: firstLine || "Untitled", agentId, body, created: new Date().toISOString() };
+        docs.unshift(doc); LS.set("docs", docs);
+        logTask(a.name, "Saved document to Library: " + doc.title.slice(0, 40));
+        toast("Saved to Library", "ok");
+      }
+      function renderCrewDocs() {
+        const counts = { all: docs.length };
+        crew.forEach((a) => (counts[a.id] = docs.filter((d) => d.agentId === a.id).length));
+        const folders = `<input class="lib-search" placeholder="Search documents…" value="${escapeHtml(libSearch)}" oninput="libSearchSet(this.value)" />
+          <div class="lib-folder ${libFolder === "all" ? "sel" : ""}" onclick="setFolder('all')">▣ All documents <span class="ct">${counts.all}</span></div>
+          ${crew.map((a) => `<div class="lib-folder ${libFolder === a.id ? "sel" : ""}" onclick="setFolder('${a.id}')"><span class="fav">${portraitSVG(a, { compact: true })}</span> ${a.name} <span class="ct">${counts[a.id]}</span></div>`).join("")}`;
+
+        let list = docs.filter((d) => (libFolder === "all" || d.agentId === libFolder) && (!libSearch || (d.title + d.body).toLowerCase().includes(libSearch.toLowerCase())));
+        let right;
+        const openDoc = docs.find((d) => d.id === openDocId);
+        if (openDoc) {
+          const a = agentById(openDoc.agentId); const st = statsFor(a);
+          const words = openDoc.body.trim().split(/\s+/).filter(Boolean).length;
+          right = `<div class="glass card doc-reader">
+            <button class="btn ghost sm" onclick="closeDoc()">← Back to list</button>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:12px"><span class="chip" style="color:${a.color};border-color:${a.color}55">${st.badge}</span><span style="font-size:11px;color:var(--muted)">${new Date(openDoc.created).toLocaleString()}</span></div>
+            <h3>${escapeHtml(openDoc.title)}</h3>
+            <div class="doc-actions">
+              <button class="btn sm" onclick="downloadDoc('${openDoc.id}')">⬇ Download .md</button>
+              <button class="btn ghost sm" onclick="copyDoc('${openDoc.id}')">⧉ Copy text</button>
+              <button class="btn ghost sm" onclick="deleteDoc('${openDoc.id}')">✕ Delete</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted)">Author: ${a.name} · Words: ${words} · Size: ${(new Blob([openDoc.body]).size / 1024).toFixed(1)} KB · File: ${openDoc.id}.md</div>
+            <div class="body">${md(openDoc.body)}</div>
+          </div>`;
+        } else if (list.length) {
+          right = `<div>${list.map((d) => { const a = agentById(d.agentId); return `
+            <div class="glass doc-item" onclick="viewDoc('${d.id}')">
+              <div class="dt">${escapeHtml(d.title)}</div>
+              <div class="dm"><span class="chip" style="color:${a.color};border-color:${a.color}55">${statsFor(a).badge}</span><span>${new Date(d.created).toLocaleDateString()}</span><span>${d.body.trim().split(/\s+/).filter(Boolean).length} words</span></div>
+            </div>`; }).join("")}</div>`;
+        } else {
+          right = `<div class="glass card empty-hint">No documents yet. In Comms, use <b>💾 Save to Library</b> under any crew reply to store proposals, research, and scoping docs here.</div>`;
+        }
+        $("crewDocs").innerHTML = `<div class="lib"><div>${folders}</div>${right}</div>`;
+      }
+      function libSearchSet(v) { libSearch = v; renderCrewDocs(); }
+      function setFolder(f) { libFolder = f; openDocId = null; renderCrewDocs(); }
+      function viewDoc(id) { openDocId = id; renderCrewDocs(); }
+      function closeDoc() { openDocId = null; renderCrewDocs(); }
+      function downloadDoc(id) {
+        const d = docs.find((x) => x.id === id); if (!d) return;
+        const a = agentById(d.agentId);
+        const md = `# ${d.title}\n\n> Author: ${a.name} · ${new Date(d.created).toLocaleString()} · JABB Networks Mission Control\n\n${d.body}\n`;
+        const blob = new Blob([md], { type: "text/markdown" }); const url = URL.createObjectURL(blob);
+        const el = document.createElement("a"); el.href = url; el.download = d.title.replace(/\W+/g, "-").slice(0, 40) + ".md"; document.body.appendChild(el); el.click(); el.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      function copyDoc(id) { const d = docs.find((x) => x.id === id); if (d) navigator.clipboard?.writeText(d.body).then(() => toast("Copied", "ok")); }
+      function deleteDoc(id) { if (!confirm("Delete this document?")) return; docs = docs.filter((x) => x.id !== id); LS.set("docs", docs); openDocId = null; renderCrewDocs(); }
+      function saveLastReply() { const m = (chats[activeAgent] || []).filter((x) => x.role === "assistant").pop(); if (m) saveDoc(activeAgent, m.content); }
+
       /* ==================== CONTROL ==================== */
       function renderControl() {
         $("s_ollama").value = isBridged ? BRIDGE.ollama : settings.ollama;
-        $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic;
+        $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic; $("s_serpapi").value = settings.serpapi || "";
         $("s_operator").value = prefs.operator; $("s_feed").value = prefs.feed; $("s_greet").checked = !!prefs.greet;
         if (isBridged) { const b = $("bridgeBanner"); b.style.display = "block"; b.innerHTML = "🔗 <b>Bridge active</b> — local models routed via " + BRIDGE.url + " (Ollama: " + BRIDGE.ollama + ")"; }
-        renderModels();
+        renderModels(); renderAgentModels(); renderVoice();
       }
+      if ("speechSynthesis" in window) window.speechSynthesis.addEventListener("voiceschanged", () => { if ($("view-control")?.classList.contains("active")) renderVoice(); });
+      function renderAgentModels() {
+        $("agentModels").innerHTML = crew.map((a) => `
+          <div style="border:1px solid var(--stroke);border-radius:12px;padding:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <div class="pic" style="width:34px;height:34px;border-radius:9px;overflow:hidden;background:#05080e">${portraitSVG(a, { compact: true })}</div>
+              <div><div style="font-size:13px;font-weight:800">${a.name}</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${statsFor(a).badge}</div></div>
+            </div>
+            <select onchange="setAgentModel('${a.id}', this.value)" style="width:100%;background:var(--glass2);border:1px solid var(--stroke);color:var(--fg);padding:8px 10px;border-radius:9px;font-size:12px;outline:none">
+              ${allModels().map((m) => `<option value="${m.id}" ${m.id === a.model ? "selected" : ""}>${m.label}</option>`).join("")}
+            </select>
+          </div>`).join("");
+      }
+      function setAgentModel(id, modelId) { const a = agentById(id); if (a) { a.model = modelId; LS.set("crew", crew); toast(a.name + " → " + modelById(modelId).label.split(" (")[0], "ok"); } }
       function renderModels() {
         $("modelList").innerHTML = allModels().map((m) => {
           const custom = customModels.some((c) => c.id === m.id);
@@ -1205,8 +1606,78 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       function rmModel(id) { customModels = customModels.filter((c) => c.id !== id); LS.set("models", customModels); renderModels(); }
       function saveSettings() {
-        settings = { ollama: $("s_ollama").value.trim() || "http://localhost:11434", openai: $("s_openai").value.trim(), anthropic: $("s_anthropic").value.trim() };
+        settings = { ollama: $("s_ollama").value.trim() || "http://localhost:11434", openai: $("s_openai").value.trim(), anthropic: $("s_anthropic").value.trim(), serpapi: $("s_serpapi").value.trim() };
         LS.set("settings", settings); toast("Endpoints saved", "ok");
+      }
+
+      /* ==================== SerpAPI (Google Jobs) ==================== */
+      async function fetchSerpapi() {
+        const q = "Power Platform Developer";
+        try {
+          let arr = [];
+          if (isBridged) {
+            const r = await fetch(BRIDGE.url + "/jobs/serpapi?q=" + encodeURIComponent(q) + "&location=Remote" + (settings.serpapi ? "&key=" + encodeURIComponent(settings.serpapi) : ""));
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || "bridge serpapi failed");
+            arr = d.jobs || [];
+          } else {
+            if (!settings.serpapi) return toast("Add a SerpAPI key in Control → Endpoints", "err");
+            const u = "https://serpapi.com/search.json?engine=google_jobs&q=" + encodeURIComponent(q + " remote") + "&api_key=" + encodeURIComponent(settings.serpapi);
+            const r = await fetch(u); const d = await r.json();
+            arr = (d.jobs_results || []).map((j) => ({
+              title: j.title, company: j.company_name || "—",
+              salary: (j.detected_extensions && j.detected_extensions.salary) || "",
+              type: (j.detected_extensions && j.detected_extensions.schedule_type) || "Full-time",
+              source: "SerpAPI", url: (j.apply_options && j.apply_options[0] && j.apply_options[0].link) || j.share_link || "#",
+              note: (j.location || "") + (j.description ? " · " + j.description.slice(0, 90) : ""),
+            }));
+          }
+          if (!arr.length) return toast("SerpAPI returned no jobs", "err");
+          arr.forEach((j) => jobs.push(normalizeJob(j)));
+          LS.set("jobs", jobs); renderJobs(); closeModal();
+          toast("Added " + arr.length + " jobs from SerpAPI", "ok");
+          logTask("Talent Scout", "Imported " + arr.length + " roles via SerpAPI (Google Jobs)");
+        } catch (e) {
+          toast("SerpAPI failed: " + (e.message || "") + (isBridged ? "" : " (browser CORS — use the PC bridge)"), "err");
+        }
+      }
+
+      /* ==================== DOWNLOADABLE SUMMARIES ==================== */
+      function downloadFile(name, text) {
+        const blob = new Blob([text], { type: "text/markdown" }); const url = URL.createObjectURL(blob);
+        const el = document.createElement("a"); el.href = url; el.download = name; document.body.appendChild(el); el.click(); el.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      function downloadDocsSummary() {
+        const date = new Date().toLocaleString();
+        let out = `# JABB Networks — Crew Documents Summary\n\n> Generated ${date} · Operator: ${prefs.operator} · ${docs.length} document(s)\n\n`;
+        if (!docs.length) out += "_No documents saved yet. Save crew replies to the Library from Comms._\n";
+        crew.forEach((a) => {
+          const list = docs.filter((d) => d.agentId === a.id);
+          if (!list.length) return;
+          out += `## ${a.name} — ${statsFor(a).badge} (${list.length})\n\n`;
+          list.forEach((d) => {
+            const words = d.body.trim().split(/\s+/).filter(Boolean).length;
+            const preview = d.body.replace(/\s+/g, " ").trim().slice(0, 240);
+            out += `### ${d.title}\n- Created: ${new Date(d.created).toLocaleString()} · ${words} words\n\n${preview}${d.body.length > 240 ? "…" : ""}\n\n`;
+          });
+        });
+        downloadFile("JABB-crew-documents-summary.md", out);
+        toast("Documents summary downloaded", "ok");
+        logTask("Ops & Client Success", "Generated crew documents summary (" + docs.length + " docs)");
+      }
+      function downloadMissionSummary() {
+        const date = new Date().toLocaleString();
+        let out = `# JABB Networks — Mission Control Summary\n\n> Generated ${date} · Operator: ${prefs.operator}\n\n`;
+        out += `## Crew\n${crew.map((a) => { const s = statsFor(a); return `- **${a.name}** (${s.badge}) — model ${modelById(a.model).label.split(" (")[0]} · ${s.share}% share · ${s.sessions} sessions · ${s.messages} messages · ${fmtTok(s.tokens)} tokens`; }).join("\n")}\n\n`;
+        out += `## Remote Power Platform Jobs (${jobs.length})\n${jobs.map((j) => `- ${j.title} @ ${j.company} — ${j.salary || "—"} — ${j.type} — ${j.source} — ${j.url}`).join("\n")}\n\n`;
+        out += `## Application Pipeline (${pipeline.length})\n${pipeline.length ? pipeline.map((p) => `- [${p.stage}] ${p.role} @ ${p.company}${p.date ? " · interview " + p.date + " " + (p.time || "") : ""}${p.rate ? " · " + p.rate : ""}`).join("\n") : "_None yet._"}\n\n`;
+        out += `## Standing Orders (${orders.length})\n${orders.map((o) => `- ${o.active ? "[active]" : "[paused]"} ${o.title} — ${o.schedule} → ${agentById(o.agentId)?.name || o.agentId}`).join("\n")}\n\n`;
+        out += `## Crew Documents (${docs.length})\n${docs.length ? docs.map((d) => `- ${d.title} — ${agentById(d.agentId)?.name} — ${new Date(d.created).toLocaleDateString()}`).join("\n") : "_None yet._"}\n\n`;
+        out += `## Recent Activity\n${taskLog.slice(0, 20).map((e) => `- ${e.t} · ${e.who}: ${e.msg}`).join("\n") || "_None yet._"}\n`;
+        downloadFile("JABB-mission-summary.md", out);
+        toast("Mission summary downloaded", "ok");
+        logTask("JARVIS", "Generated full mission summary report");
       }
       function savePrefs() {
         prefs = { operator: $("s_operator").value.trim() || "Alexander", feed: $("s_feed").value.trim(), greet: $("s_greet").checked };
@@ -1311,19 +1782,46 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       function setMic(on) { $("micBtn").classList.toggle("on", on); $("coreOrb")?.classList.toggle("talking", on); }
       function toggleSpeak() { autoSpeak = !autoSpeak; $("speakBtn").textContent = autoSpeak ? "🔊" : "🔇"; $("speakBtn").classList.toggle("on", autoSpeak); if (!autoSpeak) stopSpeak(); }
+      let voicePrefs = LS.get("voice", { name: "", rate: 1.02, pitch: 0.95 });
       function pickVoice() {
         const vs = window.speechSynthesis?.getVoices?.() || [];
+        if (voicePrefs.name) { const chosen = vs.find((v) => v.name === voicePrefs.name); if (chosen) return chosen; }
         return vs.find((v) => /daniel|arthur|google uk english male|male/i.test(v.name)) || vs.find((v) => /en-GB/i.test(v.lang)) || vs.find((v) => /en/i.test(v.lang)) || vs[0];
       }
+      // Voice output — applies to EVERY agent and EVERY model (local, browser, cloud).
       function speak(text) {
         if (!("speechSynthesis" in window)) return;
         stopSpeak();
         const clean = text.replace(/```[\s\S]*?```/g, " code block ").replace(/[`*_#>]/g, "").slice(0, 3500);
-        const u = new SpeechSynthesisUtterance(clean); const v = pickVoice(); if (v) u.voice = v; u.rate = 1.02; u.pitch = 0.95;
+        const u = new SpeechSynthesisUtterance(clean); const v = pickVoice(); if (v) u.voice = v;
+        u.rate = voicePrefs.rate || 1.02; u.pitch = voicePrefs.pitch || 0.95;
         u.onstart = () => $("coreOrb")?.classList.add("talking"); u.onend = () => $("coreOrb")?.classList.remove("talking");
         window.speechSynthesis.speak(u);
       }
       function stopSpeak() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); $("coreOrb")?.classList.remove("talking"); }
+      function renderVoice() {
+        const sel = $("v_voice"); if (!sel) return;
+        const vs = window.speechSynthesis?.getVoices?.() || [];
+        sel.innerHTML = vs.length ? vs.map((v) => `<option value="${v.name}" ${v.name === voicePrefs.name ? "selected" : ""}>${v.name} — ${v.lang}${v.default ? " (default)" : ""}</option>`).join("")
+          : `<option value="">System default (voices load on first interaction)</option>`;
+        $("v_rate").value = voicePrefs.rate; $("v_pitch").value = voicePrefs.pitch;
+        $("v_rate_l").textContent = "· " + (voicePrefs.rate || 1).toFixed(2) + "×";
+        $("v_pitch_l").textContent = "· " + (voicePrefs.pitch || 1).toFixed(2);
+        $("v_autospeak").checked = autoSpeak;
+        $("v_rate").oninput = (e) => { $("v_rate_l").textContent = "· " + (+e.target.value).toFixed(2) + "×"; };
+        $("v_pitch").oninput = (e) => { $("v_pitch_l").textContent = "· " + (+e.target.value).toFixed(2); };
+      }
+      function saveVoice() {
+        voicePrefs = { name: $("v_voice").value, rate: parseFloat($("v_rate").value), pitch: parseFloat($("v_pitch").value) };
+        LS.set("voice", voicePrefs);
+        const want = $("v_autospeak").checked;
+        if (want !== autoSpeak) toggleSpeak();
+        toast("Voice saved · applies to all agents & models", "ok");
+      }
+      function testVoice() {
+        voicePrefs = { name: $("v_voice").value, rate: parseFloat($("v_rate").value), pitch: parseFloat($("v_pitch").value) };
+        speak(`Hi ${prefs.operator}. This is your JABB Networks crew voice — the same across every agent and every model.`);
+      }
 
       function jarvisGreet(force) {
         const line = `Hi ${prefs.operator}. JARVIS online. Your crew is standing by — Talent Scout is tracking ${jobs.length} remote Power Platform roles.`;
