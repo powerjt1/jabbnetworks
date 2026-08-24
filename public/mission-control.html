@@ -1,0 +1,1359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JABB Networks · Mission Control</title>
+    <meta name="description" content="JARVIS-themed Hermes Mission Control for JABB Networks — an AI crew for Power Platform work, remote job scouting, and RTR scheduling." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #04070d;
+        --bg2: #060b14;
+        --glass: rgba(14, 24, 38, 0.55);
+        --glass2: rgba(18, 30, 48, 0.72);
+        --stroke: rgba(90, 160, 210, 0.18);
+        --stroke2: rgba(90, 160, 210, 0.32);
+        --fg: #e4f2ff;
+        --muted: #7f9cb5;
+        --muted2: #56728c;
+        --accent: #22d3ee;
+        --accent-dim: rgba(34, 211, 238, 0.14);
+        --gold: #f5c542;
+        --green: #34d399;
+        --red: #fb7185;
+        --violet: #a78bfa;
+        --radius: 16px;
+        --radius-sm: 11px;
+        --font: "Inter", system-ui, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, monospace;
+        --display: "Orbitron", var(--font);
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      /* animated ambient backdrop */
+      body::before {
+        content: "";
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background:
+          radial-gradient(900px 600px at 78% -8%, rgba(34,211,238,0.10), transparent 60%),
+          radial-gradient(700px 500px at 8% 108%, rgba(167,139,250,0.10), transparent 60%),
+          radial-gradient(600px 400px at 110% 60%, rgba(245,197,66,0.06), transparent 60%),
+          linear-gradient(180deg, var(--bg), var(--bg2));
+      }
+      body::after {
+        content: "";
+        position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .4;
+        background-image:
+          linear-gradient(rgba(90,160,210,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(90,160,210,0.05) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 78%);
+      }
+      button, input, select, textarea { font-family: inherit; }
+      button { cursor: pointer; }
+      a { color: var(--accent); text-decoration: none; }
+      ::-webkit-scrollbar { width: 9px; height: 9px; }
+      ::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+
+      .glass {
+        background: var(--glass);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+      }
+
+      /* ===== TOP BAR ===== */
+      .topbar {
+        position: relative; z-index: 5;
+        display: flex; align-items: center; gap: 18px;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--stroke);
+        background: rgba(6, 11, 20, 0.6);
+        backdrop-filter: blur(18px);
+      }
+      .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+      .brand .mark {
+        width: 40px; height: 40px; border-radius: 12px;
+        background: conic-gradient(from 130deg, #22d3ee, #2b7fff, #a78bfa, #f5c542, #22d3ee);
+        display: grid; place-items: center; font-weight: 900; color: #04070d; font-size: 18px;
+        box-shadow: 0 0 26px rgba(34,211,238,0.4); position: relative;
+      }
+      .brand .mark::after {
+        content: ""; position: absolute; inset: 2px; border-radius: 10px; background: #060b14;
+      }
+      .brand .mark span { position: relative; z-index: 1; color: var(--accent);
+        font-family: var(--display); }
+      .brand h1 { margin: 0; font-size: 15px; letter-spacing: .5px; font-weight: 700; }
+      .brand small { color: var(--muted); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); }
+
+      .nav { display: flex; gap: 4px; margin: 0 auto; flex-wrap: wrap; }
+      .nav button {
+        background: none; border: 1px solid transparent; color: var(--muted);
+        padding: 8px 14px; border-radius: 10px; font-size: 12px; letter-spacing: 1px;
+        text-transform: uppercase; display: flex; align-items: center; gap: 7px; transition: .18s;
+        font-weight: 600;
+      }
+      .nav button .ic { font-size: 13px; }
+      .nav button:hover { color: var(--fg); background: var(--glass2); }
+      .nav button.active {
+        color: var(--fg); background: var(--accent-dim);
+        border-color: var(--stroke2); box-shadow: 0 0 22px rgba(34,211,238,0.18) inset;
+      }
+      .clock {
+        font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 1px;
+        flex-shrink: 0; text-align: right; min-width: 92px;
+      }
+      .clock small { display: block; color: var(--muted2); font-size: 9px; letter-spacing: 1.5px; }
+
+      .top-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+      .iconbtn {
+        background: var(--glass2); border: 1px solid var(--stroke); color: var(--muted);
+        width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; transition: .18s;
+      }
+      .iconbtn:hover { color: var(--fg); border-color: var(--stroke2); }
+      .iconbtn.on { background: var(--accent); color: #04070d; border-color: var(--accent); box-shadow: 0 0 20px rgba(34,211,238,.5); }
+      .iconbtn.gold.on { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 20px rgba(245,197,66,.5); }
+
+      /* ===== LAYOUT ===== */
+      main { position: relative; z-index: 1; flex: 1; overflow: hidden; }
+      .view { display: none; height: 100%; overflow-y: auto; padding: 22px; }
+      .view.active { display: block; animation: fade .35s ease; }
+      @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      .wrap { max-width: 1320px; margin: 0 auto; }
+      .grid { display: grid; gap: 16px; }
+
+      .card { padding: 18px; }
+      .card h3, .card h2 { margin: 0; }
+      .card-title {
+        display: flex; align-items: center; gap: 9px; font-size: 12px; letter-spacing: 1.5px;
+        text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 14px;
+      }
+      .card-title .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+      .card-title.gold .dot { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+      .card-title.green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+      .card-title.violet .dot { background: var(--violet); box-shadow: 0 0 10px var(--violet); }
+
+      .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+      .section-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
+      .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+      .btn {
+        background: var(--accent); color: #04121a; border: 0; font-weight: 700; font-size: 13px;
+        padding: 9px 16px; border-radius: 10px; display: inline-flex; align-items: center; gap: 7px; transition: .18s;
+      }
+      .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+      .btn.ghost { background: var(--glass2); color: var(--fg); border: 1px solid var(--stroke); }
+      .btn.ghost:hover { border-color: var(--stroke2); }
+      .btn.gold { background: var(--gold); color: #1a1400; }
+      .btn.sm { padding: 6px 11px; font-size: 12px; }
+      .btn.block { width: 100%; justify-content: center; }
+
+      .chip {
+        font-size: 10.5px; padding: 3px 9px; border-radius: 999px; font-weight: 600;
+        background: var(--accent-dim); color: var(--accent); border: 1px solid var(--stroke2); letter-spacing: .3px;
+        display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+      }
+      .chip.gold { background: rgba(245,197,66,.14); color: var(--gold); border-color: rgba(245,197,66,.3); }
+      .chip.green { background: rgba(52,211,153,.14); color: var(--green); border-color: rgba(52,211,153,.3); }
+      .chip.violet { background: rgba(167,139,250,.14); color: var(--violet); border-color: rgba(167,139,250,.3); }
+      .chip.red { background: rgba(251,113,133,.14); color: var(--red); border-color: rgba(251,113,133,.3); }
+      .chip.muted { background: rgba(127,156,181,.1); color: var(--muted); border-color: var(--stroke); }
+
+      /* ===== HOME / DASHBOARD ===== */
+      .hero-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+      .hero-hello { padding: 24px; position: relative; overflow: hidden; }
+      .hero-hello h2 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin: 0 0 6px; }
+      .hero-hello .grad {
+        background: linear-gradient(120deg, #22d3ee, #a78bfa, #f5c542);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      }
+      .hero-hello p { color: var(--muted); font-size: 14px; max-width: 560px; line-height: 1.6; margin: 0 0 16px; }
+      .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+      .core-orb-wrap { display: grid; place-items: center; padding: 18px; }
+      .core-orb {
+        width: 150px; height: 150px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #7ff0ff, #22d3ee 45%, #1362ff 100%);
+        box-shadow: 0 0 60px rgba(34,211,238,.6), inset 0 0 40px rgba(255,255,255,.25);
+        animation: breathe 4s ease-in-out infinite; position: relative;
+      }
+      .core-orb.talking { animation: breathe 1s ease-in-out infinite; }
+      .core-orb::after {
+        content: ""; position: absolute; inset: -14px; border-radius: 50%;
+        border: 1px solid rgba(34,211,238,.35); animation: ring 4s ease-in-out infinite;
+      }
+      @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+      @keyframes ring { 0%,100% { transform: scale(1); opacity: .5; } 50% { transform: scale(1.12); opacity: .15; } }
+      .core-label { text-align: center; margin-top: 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+
+      .stat-grid { grid-template-columns: repeat(4, 1fr); }
+      .stat { padding: 16px; }
+      .stat .k { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+      .stat .v { font-size: 30px; font-weight: 800; margin-top: 8px; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+      .stat .sub { font-size: 11px; color: var(--muted2); margin-top: 3px; }
+      .bars { display: flex; align-items: flex-end; gap: 4px; height: 46px; margin-top: 10px; }
+      .bars i { flex: 1; background: linear-gradient(180deg, var(--accent), rgba(34,211,238,.15)); border-radius: 3px 3px 0 0; min-height: 4px; opacity: .85; }
+
+      .split-2 { grid-template-columns: 1.3fr 1fr; align-items: start; }
+      .feed { display: flex; flex-direction: column; gap: 2px; max-height: 340px; overflow-y: auto; }
+      .feed-row { display: grid; grid-template-columns: 54px 92px 1fr; gap: 10px; padding: 10px 6px; border-bottom: 1px solid var(--stroke); align-items: baseline; }
+      .feed-row:last-child { border-bottom: 0; }
+      .feed-row .t { font-family: var(--mono); font-size: 11px; color: var(--muted2); }
+      .feed-row .who { font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+      .feed-row .msg { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+      .agent-mini { display: flex; align-items: center; gap: 12px; padding: 11px; border-radius: var(--radius-sm); border: 1px solid var(--stroke); margin-bottom: 8px; transition: .18s; }
+      .agent-mini:hover { border-color: var(--stroke2); background: var(--glass2); }
+      .agent-av { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 19px; flex-shrink: 0; }
+      .agent-mini .nm { font-size: 13.5px; font-weight: 700; }
+      .agent-mini .rl { font-size: 11px; color: var(--muted); }
+      .agent-mini .st { margin-left: auto; }
+      .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: blink 2s infinite; }
+      @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+      /* ===== AGENTS / CREW ===== */
+      .crew-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+      .crew-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+      .crew-top { padding: 18px; display: flex; gap: 14px; align-items: center; position: relative; }
+      .crew-top .agent-av { width: 52px; height: 52px; border-radius: 14px; font-size: 25px; }
+      .crew-top .nm { font-size: 16px; font-weight: 800; }
+      .crew-top .rl { font-size: 12px; color: var(--muted); }
+      .crew-body { padding: 0 18px 16px; flex: 1; }
+      .crew-body .tag { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 12px; }
+      .crew-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+      .crew-foot { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--stroke); }
+
+      /* ===== COMMS / CHAT ===== */
+      .comms { display: grid; grid-template-columns: 230px 1fr; gap: 16px; height: calc(100vh - 130px); }
+      .comms-side { padding: 14px; overflow-y: auto; }
+      .comms-side .agent-pick { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid transparent; margin-bottom: 5px; transition: .16s; }
+      .comms-side .agent-pick:hover { background: var(--glass2); }
+      .comms-side .agent-pick.active { background: var(--accent-dim); border-color: var(--stroke2); }
+      .comms-side .agent-pick .agent-av { width: 34px; height: 34px; font-size: 16px; border-radius: 9px; }
+      .comms-side .agent-pick .nm { font-size: 12.5px; font-weight: 700; }
+      .comms-side .agent-pick .rl { font-size: 10px; color: var(--muted); }
+      .chatpane { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+      .chat-head { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--stroke); }
+      .chat-head .agent-av { width: 38px; height: 38px; font-size: 18px; }
+      .chat-head .nm { font-size: 14px; font-weight: 800; }
+      .chat-head .rl { font-size: 11px; color: var(--muted); }
+      .chat-head .tools { margin-left: auto; display: flex; gap: 5px; }
+      .chat-scroll { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+      .msg { display: flex; gap: 10px; max-width: 88%; }
+      .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+      .msg .mav { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; font-size: 15px; }
+      .msg.user .mav { background: var(--accent-dim); color: var(--accent); }
+      .bubble { padding: 11px 14px; border-radius: 13px; font-size: 13.5px; line-height: 1.6; }
+      .bubble.assistant { background: var(--glass2); border: 1px solid var(--stroke); }
+      .bubble.user { background: var(--accent-dim); border: 1px solid var(--stroke2); white-space: pre-wrap; }
+      .bubble .rolen { font-size: 9.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); margin-bottom: 5px; }
+      .bubble pre { background: rgba(4,7,13,.7); border: 1px solid var(--stroke); border-radius: 9px; padding: 11px; overflow-x: auto; margin: 7px 0; }
+      .bubble code { font-family: var(--mono); font-size: 12.5px; }
+      .bubble :not(pre) > code { background: rgba(4,7,13,.6); color: var(--gold); padding: 1px 5px; border-radius: 4px; }
+      .chat-compose { padding: 12px 16px; border-top: 1px solid var(--stroke); }
+      .composer { display: flex; align-items: flex-end; gap: 8px; background: var(--glass2); border: 1px solid var(--stroke); border-radius: 13px; padding: 8px; }
+      .composer:focus-within { border-color: var(--stroke2); }
+      .composer textarea { flex: 1; resize: none; background: none; border: 0; color: var(--fg); font-size: 13.5px; max-height: 160px; outline: none; padding: 4px; }
+      .quickrow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+      .quick { font-size: 11px; padding: 5px 10px; border-radius: 999px; background: var(--glass2); border: 1px solid var(--stroke); color: var(--muted); transition: .16s; }
+      .quick:hover { color: var(--fg); border-color: var(--stroke2); }
+
+      /* ===== SCHEDULE / JOBS ===== */
+      .job-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+      .job-toolbar input, .job-toolbar select {
+        background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg);
+        padding: 9px 12px; border-radius: 10px; font-size: 13px; outline: none;
+      }
+      .job-toolbar input:focus, .job-toolbar select:focus { border-color: var(--stroke2); }
+      .job-toolbar .search { flex: 1; min-width: 180px; }
+      .live-links { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+      .job-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+      .job-card { padding: 16px; display: flex; flex-direction: column; }
+      .job-card .jt { font-size: 15px; font-weight: 800; line-height: 1.3; margin-bottom: 4px; }
+      .job-card .co { font-size: 12.5px; color: var(--accent); font-weight: 600; }
+      .job-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 11px 0; }
+      .job-card .sal { font-family: var(--mono); font-size: 12px; color: var(--gold); margin: 2px 0 4px; }
+      .job-actions { display: flex; gap: 7px; margin-top: auto; padding-top: 12px; }
+      .job-actions .btn { flex: 1; justify-content: center; }
+      .kanban { grid-template-columns: repeat(4, 1fr); align-items: start; }
+      .kcol { padding: 12px; }
+      .kcol h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+      .ktask { padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--stroke); background: var(--glass2); margin-bottom: 7px; font-size: 12px; }
+      .ktask .kt { font-weight: 700; font-size: 12.5px; margin-bottom: 3px; }
+      .ktask .kc { color: var(--muted); font-size: 11px; }
+
+      /* ===== LIBRARY ===== */
+      .kb-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+      .kb-card { padding: 18px; }
+      .kb-card h4 { margin: 0 0 6px; font-size: 15px; }
+      .kb-card p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+      .price-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+      .price { padding: 18px; text-align: center; }
+      .price .pt { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+      .price .pv { font-size: 26px; font-weight: 800; color: var(--accent); margin: 6px 0; }
+
+      /* ===== CONTROL / SETTINGS ===== */
+      .field { margin-bottom: 14px; }
+      .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+      .field input, .field select, .field textarea {
+        width: 100%; background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg);
+        padding: 10px 12px; border-radius: 10px; font-size: 13px; outline: none;
+      }
+      .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--stroke2); }
+      .field textarea { resize: vertical; min-height: 90px; font-family: var(--mono); font-size: 12px; line-height: 1.5; }
+      .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+      .swatch { width: 30px; height: 30px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; }
+      .swatch.sel { border-color: #fff; }
+      .glyphpick { display: flex; gap: 6px; flex-wrap: wrap; }
+      .glyphpick button { width: 38px; height: 38px; border-radius: 10px; background: var(--glass2); border: 1px solid var(--stroke); font-size: 18px; }
+      .glyphpick button.sel { border-color: var(--accent); background: var(--accent-dim); }
+      .toolgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .toolopt { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--stroke); font-size: 12.5px; cursor: pointer; }
+      .toolopt.on { background: var(--accent-dim); border-color: var(--stroke2); }
+      .toolopt input { accent-color: var(--accent); }
+
+      .model-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--stroke); border-radius: 10px; margin-bottom: 7px; }
+      .model-row .meta { font-family: var(--mono); font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+      .banner { padding: 11px 14px; border-radius: 11px; font-size: 12.5px; margin-bottom: 12px; line-height: 1.5; }
+      .banner.warn { background: rgba(245,197,66,.1); border: 1px solid rgba(245,197,66,.3); color: var(--gold); }
+      .banner.info { background: var(--accent-dim); border: 1px solid var(--stroke2); color: var(--accent); }
+      .banner.ok { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3); color: var(--green); }
+      .banner code { color: var(--fg); background: rgba(4,7,13,.5); padding: 1px 5px; border-radius: 4px; }
+
+      /* ===== MODAL ===== */
+      .modal-bg { position: fixed; inset: 0; background: rgba(2,5,10,.72); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; padding: 20px; }
+      .modal-bg.open { display: flex; animation: fade .2s ease; }
+      .modal { width: min(620px, 96vw); max-height: 90vh; overflow-y: auto; padding: 22px; }
+      .modal .mh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+      .modal h2 { font-size: 18px; }
+      .modal .sub { color: var(--muted); font-size: 12.5px; margin: 0 0 16px; }
+
+      .toast {
+        position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(140%);
+        z-index: 80; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+        background: var(--glass2); border: 1px solid var(--stroke2); backdrop-filter: blur(14px);
+        box-shadow: 0 10px 40px rgba(0,0,0,.5); transition: transform .3s cubic-bezier(.2,.9,.3,1.3); max-width: 90vw;
+      }
+      .toast.show { transform: translateX(-50%) translateY(0); }
+      .toast.ok { border-color: rgba(52,211,153,.5); color: var(--green); }
+      .toast.err { border-color: rgba(251,113,133,.5); color: var(--red); }
+
+      .empty-hint { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 13px; }
+
+      @media (max-width: 900px) {
+        .hero-row, .split-2, .comms { grid-template-columns: 1fr; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .kanban { grid-template-columns: 1fr; }
+        .comms { height: auto; }
+        .comms-side { max-height: 200px; }
+        .chatpane { height: 62vh; }
+        .nav button span.lbl { display: none; }
+        .nav button { padding: 8px 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== TOP BAR ===== -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark"><span>J</span></div>
+        <div>
+          <h1>JABB NETWORKS</h1>
+          <small>Hermes Mission Control</small>
+        </div>
+      </div>
+      <div class="nav" id="nav">
+        <button data-view="home" class="active"><span class="ic">◎</span><span class="lbl">Home</span></button>
+        <button data-view="agents"><span class="ic">✦</span><span class="lbl">Agents</span></button>
+        <button data-view="comms"><span class="ic">❯</span><span class="lbl">Comms</span></button>
+        <button data-view="schedule"><span class="ic">✈</span><span class="lbl">Schedule</span></button>
+        <button data-view="library"><span class="ic">▣</span><span class="lbl">Library</span></button>
+        <button data-view="control"><span class="ic">⚙</span><span class="lbl">Control</span></button>
+      </div>
+      <div class="clock"><span id="clock">--:--:--</span><small>MISSION TIME</small></div>
+      <div class="top-actions">
+        <button class="iconbtn" id="micBtn" title="Voice input" onclick="toggleMic()">🎤</button>
+        <button class="iconbtn gold" id="speakBtn" title="Auto-speak crew replies" onclick="toggleSpeak()">🔇</button>
+        <a class="iconbtn" href="/" title="Back to website">↩</a>
+      </div>
+    </div>
+
+    <main>
+      <!-- ===================== HOME ===================== -->
+      <section class="view active" id="view-home">
+        <div class="wrap grid">
+          <div class="hero-row">
+            <div class="glass hero-hello">
+              <h2>Good day, <span class="grad">Alexander</span>.</h2>
+              <p id="heroLine">JARVIS online. Your crew of four is standing by. I'm tracking remote Power Platform opportunities, RTR scheduling, client delivery, and the JABB Networks knowledge base — just say the word.</p>
+              <div class="hero-cta">
+                <button class="btn" onclick="go('comms')">❯ Talk to the crew</button>
+                <button class="btn gold" onclick="go('schedule')">✈ Find remote jobs</button>
+                <button class="btn ghost" onclick="jarvisGreet(true)">🔊 Replay greeting</button>
+              </div>
+            </div>
+            <div class="glass core-orb-wrap">
+              <div>
+                <div class="core-orb" id="coreOrb"></div>
+                <div class="core-label">J.A.R.V.I.S · CORE</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid stat-grid">
+            <div class="glass stat">
+              <div class="k"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span> Remote jobs tracked</div>
+              <div class="v" id="statJobs">0</div>
+              <div class="sub" id="statJobsSub">across Dice · Indeed · ZipRecruiter</div>
+            </div>
+            <div class="glass stat">
+              <div class="k">Applications</div>
+              <div class="v" id="statApps">0</div>
+              <div class="sub">RTR + submitted pipeline</div>
+            </div>
+            <div class="glass stat">
+              <div class="k">Crew tasks logged</div>
+              <div class="v" id="statTasks">0</div>
+              <div class="sub">this session</div>
+            </div>
+            <div class="glass stat">
+              <div class="k">Token usage</div>
+              <div class="v" id="statTokens">0</div>
+              <div class="sub">local + browser models · $0.00</div>
+            </div>
+          </div>
+
+          <div class="grid split-2">
+            <div class="glass card">
+              <div class="card-title"><span class="dot"></span> Crew Activity · live feed</div>
+              <div class="feed" id="homeFeed"></div>
+            </div>
+            <div class="glass card">
+              <div class="card-title violet"><span class="dot"></span> The Crew</div>
+              <div id="homeCrew"></div>
+              <button class="btn ghost block sm" style="margin-top:10px" onclick="go('agents')">Configure crew →</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> Crew Activity · events / hour (last 12h)</div>
+            <div class="bars" id="activityBars"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== AGENTS ===================== -->
+      <section class="view" id="view-agents">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <h2>The Crew</h2>
+              <p>Configure each agent's look, model, tools and mission. Changes save to this browser.</p>
+            </div>
+            <button class="btn ghost" onclick="resetCrew()">↺ Reset to defaults</button>
+          </div>
+          <div class="grid crew-grid" id="crewGrid"></div>
+        </div>
+      </section>
+
+      <!-- ===================== COMMS ===================== -->
+      <section class="view" id="view-comms">
+        <div class="wrap comms">
+          <div class="glass comms-side" id="commsSide"></div>
+          <div class="glass chatpane">
+            <div class="chat-head">
+              <div class="agent-av" id="chatAv">🛰</div>
+              <div>
+                <div class="nm" id="chatNm">JARVIS</div>
+                <div class="rl" id="chatRl">Orchestrator</div>
+              </div>
+              <div class="tools" id="chatTools"></div>
+            </div>
+            <div class="chat-scroll" id="chatScroll"></div>
+            <div class="chat-compose">
+              <div class="quickrow" id="quickRow"></div>
+              <div class="banner err" id="chatErr" style="display:none"></div>
+              <div class="composer">
+                <button class="iconbtn" onclick="toggleMic()" title="Voice">🎤</button>
+                <textarea id="chatInput" rows="1" placeholder="Message the crew…  (Enter to send · Shift+Enter for newline)"></textarea>
+                <button class="btn" id="sendBtn" onclick="sendChat()">Send ❯</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCHEDULE / JOBS ===================== -->
+      <section class="view" id="view-schedule">
+        <div class="wrap grid">
+          <div class="section-head">
+            <div>
+              <h2>Talent Scout · Remote Power Platform</h2>
+              <p>Remote-only Power Platform roles. Submit an RTR to auto-create a calendar event. Refresh the feed anytime.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost" onclick="openModal('feed')">⟳ Refresh / import feed</button>
+              <button class="btn gold" onclick="openModal('rtr')">✍ Submit RTR</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Live search — remote Power Platform (opens the board)</div>
+            <div class="live-links" id="liveLinks"></div>
+            <div class="job-toolbar">
+              <input class="search" id="jobSearch" placeholder="Filter roles, companies, skills…" oninput="renderJobs()" />
+              <select id="jobType" onchange="renderJobs()">
+                <option value="">All types</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Contract">Contract</option>
+              </select>
+              <select id="jobSource" onchange="renderJobs()">
+                <option value="">All sources</option>
+                <option>Dice</option>
+                <option>Indeed</option>
+                <option>ZipRecruiter</option>
+              </select>
+            </div>
+            <div class="grid job-grid" id="jobGrid"></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title green"><span class="dot"></span> Application Pipeline · RTR → Calendar</div>
+            <div class="grid kanban" id="pipeline"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== LIBRARY ===================== -->
+      <section class="view" id="view-library">
+        <div class="wrap grid">
+          <div class="section-head">
+            <div>
+              <h2>Library · JABB Networks</h2>
+              <p>The knowledge base the crew draws on — services, plans, process and hosting. Powering jabbnetworks.com.</p>
+            </div>
+            <a class="btn ghost" href="https://jabbnetworks.com" target="_blank" rel="noopener">jabbnetworks.com ↗</a>
+          </div>
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Services</div>
+            <div class="grid kb-grid" id="kbServices"></div>
+          </div>
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> Engagement plans</div>
+            <div class="grid price-grid" id="kbPlans"></div>
+          </div>
+          <div class="glass card">
+            <div class="card-title violet"><span class="dot"></span> Delivery process</div>
+            <div class="grid kb-grid" id="kbProcess"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CONTROL ===================== -->
+      <section class="view" id="view-control">
+        <div class="wrap grid" style="max-width:900px">
+          <div class="section-head"><div><h2>Control</h2><p>Models, endpoints and mission preferences. Keys stay in this browser only.</p></div></div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> AI Models</div>
+            <div class="banner info" id="bridgeBanner" style="display:none"></div>
+            <div class="banner warn">
+              <b>Default: NVIDIA Nemotron via Ollama (free & private).</b> Start Ollama with CORS open so this page can reach it:
+              <code>OLLAMA_ORIGINS=* ollama serve</code> then <code>ollama pull nemotron-mini</code>.
+              No GPU? The <b>Free · CPU</b> and <b>Free · GPU</b> in-browser models need zero install.
+            </div>
+            <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost sm" onclick="discoverOllama()">⟳ Discover Ollama models</button>
+              <span id="discoverMsg" style="font-size:12px;color:var(--muted);align-self:center"></span>
+            </div>
+            <div id="modelList"></div>
+            <h4 style="margin:16px 0 8px;font-size:13px">Add a model</h4>
+            <div class="row2">
+              <div class="field"><label>Label</label><input id="m_label" placeholder="My local model" /></div>
+              <div class="field"><label>Provider</label>
+                <select id="m_provider">
+                  <option value="ollama">ollama</option>
+                  <option value="openai-compat">openai-compat (LM Studio / vLLM)</option>
+                  <option value="openai">openai (cloud)</option>
+                  <option value="anthropic">anthropic (cloud)</option>
+                </select>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Model name</label><input id="m_model" placeholder="nemotron-mini / llama3.1 / gpt-4o" /></div>
+              <div class="field"><label>Base URL</label><input id="m_base" placeholder="http://localhost:11434" /></div>
+            </div>
+            <div class="field"><label>API key (cloud only)</label><input id="m_key" type="password" placeholder="sk-…" /></div>
+            <button class="btn" onclick="addModel()">+ Add model</button>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> Endpoints & keys</div>
+            <div class="field"><label>Ollama base URL</label><input id="s_ollama" placeholder="http://localhost:11434" /></div>
+            <div class="row2">
+              <div class="field"><label>OpenAI API key</label><input id="s_openai" type="password" placeholder="sk-…" /></div>
+              <div class="field"><label>Anthropic API key</label><input id="s_anthropic" type="password" placeholder="sk-ant-…" /></div>
+            </div>
+            <button class="btn" onclick="saveSettings()">Save endpoints</button>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title green"><span class="dot"></span> Mission preferences</div>
+            <div class="row2">
+              <div class="field"><label>Operator name (how the crew greets you)</label><input id="s_operator" placeholder="Alexander" /></div>
+              <div class="field"><label>Job feed URL (JSON array, optional)</label><input id="s_feed" placeholder="https://…/jobs.json" /></div>
+            </div>
+            <label class="toolopt" style="max-width:280px"><input type="checkbox" id="s_greet" /> Speak greeting on launch</label>
+            <div style="margin-top:12px"><button class="btn" onclick="savePrefs()">Save preferences</button>
+            <button class="btn ghost" onclick="wipeData()" style="margin-left:8px">Wipe local data</button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== MODALS ===== -->
+    <div class="modal-bg" id="modal-agent">
+      <div class="glass modal">
+        <div class="mh"><h2 id="agEditTitle">Configure agent</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
+        <p class="sub">Tune appearance, model, tools and mission brief.</p>
+        <div class="row2">
+          <div class="field"><label>Name</label><input id="ag_name" /></div>
+          <div class="field"><label>Role / title</label><input id="ag_role" /></div>
+        </div>
+        <div class="field"><label>Tagline</label><input id="ag_tag" /></div>
+        <div class="field"><label>Accent color</label><div class="swatches" id="ag_colors"></div></div>
+        <div class="field"><label>Glyph / avatar</label><div class="glyphpick" id="ag_glyphs"></div></div>
+        <div class="field"><label>Default model</label><select id="ag_model"></select></div>
+        <div class="field"><label>Tools</label><div class="toolgrid" id="ag_tools"></div></div>
+        <div class="field"><label>Mission brief (system prompt)</label><textarea id="ag_prompt" rows="6"></textarea></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="saveAgent()">Save agent</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="modal-bg" id="modal-rtr">
+      <div class="glass modal">
+        <div class="mh"><h2>Submit RTR — Right to Represent</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
+        <p class="sub">Logs the application and creates a calendar event (download .ics + one-click Google Calendar).</p>
+        <div class="row2">
+          <div class="field"><label>Role / position</label><input id="rtr_role" placeholder="Power Platform Developer" /></div>
+          <div class="field"><label>Company / recruiter</label><input id="rtr_co" placeholder="Acme Staffing" /></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Interview / follow-up date</label><input id="rtr_date" type="date" /></div>
+          <div class="field"><label>Time</label><input id="rtr_time" type="time" value="10:00" /></div>
+        </div>
+        <div class="field"><label>Rate / salary</label><input id="rtr_rate" placeholder="$75/hr or $150k" /></div>
+        <div class="field"><label>Notes</label><textarea id="rtr_notes" rows="3" placeholder="Recruiter contact, submission details, next steps…"></textarea></div>
+        <div class="banner ok">On submit: adds to the <b>RTR Submitted</b> pipeline, downloads an <code>.ics</code> file, and opens a prefilled Google Calendar event.</div>
+        <div style="display:flex;gap:8px"><button class="btn gold" onclick="submitRTR()">✍ Submit RTR & schedule</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="modal-bg" id="modal-feed">
+      <div class="glass modal">
+        <div class="mh"><h2>Refresh job feed</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
+        <p class="sub">Pull from a JSON feed URL, or paste roles the crew should track. Seeded set stays unless you clear it.</p>
+        <div class="field"><label>Feed URL (JSON array of jobs)</label><input id="feed_url" placeholder="https://…/jobs.json" /></div>
+        <button class="btn ghost sm" onclick="fetchFeed()">⟳ Fetch from URL</button>
+        <div class="field" style="margin-top:16px"><label>Paste jobs — one per line: <code>Title | Company | Salary | Type | URL</code></label>
+          <textarea id="feed_paste" rows="6" placeholder="Power Platform Developer | Acme | $120k | Full-time | https://…"></textarea></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="importPaste()">+ Add pasted jobs</button><button class="btn ghost" onclick="restoreSeed()">↺ Restore seeded jobs</button></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      /* ==================== STORE ==================== */
+      const LS = {
+        get: (k, d) => { try { const v = JSON.parse(localStorage.getItem("jabb." + k)); return v ?? d; } catch { return d; } },
+        set: (k, v) => { try { localStorage.setItem("jabb." + k, JSON.stringify(v)); } catch {} },
+      };
+      const $ = (id) => document.getElementById(id);
+
+      let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "" });
+      let prefs = LS.get("prefs", { operator: "Alexander", feed: "", greet: true });
+
+      /* ==================== BRIDGE (optional PC proxy) ==================== */
+      const BRIDGE = window.__BRIDGE__ || null;
+      const isBridged = !!BRIDGE?.available;
+      const ollamaBase = isBridged ? BRIDGE.ollama : (settings.ollama || "http://localhost:11434");
+      const lmstudioBase = isBridged ? BRIDGE.lmstudio : "http://localhost:1234";
+
+      /* ==================== MODELS ==================== */
+      let customModels = LS.get("models", []);
+      function defaultModels() {
+        return [
+          { id: "nemotron", label: "NVIDIA Nemotron Mini (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "nemotron-mini", base: ollamaBase, speed: "fast" },
+          { id: "free-cpu", label: "Free · CPU — no GPU needed", provider: "transformers", model: "onnx-community/Qwen2.5-0.5B-Instruct", speed: "slow" },
+          { id: "free-gpu", label: "Free · GPU — Gemma 3 (WebGPU)", provider: "webllm", model: "gemma-2-2b-it-q4f16_1-MLC", speed: "fast" },
+          { id: "ollama-llama", label: "Llama 3.1 (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "llama3.1", base: ollamaBase, speed: "fast" },
+          { id: "ollama-qwen", label: "Qwen2.5 Coder (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "qwen2.5-coder", base: ollamaBase, speed: "fast" },
+          { id: "lmstudio", label: "LM Studio" + (isBridged ? " [via PC]" : ""), provider: "openai-compat", model: "local-model", base: lmstudioBase + "/v1", speed: "fast" },
+          { id: "gpt-4o", label: "OpenAI GPT-4o (cloud)", provider: "openai", model: "gpt-4o", base: "https://api.openai.com/v1", speed: "fast" },
+          { id: "claude", label: "Claude Sonnet (cloud)", provider: "anthropic", model: "claude-sonnet-4-20250514", base: "https://api.anthropic.com", speed: "fast" },
+        ];
+      }
+      const allModels = () => [...defaultModels(), ...customModels];
+      const modelById = (id) => allModels().find((m) => m.id === id) || allModels()[0];
+
+      /* ==================== COMPANY KNOWLEDGE ==================== */
+      const COMPANY = {
+        name: "JABB Networks",
+        site: "jabbnetworks.com",
+        email: "info@jabbnetworks.com",
+        tagline: "Power Platform development from small business to enterprise.",
+        services: [
+          { title: "Power Apps", desc: "Custom canvas & model-driven business apps built low-code to fit your exact workflow." },
+          { title: "Power Automate", desc: "Intelligent workflow automation — connect systems, kill manual steps, boost throughput." },
+          { title: "Power BI", desc: "Interactive dashboards & reports that turn data into real-time, decision-ready insight." },
+          { title: "Copilot Studio", desc: "AI chatbots and virtual agents for customer and employee experiences." },
+          { title: "Website Applications", desc: "Full-stack web apps and portals — modern, responsive front ends wired to your data & Power Platform." },
+          { title: "Hosting & Managed Ops", desc: "Reliable hosting, deployment, monitoring and ongoing optimization for sites and solutions." },
+        ],
+        plans: [
+          { tier: "Startup", price: "$2,500", note: "one-time" },
+          { tier: "Small Business", price: "$7,500", note: "one-time" },
+          { tier: "Mid-Market", price: "$20,000", note: "one-time" },
+          { tier: "Enterprise", price: "Custom", note: "SLA + CoE" },
+        ],
+        process: [
+          { num: "01", title: "Discovery", desc: "Analyze needs, workflows and goals to pinpoint the right Power Platform solutions." },
+          { num: "02", title: "Strategy", desc: "A tailored roadmap with milestones, timelines and ROI projections." },
+          { num: "03", title: "Development", desc: "Agile sprints with bi-weekly demos — build, test, iterate to every requirement." },
+          { num: "04", title: "Launch & Support", desc: "Seamless deploy, team training and ongoing optimization." },
+        ],
+      };
+      function companyContext() {
+        return `COMPANY KNOWLEDGE — ${COMPANY.name} (${COMPANY.site}, ${COMPANY.email}). ${COMPANY.tagline}
+Services: ${COMPANY.services.map((s) => s.title + " — " + s.desc).join("; ")}.
+Engagement plans: ${COMPANY.plans.map((p) => p.tier + " " + p.price + " (" + p.note + ")").join("; ")}.
+Delivery process: ${COMPANY.process.map((p) => p.num + " " + p.title + ": " + p.desc).join(" ")}.
+The owner/operator is ${prefs.operator}. Always represent JABB Networks accurately; never invent pricing or services beyond this list.`;
+      }
+
+      /* ==================== TOOLS CATALOG ==================== */
+      const TOOLS = {
+        "company-kb": { label: "Company KB", icon: "▣" },
+        "jobs": { label: "Job Scout", icon: "✈" },
+        "calendar": { label: "Calendar / RTR", icon: "🗓" },
+        "voice": { label: "Voice I/O", icon: "🔊" },
+        "code": { label: "Code / Power Platform", icon: "⌘" },
+        "proposals": { label: "Proposals & Comms", icon: "✉" },
+      };
+      const COLORS = ["#22d3ee", "#f5c542", "#34d399", "#a78bfa", "#fb7185", "#60a5fa"];
+      const GLYPHS = ["🛰", "✈", "⚙", "✉", "🧠", "🔭", "⌘", "▣", "🛡", "⚡"];
+
+      /* ==================== CREW (agents) ==================== */
+      function defaultCrew() {
+        return [
+          {
+            id: "jarvis", name: "JARVIS", role: "Orchestrator", color: "#22d3ee", glyph: "🛰",
+            model: "nemotron", tools: ["company-kb", "voice", "jobs", "calendar"],
+            tag: "Lead assistant. Greets you, routes work to the crew, and voices replies. Your mission-control right hand.",
+            prompt: "You are JARVIS, the orchestrating AI for JABB Networks' Mission Control, serving the operator {OPERATOR}. Greet them warmly as 'Hi {OPERATOR}'. You coordinate a crew: Talent Scout (remote Power Platform jobs + RTR scheduling), Power Platform Architect (solution design), and Ops & Client Success (proposals, hosting, client comms). Be concise, precise and proactive. When a request fits another agent, say which agent should take it. Speak with calm, capable confidence.",
+          },
+          {
+            id: "scout", name: "Talent Scout", role: "Remote Jobs + RTR", color: "#34d399", glyph: "✈",
+            model: "nemotron", tools: ["jobs", "calendar", "company-kb"],
+            tag: "Hunts remote-only Power Platform roles, tailors applications, tracks the pipeline, and fires the RTR → calendar flow.",
+            prompt: "You are Talent Scout for {OPERATOR}, an expert technical recruiter specializing in REMOTE-ONLY Microsoft Power Platform roles (Power Apps, Power Automate, Power BI, Copilot Studio, Dynamics 365). You have access to the current tracked job list (provided in context). Recommend best-fit remote roles, draft tailored outreach and resume bullets, explain RTR (Right to Represent) etiquette, and prompt the operator to submit an RTR so a calendar event is created. Only recommend remote roles. Be specific and actionable.",
+          },
+          {
+            id: "architect", name: "Power Platform Architect", role: "Solution Design", color: "#a78bfa", glyph: "🧠",
+            model: "nemotron", tools: ["company-kb", "code"],
+            tag: "Scopes client work across Power Apps, Automate, BI and Copilot Studio. Turns requirements into architecture.",
+            prompt: "You are the Power Platform Architect at JABB Networks, serving {OPERATOR}. You are a Microsoft-certified expert in Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Dynamics 365, plus web app + hosting integration. Given a client requirement, produce: components, data flow, connectors, licensing/ALM notes, trade-offs, risks and a rough effort estimate mapped to JABB's engagement plans. Give concrete, buildable guidance and code/formulas where useful.",
+          },
+          {
+            id: "ops", name: "Ops & Client Success", role: "Proposals · Hosting · Comms", color: "#f5c542", glyph: "✉",
+            model: "nemotron", tools: ["company-kb", "proposals", "calendar"],
+            tag: "Handles proposals, hosting & website questions, client communications, and end-of-day summaries.",
+            prompt: "You are Ops & Client Success at JABB Networks, serving {OPERATOR}. You draft client-ready proposals and emails, answer questions about JABB's website-application and hosting services, map needs to engagement plans (Startup/Small Business/Mid-Market/Enterprise), and produce crisp daily summaries of crew activity. Professional, warm, and outcomes-focused. Never over-promise beyond the documented services.",
+          },
+        ];
+      }
+      let crew = LS.get("crew", defaultCrew());
+      const agentById = (id) => crew.find((a) => a.id === id) || crew[0];
+
+      /* ==================== SEED JOBS (real, remote) ==================== */
+      function seedJobs() {
+        return [
+          { title: "Sr Microsoft Dynamics & Power Platform Developer", company: "Navigant Consulting", salary: "$130k–$216k", type: "Full-time", source: "Dice", url: "https://www.dice.com/job-detail/56038d74-b6a9-4b54-8745-f22adfeee775", note: "Case management systems; design & deliver on Power Platform." },
+          { title: "Power Platform Developer", company: "Synergy Business Innovation & Solutions", salary: "$79.9k–$114k", type: "Full-time", source: "Dice", url: "https://www.dice.com/job-detail/2bba1cd5-cfce-4e12-8f81-4af0dd070b37", note: "Low-code/no-code, digital transformation, cloud solutions." },
+          { title: "Power Platform Developer", company: "Navigant Consulting", salary: "$113k–$188k", type: "Full-time", source: "Dice", url: "https://www.dice.com/job-detail/26ae8cba-cdc7-40bc-aa38-8d6ed9271b11", note: "Power Apps expert; some UiPath; MPP application build." },
+          { title: "Microsoft Power Platform Developer (NCDOT)", company: "Infinite Computing Systems", salary: "$75/hr", type: "Contract", source: "Dice", url: "https://www.dice.com/job-detail/24ce50da-c08c-49b7-921e-44d889260da6", note: "Power Apps + Power Automate; 12-month contract; easy apply." },
+          { title: "Power Platform Architect", company: "Navigant Consulting", salary: "$130k–$216k", type: "Full-time", source: "Dice", url: "https://www.dice.com/jobs?q=Power%20Platform%20Architect&workplaceTypes=Remote&sort=date", note: "Digital modernization lead; M365, SharePoint, Power Platform. (Active Secret)" },
+          { title: "Power Platform Developer (Remote)", company: "GovCIO", salary: "$72.5k–$115.5k", type: "Full-time", source: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&location=United+States&refine_by_location_type=only_remote", note: "Federal contractor; fully remote." },
+          { title: "Senior MS Power Platform Developer", company: "INFO ORIGIN INC", salary: "$150k–$170k", type: "Contract", source: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&location=United+States&refine_by_location_type=only_remote", note: "Raleigh NC — remote-friendly contract." },
+          { title: "Senior Power Platform Developer", company: "NavAide", salary: "$98k–$160k", type: "Full-time", source: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&location=United+States&refine_by_location_type=only_remote", note: "Remote optional; Active DOD clearance required." },
+          { title: "Power Apps Software Developer", company: "MDW Associates", salary: "$77.9k–$110k", type: "Full-time", source: "Indeed", url: "https://to.indeed.com/aa78y4jnqsqz", note: "Power Apps; full-time." },
+          { title: "Senior MS Power Platform Developer", company: "Infoorigin Inc", salary: "$75–$85/hr", type: "Contract", source: "Indeed", url: "https://to.indeed.com/aatlr6jdxzws", note: "Contract; remote-friendly." },
+          { title: "Senior Dynamics 365 & Power Platform Developer", company: "Stellar Solutions", salary: "$50–$55/hr", type: "Contract", source: "Indeed", url: "https://to.indeed.com/aabtfp8l48kl", note: "Dynamics 365 + Power Platform contract." },
+        ];
+      }
+      let jobs = LS.get("jobs", seedJobs());
+      let pipeline = LS.get("pipeline", []); // {id, role, company, stage, date, time, rate, notes}
+      let taskLog = LS.get("taskLog", []); // {t, who, msg}
+      let tokenTotal = LS.get("tokens", 0);
+
+      const LIVE = [
+        { name: "LinkedIn", url: "https://www.linkedin.com/jobs/search/?keywords=Power%20Platform%20Developer&f_WT=2&sortBy=DD", color: "#60a5fa" },
+        { name: "Indeed", url: "https://www.indeed.com/jobs?q=Power+Platform+Developer&sc=0kf%3Aattr(DSQF7)%3B&sort=date", color: "#34d399" },
+        { name: "Dice", url: "https://www.dice.com/jobs?q=Power%20Platform%20Developer&workplaceTypes=Remote&sort=date", color: "#22d3ee" },
+        { name: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&refine_by_location_type=only_remote", color: "#f5c542" },
+      ];
+
+      /* ==================== LOGGING ==================== */
+      function logTask(who, msg) {
+        const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        taskLog.unshift({ t, who, msg });
+        taskLog = taskLog.slice(0, 60);
+        LS.set("taskLog", taskLog);
+        if ($("view-home").classList.contains("active")) renderHome();
+      }
+      function addTokens(n) { tokenTotal += n; LS.set("tokens", tokenTotal); }
+
+      /* ==================== NAV ==================== */
+      function go(view) {
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
+        $("view-" + view).classList.add("active");
+        if (view === "home") renderHome();
+        if (view === "agents") renderCrew();
+        if (view === "comms") renderComms();
+        if (view === "schedule") { renderLive(); renderJobs(); renderPipeline(); }
+        if (view === "library") renderLibrary();
+        if (view === "control") renderControl();
+      }
+      $("nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) go(b.dataset.view); });
+
+      /* ==================== HOME ==================== */
+      function renderHome() {
+        $("statJobs").textContent = jobs.length;
+        const sources = [...new Set(jobs.map((j) => j.source))];
+        $("statJobsSub").textContent = "across " + sources.join(" · ");
+        $("statApps").textContent = pipeline.length;
+        $("statTasks").textContent = taskLog.length;
+        $("statTokens").textContent = tokenTotal.toLocaleString();
+
+        const feed = $("homeFeed");
+        if (!taskLog.length) {
+          feed.innerHTML = `<div class="empty-hint">No crew activity yet. <a href="javascript:void(0)" onclick="go('comms')">Talk to the crew</a> to begin.</div>`;
+        } else {
+          feed.innerHTML = taskLog.map((e) => `
+            <div class="feed-row">
+              <span class="t">${e.t}</span>
+              <span class="who" style="color:${(crew.find((c) => c.name === e.who)?.color) || "var(--accent)"}">${e.who}</span>
+              <span class="msg">${escapeHtml(e.msg)}</span>
+            </div>`).join("");
+        }
+
+        $("homeCrew").innerHTML = crew.map((a) => `
+          <div class="agent-mini" onclick="openChatWith('${a.id}')" style="cursor:pointer">
+            <div class="agent-av" style="background:${a.color}22;color:${a.color}">${a.glyph}</div>
+            <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
+            <div class="st"><span class="pulse-dot"></span></div>
+          </div>`).join("");
+
+        const bars = $("activityBars");
+        const seed = taskLog.length;
+        bars.innerHTML = Array.from({ length: 12 }).map((_, i) => {
+          const h = 12 + ((Math.sin(i * 1.3 + seed) + 1) * 34) + (i === 11 ? seed * 2 : 0);
+          return `<i style="height:${Math.min(h, 46)}px"></i>`;
+        }).join("");
+      }
+
+      /* ==================== CREW / AGENTS ==================== */
+      function renderCrew() {
+        $("crewGrid").innerHTML = crew.map((a) => `
+          <div class="glass crew-card">
+            <div class="crew-top" style="background:linear-gradient(120deg, ${a.color}18, transparent)">
+              <div class="agent-av" style="background:${a.color}22;color:${a.color}">${a.glyph}</div>
+              <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
+            </div>
+            <div class="crew-body">
+              <div class="tag">${a.tag}</div>
+              <div class="crew-meta">
+                <span class="chip muted">${modelById(a.model).label.split(" (")[0]}</span>
+                ${a.tools.map((t) => `<span class="chip">${TOOLS[t]?.icon || "•"} ${TOOLS[t]?.label || t}</span>`).join("")}
+              </div>
+            </div>
+            <div class="crew-foot">
+              <button class="btn sm" style="flex:1;justify-content:center" onclick="openChatWith('${a.id}')">❯ Message</button>
+              <button class="btn ghost sm" style="flex:1;justify-content:center" onclick="editAgent('${a.id}')">⚙ Configure</button>
+            </div>
+          </div>`).join("");
+      }
+      function resetCrew() { crew = defaultCrew(); LS.set("crew", crew); renderCrew(); toast("Crew reset to defaults", "ok"); }
+
+      let editingId = null;
+      function editAgent(id) {
+        const a = agentById(id); editingId = id;
+        $("agEditTitle").textContent = "Configure " + a.name;
+        $("ag_name").value = a.name; $("ag_role").value = a.role; $("ag_tag").value = a.tag; $("ag_prompt").value = a.prompt;
+        $("ag_colors").innerHTML = COLORS.map((c) => `<div class="swatch ${c === a.color ? "sel" : ""}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`).join("");
+        $("ag_glyphs").innerHTML = GLYPHS.map((g) => `<button class="${g === a.glyph ? "sel" : ""}" data-g="${g}" onclick="pickGlyph('${g}')">${g}</button>`).join("");
+        const ms = $("ag_model"); ms.innerHTML = allModels().map((m) => `<option value="${m.id}" ${m.id === a.model ? "selected" : ""}>${m.label}</option>`).join("");
+        $("ag_tools").innerHTML = Object.entries(TOOLS).map(([k, v]) => `
+          <label class="toolopt ${a.tools.includes(k) ? "on" : ""}" data-t="${k}">
+            <input type="checkbox" ${a.tools.includes(k) ? "checked" : ""} onchange="this.closest('.toolopt').classList.toggle('on', this.checked)" /> ${v.icon} ${v.label}
+          </label>`).join("");
+        openModal("agent");
+      }
+      let pickedColor = null, pickedGlyph = null;
+      function pickColor(c) { pickedColor = c; document.querySelectorAll("#ag_colors .swatch").forEach((s) => s.classList.toggle("sel", s.dataset.c === c)); }
+      function pickGlyph(g) { pickedGlyph = g; document.querySelectorAll("#ag_glyphs button").forEach((b) => b.classList.toggle("sel", b.dataset.g === g)); }
+      function saveAgent() {
+        const a = agentById(editingId);
+        a.name = $("ag_name").value.trim() || a.name;
+        a.role = $("ag_role").value.trim() || a.role;
+        a.tag = $("ag_tag").value.trim();
+        a.prompt = $("ag_prompt").value.trim();
+        a.color = pickedColor || a.color;
+        a.glyph = pickedGlyph || a.glyph;
+        a.model = $("ag_model").value;
+        a.tools = [...document.querySelectorAll("#ag_tools .toolopt")].filter((l) => l.querySelector("input").checked).map((l) => l.dataset.t);
+        pickedColor = pickedGlyph = null;
+        LS.set("crew", crew); closeModal(); renderCrew(); toast("Saved " + a.name, "ok");
+      }
+
+      /* ==================== COMMS / CHAT ==================== */
+      let activeAgent = LS.get("activeAgent", "jarvis");
+      let chats = LS.get("chats", {}); // { agentId: [ {role, content} ] }
+      let streaming = false;
+
+      const QUICKS = {
+        jarvis: ["Give me a status briefing", "What should I focus on today?", "Route: find me a remote contract"],
+        scout: ["Show me the best remote roles right now", "Draft outreach for the top match", "How do I handle an RTR?"],
+        architect: ["Scope a Power Apps + Dataverse solution", "Compare Power Automate vs Logic Apps", "Estimate effort for a client portal"],
+        ops: ["Draft a proposal for a Small Business client", "Explain our hosting service", "Summarize today's crew activity"],
+      };
+
+      function renderComms() {
+        $("commsSide").innerHTML = crew.map((a) => `
+          <div class="agent-pick ${a.id === activeAgent ? "active" : ""}" onclick="openChatWith('${a.id}')">
+            <div class="agent-av" style="background:${a.color}22;color:${a.color}">${a.glyph}</div>
+            <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
+          </div>`).join("");
+        const a = agentById(activeAgent);
+        $("chatAv").textContent = a.glyph; $("chatAv").style.background = a.color + "22"; $("chatAv").style.color = a.color;
+        $("chatNm").textContent = a.name; $("chatRl").textContent = a.role;
+        $("chatTools").innerHTML = a.tools.map((t) => `<span class="chip muted">${TOOLS[t]?.icon || "•"}</span>`).join("");
+        $("quickRow").innerHTML = (QUICKS[a.id] || QUICKS.jarvis).map((q) => `<button class="quick" onclick="quickFill(this)">${q}</button>`).join("");
+        renderChat();
+      }
+      function quickFill(btn) { $("chatInput").value = btn.textContent; $("chatInput").focus(); autosize(); }
+      function openChatWith(id) {
+        activeAgent = id; LS.set("activeAgent", id);
+        go("comms");
+        if (!chats[id] || !chats[id].length) greetAgent(id);
+      }
+      function greetAgent(id) {
+        const a = agentById(id);
+        const line = `Hi ${prefs.operator}. ${a.name} online — ${a.tag}`;
+        chats[id] = [{ role: "assistant", content: line }];
+        LS.set("chats", chats);
+        renderChat();
+      }
+      function renderChat() {
+        const box = $("chatScroll"); const a = agentById(activeAgent);
+        const msgs = chats[activeAgent] || [];
+        if (!msgs.length) { box.innerHTML = `<div class="empty-hint">Say hello to ${a.name}.</div>`; return; }
+        box.innerHTML = msgs.map((m) => `
+          <div class="msg ${m.role}">
+            <div class="mav" ${m.role === "assistant" ? `style="background:${a.color}22;color:${a.color}"` : ""}>${m.role === "assistant" ? a.glyph : "◆"}</div>
+            <div class="bubble ${m.role}"><div class="rolen">${m.role === "user" ? prefs.operator : a.name}</div>${m.role === "user" ? escapeHtml(m.content) : md(m.content)}</div>
+          </div>`).join("");
+        box.scrollTop = box.scrollHeight;
+      }
+
+      const chatInput = $("chatInput");
+      function autosize() { chatInput.style.height = "auto"; chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px"; }
+      chatInput.addEventListener("input", autosize);
+      chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+
+      async function sendChat() {
+        const text = chatInput.value.trim();
+        if (!text || streaming) return;
+        chatErr("");
+        const a = agentById(activeAgent);
+        const model = modelById(a.model);
+        chats[activeAgent] = chats[activeAgent] || [];
+        chats[activeAgent].push({ role: "user", content: text });
+        chatInput.value = ""; autosize(); renderChat();
+        logTask(prefs.operator, `→ ${a.name}: ${text.slice(0, 60)}${text.length > 60 ? "…" : ""}`);
+
+        const asst = { role: "assistant", content: "" };
+        chats[activeAgent].push(asst);
+        streaming = true; $("sendBtn").disabled = true; $("coreOrb")?.classList.add("talking");
+
+        // Build system prompt with tool-injected context
+        let sys = a.prompt.replaceAll("{OPERATOR}", prefs.operator);
+        if (a.tools.includes("company-kb")) sys += "\n\n" + companyContext();
+        if (a.tools.includes("jobs")) sys += "\n\nCURRENT TRACKED REMOTE JOBS:\n" + jobs.map((j, i) => `${i + 1}. ${j.title} @ ${j.company} — ${j.salary} — ${j.type} — ${j.source} — ${j.url}`).join("\n");
+        if (a.tools.includes("calendar")) sys += `\n\nThe operator can submit an RTR (Right to Represent) from the Schedule tab; doing so creates a calendar event. Encourage this when an application advances.`;
+
+        const history = chats[activeAgent].slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
+        try {
+          await streamChat(model, sys, history, (chunk) => { asst.content += chunk; queueRender(); });
+          renderChat();
+          addTokens(Math.round((sys.length + text.length + asst.content.length) / 4));
+          logTask(a.name, asst.content.slice(0, 70).replace(/\n/g, " ") + (asst.content.length > 70 ? "…" : ""));
+          LS.set("chats", chats);
+          if (autoSpeak && asst.content.trim()) speak(asst.content);
+        } catch (e) {
+          chats[activeAgent].pop(); renderChat();
+          let msg = e.message || "Request failed.";
+          if (model.provider === "ollama") msg = "Ollama unreachable: " + msg + " — run:  OLLAMA_ORIGINS=* ollama serve  and  ollama pull " + model.model + ".  Or switch to a Free in-browser model in Control.";
+          else if (model.provider === "openai-compat") msg = "Local server error: " + msg + " — check LM Studio server + base URL.";
+          else if (msg.includes("Failed to fetch")) msg = "Couldn't reach " + model.provider + ". Check endpoint/CORS/key in Control.";
+          chatErr(msg);
+        } finally { streaming = false; $("sendBtn").disabled = false; $("coreOrb")?.classList.remove("talking"); }
+      }
+      function chatErr(m) { const e = $("chatErr"); e.textContent = m; e.style.display = m ? "block" : "none"; }
+
+      let renderQ = false;
+      function queueRender() { if (renderQ) return; renderQ = true; requestAnimationFrame(() => { renderQ = false; renderChat(); }); }
+
+      /* ==================== SCHEDULE / JOBS ==================== */
+      function renderLive() {
+        $("liveLinks").innerHTML = LIVE.map((l) => `<a class="chip" style="color:${l.color};border-color:${l.color}55" href="${l.url}" target="_blank" rel="noopener">🔎 ${l.name} ↗</a>`).join("");
+      }
+      function renderJobs() {
+        const q = ($("jobSearch")?.value || "").toLowerCase();
+        const type = $("jobType")?.value || "";
+        const src = $("jobSource")?.value || "";
+        const list = jobs.filter((j) =>
+          (!q || (j.title + j.company + (j.note || "")).toLowerCase().includes(q)) &&
+          (!type || j.type === type) && (!src || j.source === src));
+        const grid = $("jobGrid");
+        if (!list.length) { grid.innerHTML = `<div class="empty-hint">No roles match. Try clearing filters or <a href="javascript:void(0)" onclick="restoreSeed()">restore seeded jobs</a>.</div>`; return; }
+        const srcColor = { Dice: "chip", Indeed: "chip green", ZipRecruiter: "chip gold", LinkedIn: "chip violet" };
+        grid.innerHTML = list.map((j) => `
+          <div class="glass job-card">
+            <div class="jt">${escapeHtml(j.title)}</div>
+            <div class="co">${escapeHtml(j.company)}</div>
+            <div class="sal">${escapeHtml(j.salary || "")}</div>
+            <div class="job-meta">
+              <span class="chip red">● Remote</span>
+              <span class="chip muted">${escapeHtml(j.type || "")}</span>
+              <span class="${srcColor[j.source] || "chip"}">${escapeHtml(j.source || "")}</span>
+            </div>
+            ${j.note ? `<div style="font-size:12px;color:var(--muted);line-height:1.5">${escapeHtml(j.note)}</div>` : ""}
+            <div class="job-actions">
+              <a class="btn sm" href="${j.url}" target="_blank" rel="noopener">Apply ↗</a>
+              <button class="btn ghost sm" onclick='prefRTR(${JSON.stringify(j).replace(/'/g, "&#39;")})'>✍ RTR</button>
+              <button class="btn ghost sm" onclick='askScout(${JSON.stringify({ title: j.title, company: j.company }).replace(/'/g, "&#39;")})'>🧠 Tailor</button>
+            </div>
+          </div>`).join("");
+      }
+      function askScout(j) {
+        activeAgent = "scout"; LS.set("activeAgent", "scout");
+        go("comms");
+        chats.scout = chats.scout || []; if (!chats.scout.length) greetAgent("scout");
+        $("chatInput").value = `Tailor my application for "${j.title}" at ${j.company}. Draft a 3-bullet resume summary and a short outreach message to the recruiter, tuned for a remote Power Platform role.`;
+        autosize(); $("chatInput").focus();
+      }
+
+      function renderPipeline() {
+        const stages = ["Interested", "RTR Submitted", "Interviewing", "Offer/Closed"];
+        $("pipeline").innerHTML = stages.map((s) => {
+          const items = pipeline.filter((p) => p.stage === s);
+          return `<div class="glass kcol">
+            <h4>${s} <span class="chip muted">${items.length}</span></h4>
+            ${items.length ? items.map((p) => `
+              <div class="ktask">
+                <div class="kt">${escapeHtml(p.role)}</div>
+                <div class="kc">${escapeHtml(p.company)}${p.rate ? " · " + escapeHtml(p.rate) : ""}</div>
+                ${p.date ? `<div class="kc">🗓 ${p.date} ${p.time || ""}</div>` : ""}
+                <div style="display:flex;gap:5px;margin-top:7px">
+                  ${p.date ? `<button class="btn ghost sm" onclick="reAddCal('${p.id}')">＋Cal</button>` : ""}
+                  ${stages.indexOf(s) < stages.length - 1 ? `<button class="btn ghost sm" onclick="advance('${p.id}')">→ ${stages[stages.indexOf(s) + 1]}</button>` : ""}
+                  <button class="btn ghost sm" onclick="delPipe('${p.id}')">✕</button>
+                </div>
+              </div>`).join("") : `<div style="font-size:11px;color:var(--muted2);padding:6px 2px">—</div>`}
+          </div>`;
+        }).join("");
+      }
+      function advance(id) {
+        const stages = ["Interested", "RTR Submitted", "Interviewing", "Offer/Closed"];
+        const p = pipeline.find((x) => x.id === id); if (!p) return;
+        const i = stages.indexOf(p.stage); if (i < stages.length - 1) p.stage = stages[i + 1];
+        LS.set("pipeline", pipeline); renderPipeline(); logTask("Talent Scout", `${p.role} @ ${p.company} → ${p.stage}`);
+      }
+      function delPipe(id) { pipeline = pipeline.filter((x) => x.id !== id); LS.set("pipeline", pipeline); renderPipeline(); }
+
+      /* ==================== RTR → CALENDAR ==================== */
+      function prefRTR(j) {
+        openModal("rtr");
+        $("rtr_role").value = j.title || ""; $("rtr_co").value = j.company || ""; $("rtr_rate").value = j.salary || "";
+        const d = new Date(Date.now() + 2 * 864e5); $("rtr_date").value = d.toISOString().slice(0, 10);
+      }
+      function submitRTR() {
+        const role = $("rtr_role").value.trim(), co = $("rtr_co").value.trim();
+        if (!role || !co) return toast("Role and company are required", "err");
+        const date = $("rtr_date").value, time = $("rtr_time").value || "10:00";
+        const rate = $("rtr_rate").value.trim(), notes = $("rtr_notes").value.trim();
+        const id = "p" + Date.now();
+        pipeline.unshift({ id, role, company: co, stage: "RTR Submitted", date, time, rate, notes });
+        LS.set("pipeline", pipeline);
+        logTask("Talent Scout", `RTR submitted → ${role} @ ${co}${date ? " · interview " + date : ""}`);
+        if (date) makeCalendar(role, co, date, time, notes, rate);
+        closeModal(); go("schedule");
+        toast("RTR logged + calendar event created", "ok");
+      }
+      function reAddCal(id) {
+        const p = pipeline.find((x) => x.id === id); if (!p || !p.date) return;
+        makeCalendar(p.role, p.company, p.date, p.time || "10:00", p.notes || "", p.rate || "");
+      }
+      function makeCalendar(role, co, date, time, notes, rate) {
+        const start = new Date(`${date}T${time}:00`);
+        const end = new Date(start.getTime() + 45 * 60000);
+        const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        const title = `RTR / Interview — ${role} @ ${co}`;
+        const details = `Right to Represent submitted via JABB Networks Mission Control.\nRole: ${role}\nCompany/Recruiter: ${co}${rate ? "\nRate: " + rate : ""}${notes ? "\nNotes: " + notes : ""}`;
+        // 1) .ics download
+        const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//JABB Networks//Mission Control//EN", "BEGIN:VEVENT",
+          "UID:" + Date.now() + "@jabbnetworks", "DTSTAMP:" + fmt(new Date()), "DTSTART:" + fmt(start), "DTEND:" + fmt(end),
+          "SUMMARY:" + title, "DESCRIPTION:" + details.replace(/\n/g, "\\n"), "BEGIN:VALARM", "TRIGGER:-PT30M", "ACTION:DISPLAY",
+          "DESCRIPTION:Reminder", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+        const blob = new Blob([ics], { type: "text/calendar" });
+        const url = URL.createObjectURL(blob);
+        const dl = document.createElement("a"); dl.href = url; dl.download = `RTR-${co.replace(/\W+/g, "-")}.ics`; document.body.appendChild(dl); dl.click(); dl.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        // 2) Google Calendar prefilled event (opens in new tab)
+        const g = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) +
+          "&dates=" + fmt(start) + "/" + fmt(end) + "&details=" + encodeURIComponent(details);
+        window.open(g, "_blank", "noopener");
+      }
+
+      /* ==================== FEED IMPORT ==================== */
+      async function fetchFeed() {
+        const url = $("feed_url").value.trim() || prefs.feed;
+        if (!url) return toast("Enter a feed URL", "err");
+        try {
+          const r = await fetch(url); const d = await r.json();
+          const arr = Array.isArray(d) ? d : (d.jobs || []);
+          if (!arr.length) return toast("Feed had no jobs", "err");
+          arr.forEach((j) => jobs.push(normalizeJob(j)));
+          LS.set("jobs", jobs); renderJobs(); closeModal();
+          toast("Added " + arr.length + " jobs from feed", "ok");
+          logTask("Talent Scout", "Imported " + arr.length + " jobs from feed");
+        } catch (e) { toast("Feed fetch failed (CORS?) — try paste instead", "err"); }
+      }
+      function normalizeJob(j) {
+        return { title: j.title || j.role || "Untitled", company: j.company || j.co || "—", salary: j.salary || j.rate || "", type: j.type || "Full-time", source: j.source || "Feed", url: j.url || j.link || "#", note: j.note || j.summary || "" };
+      }
+      function importPaste() {
+        const lines = $("feed_paste").value.split("\n").map((l) => l.trim()).filter(Boolean);
+        let n = 0;
+        lines.forEach((l) => {
+          const [title, company, salary, type, url] = l.split("|").map((s) => (s || "").trim());
+          if (title) { jobs.push({ title, company: company || "—", salary: salary || "", type: type || "Full-time", source: "Pasted", url: url || "#", note: "" }); n++; }
+        });
+        LS.set("jobs", jobs); $("feed_paste").value = ""; renderJobs(); closeModal();
+        toast(n ? "Added " + n + " jobs" : "Nothing to add", n ? "ok" : "err");
+        if (n) logTask("Talent Scout", "Added " + n + " pasted jobs");
+      }
+      function restoreSeed() { jobs = seedJobs(); LS.set("jobs", jobs); renderJobs(); toast("Seeded jobs restored", "ok"); }
+
+      /* ==================== LIBRARY ==================== */
+      function renderLibrary() {
+        $("kbServices").innerHTML = COMPANY.services.map((s) => `<div class="glass kb-card"><h4>${s.title}</h4><p>${s.desc}</p></div>`).join("");
+        $("kbPlans").innerHTML = COMPANY.plans.map((p) => `<div class="glass price"><div class="pt">${p.tier}</div><div class="pv">${p.price}</div><div class="pt" style="font-size:11px">${p.note}</div></div>`).join("");
+        $("kbProcess").innerHTML = COMPANY.process.map((p) => `<div class="glass kb-card"><h4><span style="color:var(--accent);font-family:var(--mono)">${p.num}</span> ${p.title}</h4><p>${p.desc}</p></div>`).join("");
+      }
+
+      /* ==================== CONTROL ==================== */
+      function renderControl() {
+        $("s_ollama").value = isBridged ? BRIDGE.ollama : settings.ollama;
+        $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic;
+        $("s_operator").value = prefs.operator; $("s_feed").value = prefs.feed; $("s_greet").checked = !!prefs.greet;
+        if (isBridged) { const b = $("bridgeBanner"); b.style.display = "block"; b.innerHTML = "🔗 <b>Bridge active</b> — local models routed via " + BRIDGE.url + " (Ollama: " + BRIDGE.ollama + ")"; }
+        renderModels();
+      }
+      function renderModels() {
+        $("modelList").innerHTML = allModels().map((m) => {
+          const custom = customModels.some((c) => c.id === m.id);
+          return `<div class="model-row"><div><b>${m.label}</b> ${custom ? '<span class="chip">custom</span>' : m.id === "nemotron" ? '<span class="chip green">default</span>' : ""}<div class="meta">${m.provider} · ${m.model}${m.base ? " · " + m.base : ""}</div></div>${custom ? `<button class="btn ghost sm" onclick="rmModel('${m.id}')">remove</button>` : ""}</div>`;
+        }).join("");
+      }
+      function addModel() {
+        const label = $("m_label").value.trim(), model = $("m_model").value.trim();
+        if (!label || !model) return toast("Label + model name required", "err");
+        customModels.push({ id: "custom-" + Date.now(), label, provider: $("m_provider").value, model, base: $("m_base").value.trim() || undefined, key: $("m_key").value.trim() || undefined, speed: "fast" });
+        LS.set("models", customModels);
+        $("m_label").value = $("m_model").value = $("m_base").value = $("m_key").value = "";
+        renderModels(); toast("Model added", "ok");
+      }
+      function rmModel(id) { customModels = customModels.filter((c) => c.id !== id); LS.set("models", customModels); renderModels(); }
+      function saveSettings() {
+        settings = { ollama: $("s_ollama").value.trim() || "http://localhost:11434", openai: $("s_openai").value.trim(), anthropic: $("s_anthropic").value.trim() };
+        LS.set("settings", settings); toast("Endpoints saved", "ok");
+      }
+      function savePrefs() {
+        prefs = { operator: $("s_operator").value.trim() || "Alexander", feed: $("s_feed").value.trim(), greet: $("s_greet").checked };
+        LS.set("prefs", prefs); toast("Preferences saved", "ok");
+      }
+      function wipeData() {
+        if (!confirm("Wipe all local Mission Control data (crew config, chats, pipeline, jobs)?")) return;
+        Object.keys(localStorage).filter((k) => k.startsWith("jabb.")).forEach((k) => localStorage.removeItem(k));
+        location.reload();
+      }
+      async function discoverOllama() {
+        const base = isBridged ? BRIDGE.ollama : (settings.ollama || "http://localhost:11434");
+        $("discoverMsg").textContent = "contacting Ollama…";
+        try {
+          const r = await fetch(base + "/api/tags"); const d = await r.json(); let added = 0;
+          (d.models || []).forEach((t) => {
+            const id = "custom-ollama-" + t.name.replace(/[:/]/g, "-");
+            if (customModels.some((c) => c.id === id)) return;
+            customModels.push({ id, label: t.name + " (Ollama)", provider: "ollama", model: t.name, base, speed: "fast" }); added++;
+          });
+          LS.set("models", customModels); renderModels();
+          $("discoverMsg").textContent = "added " + added + " model(s).";
+        } catch (e) { $("discoverMsg").textContent = "couldn't reach Ollama (run with OLLAMA_ORIGINS=*)."; }
+      }
+
+      /* ==================== MODEL STREAMING ==================== */
+      async function streamChat(model, system, history, onChunk) {
+        if (model.provider === "transformers") return streamTransformers(model, system, history, onChunk);
+        if (model.provider === "webllm") return streamWebLLM(model, system, history, onChunk);
+        if (model.provider === "anthropic") return streamAnthropic(model, system, history, onChunk);
+        let base = (model.base || "").replace(/\/$/, "");
+        if (model.provider === "ollama" && !/\/v1$/.test(base)) base += "/v1";
+        const key = model.key || (model.provider === "openai" ? settings.openai : "") || "not-needed";
+        const msgs = [{ role: "system", content: system }, ...history];
+        const resp = await fetch(base + "/chat/completions", {
+          method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + key },
+          body: JSON.stringify({ model: model.model, messages: msgs, stream: true, temperature: 0.7, top_p: 0.9 }),
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status + " from " + base);
+        await readSSE(resp, (o) => { const c = o.choices?.[0]?.delta?.content; if (c) onChunk(c); });
+      }
+      async function streamAnthropic(model, system, history, onChunk) {
+        const key = model.key || settings.anthropic;
+        if (!key) throw new Error("Set your Anthropic API key in Control.");
+        const resp = await fetch((model.base || "https://api.anthropic.com") + "/v1/messages", {
+          method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+          body: JSON.stringify({ model: model.model, max_tokens: 2048, system, stream: true, temperature: 0.7, messages: history }),
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status + " from Anthropic");
+        await readSSE(resp, (o) => { if (o.type === "content_block_delta" && o.delta?.text) onChunk(o.delta.text); });
+      }
+      let webllmEngine = null, webllmId = null;
+      async function streamWebLLM(model, system, history, onChunk) {
+        if (!("gpu" in navigator)) throw new Error("No WebGPU here. Switch to \"Free · CPU\" in Control.");
+        if (!webllmEngine || webllmId !== model.model) {
+          chatErr("Loading GPU model (first run downloads ~1GB, then cached)…");
+          const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+          webllmEngine = await webllm.CreateMLCEngine(model.model, { initProgressCallback: (p) => chatErr("Loading: " + (p.text || "")) });
+          webllmId = model.model;
+        }
+        chatErr("");
+        const msgs = [{ role: "system", content: system }, ...history];
+        const chunks = await webllmEngine.chat.completions.create({ messages: msgs, stream: true, temperature: 0.7, top_p: 0.9 });
+        for await (const c of chunks) { const t = c.choices?.[0]?.delta?.content; if (t) onChunk(t); }
+      }
+      let tjsPipe = null, tjsId = null, tjsLib = null;
+      async function streamTransformers(model, system, history, onChunk) {
+        if (!tjsLib) tjsLib = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
+        if (!tjsPipe || tjsId !== model.model) {
+          chatErr("Loading CPU model (first run downloads once)…");
+          tjsPipe = await tjsLib.pipeline("text-generation", model.model, { device: "wasm", dtype: "q4", progress_callback: (p) => { if (p?.status === "progress" && p.file) chatErr("Loading " + p.file + " " + Math.round(p.progress || 0) + "%"); } });
+          tjsId = model.model;
+        }
+        chatErr("Generating…");
+        const msgs = [{ role: "system", content: system }, ...history];
+        const streamer = new tjsLib.TextStreamer(tjsPipe.tokenizer, { skip_prompt: true, callback_function: (t) => { if (t) { chatErr(""); onChunk(t); } } });
+        await tjsPipe(msgs, { max_new_tokens: 1024, temperature: 0.7, do_sample: true, streamer });
+        chatErr("");
+      }
+      async function readSSE(resp, onObj) {
+        const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "";
+        while (true) {
+          const { done, value } = await reader.read(); if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const lines = buf.split("\n"); buf = lines.pop();
+          for (const line of lines) { const t = line.trim(); if (!t.startsWith("data:")) continue; const data = t.slice(5).trim(); if (data === "[DONE]" || !data) continue; try { onObj(JSON.parse(data)); } catch {} }
+        }
+      }
+
+      /* ==================== VOICE ==================== */
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let listening = false, recognition = null, autoSpeak = false;
+      function toggleMic() {
+        if (!SR) return toast("Voice input needs Chrome/Edge", "err");
+        if (listening) { recognition && recognition.stop(); return; }
+        recognition = new SR(); recognition.lang = "en-US"; recognition.interimResults = true; recognition.continuous = false;
+        let finalText = "";
+        recognition.onresult = (ev) => { let interim = ""; for (let i = ev.resultIndex; i < ev.results.length; i++) { const r = ev.results[i]; r.isFinal ? (finalText += r[0].transcript) : (interim += r[0].transcript); } if ($("view-comms").classList.contains("active")) { $("chatInput").value = (finalText + interim).trim(); autosize(); } };
+        recognition.onend = () => { listening = false; setMic(false); };
+        recognition.onerror = () => { listening = false; setMic(false); };
+        recognition.start(); listening = true; setMic(true);
+      }
+      function setMic(on) { $("micBtn").classList.toggle("on", on); $("coreOrb")?.classList.toggle("talking", on); }
+      function toggleSpeak() { autoSpeak = !autoSpeak; $("speakBtn").textContent = autoSpeak ? "🔊" : "🔇"; $("speakBtn").classList.toggle("on", autoSpeak); if (!autoSpeak) stopSpeak(); }
+      function pickVoice() {
+        const vs = window.speechSynthesis?.getVoices?.() || [];
+        return vs.find((v) => /daniel|arthur|google uk english male|male/i.test(v.name)) || vs.find((v) => /en-GB/i.test(v.lang)) || vs.find((v) => /en/i.test(v.lang)) || vs[0];
+      }
+      function speak(text) {
+        if (!("speechSynthesis" in window)) return;
+        stopSpeak();
+        const clean = text.replace(/```[\s\S]*?```/g, " code block ").replace(/[`*_#>]/g, "").slice(0, 3500);
+        const u = new SpeechSynthesisUtterance(clean); const v = pickVoice(); if (v) u.voice = v; u.rate = 1.02; u.pitch = 0.95;
+        u.onstart = () => $("coreOrb")?.classList.add("talking"); u.onend = () => $("coreOrb")?.classList.remove("talking");
+        window.speechSynthesis.speak(u);
+      }
+      function stopSpeak() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); $("coreOrb")?.classList.remove("talking"); }
+
+      function jarvisGreet(force) {
+        const line = `Hi ${prefs.operator}. JARVIS online. Your crew is standing by — Talent Scout is tracking ${jobs.length} remote Power Platform roles.`;
+        $("heroLine").textContent = line + " I'm ready when you are.";
+        if ((prefs.greet || force) && "speechSynthesis" in window) {
+          // voices may load async
+          if (!window.speechSynthesis.getVoices().length) { window.speechSynthesis.onvoiceschanged = () => speak(line); setTimeout(() => speak(line), 350); }
+          else speak(line);
+        }
+        logTask("JARVIS", "Greeted " + prefs.operator + " · " + jobs.length + " remote roles tracked");
+      }
+
+      /* ==================== HELPERS ==================== */
+      function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+      const MD = [[/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>"], [/`([^`]+)`/g, "<code>$1</code>"], [/\*\*([^*]+)\*\*/g, "<b>$1</b>"]];
+      function md(s) { let o = escapeHtml(s); for (const [p, r] of MD) o = o.replace(p, r); return o.replace(/\n/g, "<br>"); }
+      function toast(m, kind) { const t = $("toast"); t.textContent = m; t.className = "toast show " + (kind || ""); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2600); }
+      function openModal(n) { $("modal-" + n).classList.add("open"); }
+      function closeModal() { document.querySelectorAll(".modal-bg").forEach((m) => m.classList.remove("open")); }
+      document.querySelectorAll(".modal-bg").forEach((bg) => bg.addEventListener("click", (e) => { if (e.target === bg) closeModal(); }));
+
+      function clockTick() {
+        const d = new Date();
+        $("clock").textContent = d.toLocaleTimeString([], { hour12: false });
+      }
+      setInterval(clockTick, 1000); clockTick();
+
+      /* ==================== INIT ==================== */
+      renderHome();
+      setTimeout(() => jarvisGreet(false), 600);
+    </script>
+  </body>
+</html>

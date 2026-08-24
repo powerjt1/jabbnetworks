@@ -148,6 +148,7 @@
       <li><a href="#process" onclick={(e) => { e.preventDefault(); scrollTo('process'); }}>Process</a></li>
       <li><a href="#solutions" onclick={(e) => { e.preventDefault(); scrollTo('solutions'); }}>Solutions</a></li>
       <li><a href="#contact" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Contact</a></li>
+      <li><a href="/mission-control.html" class="nav-tool">Mission Control</a></li>
       <li><a href="/opencoder-lite.html" class="nav-tool">AI Coder</a></li>
       <li><a href="#contact" class="nav-cta" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Get Started</a></li>
     </ul>
@@ -451,6 +452,7 @@
           <li><a href="#process" onclick={(e) => { e.preventDefault(); scrollTo('process'); }}>Process</a></li>
           <li><a href="#solutions" onclick={(e) => { e.preventDefault(); scrollTo('solutions'); }}>Solutions</a></li>
           <li><a href="#contact" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Contact</a></li>
+          <li><a href="/mission-control.html">Mission Control</a></li>
           <li><a href="/opencoder-lite.html">AI Coder</a></li>
         </ul>
       </div>
