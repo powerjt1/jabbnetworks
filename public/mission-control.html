@@ -825,6 +825,7 @@
           { id: "lmstudio", label: "LM Studio" + (isBridged ? " [via PC]" : ""), provider: "openai-compat", model: "local-model", base: lmstudioBase + "/v1", speed: "fast" },
           { id: "gpt-4o", label: "OpenAI GPT-4o (cloud)", provider: "openai", model: "gpt-4o", base: "https://api.openai.com/v1", speed: "fast" },
           { id: "claude", label: "Claude Sonnet (cloud)", provider: "anthropic", model: "claude-sonnet-4-20250514", base: "https://api.anthropic.com", speed: "fast" },
+          { id: "fable", label: "Claude Fable (cloud)", provider: "anthropic", model: "claude-fable-5", base: "https://api.anthropic.com", speed: "fast" },
           { id: "gemini-flash", label: "Google Gemini 2.0 Flash (cloud)", provider: "gemini", model: "gemini-2.0-flash", base: "https://generativelanguage.googleapis.com/v1beta/openai", speed: "fast" },
           { id: "gemini-pro", label: "Google Gemini 1.5 Pro (cloud)", provider: "gemini", model: "gemini-1.5-pro", base: "https://generativelanguage.googleapis.com/v1beta/openai", speed: "fast" },
         ];
