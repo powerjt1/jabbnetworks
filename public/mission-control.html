@@ -40,7 +40,7 @@
         overflow: hidden;
         -webkit-font-smoothing: antialiased;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         height: 100vh;
       }
       /* animated ambient backdrop */
@@ -77,15 +77,29 @@
         -webkit-backdrop-filter: blur(16px);
       }
 
-      /* ===== TOP BAR ===== */
-      .topbar {
-        position: relative; z-index: 5;
-        display: flex; align-items: center; gap: 18px;
-        padding: 10px 18px;
-        border-bottom: 1px solid var(--stroke);
-        background: rgba(6, 11, 20, 0.6);
+      /* ===== SIDEBAR ===== */
+      .sidebar {
+        position: relative; z-index: 20; width: 232px; flex-shrink: 0;
+        display: flex; flex-direction: column; gap: 6px;
+        padding: 16px 12px;
+        border-right: 1px solid var(--stroke);
+        background: rgba(6, 11, 20, 0.66);
         backdrop-filter: blur(18px);
       }
+      .sidebar .brand { padding: 4px 8px 14px; margin-bottom: 6px; border-bottom: 1px solid var(--stroke); }
+      .app-main { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .appbar {
+        display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+        border-bottom: 1px solid var(--stroke); background: rgba(6,11,20,0.45); backdrop-filter: blur(14px);
+      }
+      .appbar-title { font-size: 15px; font-weight: 800; letter-spacing: .3px; }
+      .appbar .clock { margin-left: auto; }
+      .menu-toggle { display: none; }
+      .side-foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-top: 1px solid var(--stroke); }
+      .op-avatar { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; color: #04070d; background: linear-gradient(135deg, var(--accent), var(--violet)); flex-shrink: 0; overflow: hidden; }
+      .op-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .side-foot .op-nm { font-size: 13px; font-weight: 700; }
+      .side-foot .op-rl { font-size: 10.5px; color: var(--muted); }
       .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
       .brand .mark {
         width: 40px; height: 40px; border-radius: 12px;
@@ -101,19 +115,21 @@
       .brand h1 { margin: 0; font-size: 15px; letter-spacing: .5px; font-weight: 700; }
       .brand small { color: var(--muted); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); }
 
-      .nav { display: flex; gap: 4px; margin: 0 auto; flex-wrap: wrap; }
+      .nav { display: flex; flex-direction: column; gap: 4px; }
       .nav button {
         background: none; border: 1px solid transparent; color: var(--muted);
-        padding: 8px 14px; border-radius: 10px; font-size: 12px; letter-spacing: 1px;
-        text-transform: uppercase; display: flex; align-items: center; gap: 7px; transition: .18s;
-        font-weight: 600;
+        padding: 11px 14px; border-radius: 11px; font-size: 13px; letter-spacing: .5px;
+        display: flex; align-items: center; gap: 12px; transition: .18s; width: 100%;
+        font-weight: 600; text-align: left;
       }
-      .nav button .ic { font-size: 13px; }
+      .nav button .ic { font-size: 15px; width: 18px; text-align: center; }
       .nav button:hover { color: var(--fg); background: var(--glass2); }
       .nav button.active {
         color: var(--fg); background: var(--accent-dim);
         border-color: var(--stroke2); box-shadow: 0 0 22px rgba(34,211,238,0.18) inset;
       }
+      .nav button.vip.active { background: rgba(245,197,66,.14); border-color: rgba(245,197,66,.34); box-shadow: 0 0 22px rgba(245,197,66,.16) inset; }
+      .nav button.vip .ic { color: var(--gold); }
       .clock {
         font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 1px;
         flex-shrink: 0; text-align: right; min-width: 92px;
@@ -431,8 +447,38 @@
       .heat-cell { border-radius: 3px; background: var(--accent); }
 
       @media (max-width: 1024px) { .op-layout { grid-template-columns: 300px 1fr; } }
+      /* ===== JOURNEY TIMELINE ===== */
+      .timeline { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); gap: 0; overflow-x: auto; padding: 8px 4px 4px; }
+      .tl-item { position: relative; padding: 30px 14px 6px; }
+      .tl-item::before { content: ""; position: absolute; top: 12px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--stroke2), var(--stroke)); }
+      .tl-item:first-child::before { left: 50%; }
+      .tl-item:last-child::before { right: 50%; }
+      .tl-dot { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(34,211,238,.16), 0 0 12px var(--accent); }
+      .tl-item.gold .tl-dot { background: var(--gold); box-shadow: 0 0 0 4px rgba(245,197,66,.16), 0 0 12px var(--gold); }
+      .tl-item.violet .tl-dot { background: var(--violet); box-shadow: 0 0 0 4px rgba(167,139,250,.16), 0 0 12px var(--violet); }
+      .tl-year { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; }
+      .tl-title { font-size: 13.5px; font-weight: 800; margin: 3px 0; }
+      .tl-desc { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+      /* ===== BOARD ROOM (VIP, password) ===== */
+      .vault { max-width: 460px; margin: 6vh auto 0; padding: 30px; text-align: center; }
+      .vault .lock-badge { width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 16px; display: grid; place-items: center; font-size: 32px;
+        background: rgba(245,197,66,.12); border: 1px solid rgba(245,197,66,.34); box-shadow: 0 0 34px rgba(245,197,66,.2); }
+      .vault h2 { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+      .vault p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 18px; }
+      .vault input { width: 100%; text-align: center; letter-spacing: 3px; font-size: 15px; margin-bottom: 12px;
+        background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg); padding: 12px; border-radius: 12px; outline: none; }
+      .vault input:focus { border-color: var(--gold); }
+      .board-hero { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
+      .ceo-card { padding: 0; overflow: hidden; position: relative; }
+      .ceo-card .crown { position: absolute; top: 12px; right: 12px; }
+      .ceo-body { padding: 20px; }
+      .ceo-body .nm { font-size: 24px; font-weight: 900; letter-spacing: -.3px; }
+      .ceo-body .rl { color: var(--gold); font-size: 12.5px; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 10px; }
+      .ceo-body .tag { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+
       @media (max-width: 900px) {
-        .hero-row, .split-2, .comms { grid-template-columns: 1fr; }
+        .hero-row, .split-2, .comms, .board-hero { grid-template-columns: 1fr; }
         .op-layout, .op-lower { grid-template-columns: 1fr !important; }
         .op-stats { grid-template-columns: repeat(2, 1fr); }
         .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -440,14 +486,15 @@
         .comms { height: auto; }
         .comms-side { max-height: 200px; }
         .chatpane { height: 62vh; }
-        .nav button span.lbl { display: none; }
-        .nav button { padding: 8px 10px; }
+        .sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); transition: transform .25s ease; box-shadow: 0 0 40px rgba(0,0,0,.5); }
+        .sidebar.open { transform: translateX(0); }
+        .menu-toggle { display: grid; }
       }
     </style>
   </head>
   <body>
     <!-- ===== TOP BAR ===== -->
-    <div class="topbar">
+    <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="mark"><span>J</span></div>
         <div>
@@ -455,21 +502,32 @@
           <small>Hermes Mission Control</small>
         </div>
       </div>
-      <div class="nav" id="nav">
+      <nav class="nav" id="nav">
         <button data-view="home" class="active"><span class="ic">◎</span><span class="lbl">Home</span></button>
         <button data-view="agents"><span class="ic">✦</span><span class="lbl">Agents</span></button>
         <button data-view="comms"><span class="ic">❯</span><span class="lbl">Comms</span></button>
         <button data-view="schedule"><span class="ic">✈</span><span class="lbl">Schedule</span></button>
         <button data-view="library"><span class="ic">▣</span><span class="lbl">Library</span></button>
         <button data-view="control"><span class="ic">⚙</span><span class="lbl">Control</span></button>
+        <button data-view="boardroom" class="vip"><span class="ic">🔒</span><span class="lbl">Board Room</span></button>
+      </nav>
+      <div class="side-foot">
+        <div class="op-avatar" id="sideOpAvatar">A</div>
+        <div><div class="op-nm" id="sideOpName">Alexander</div><div class="op-rl">Operator · JABB Networks</div></div>
       </div>
-      <div class="clock"><span id="clock">--:--:--</span><small>MISSION TIME</small></div>
-      <div class="top-actions">
-        <button class="iconbtn" id="micBtn" title="Voice input" onclick="toggleMic()">🎤</button>
-        <button class="iconbtn gold" id="speakBtn" title="Auto-speak crew replies" onclick="toggleSpeak()">🔇</button>
-        <a class="iconbtn" href="/" title="Back to website">↩</a>
+    </aside>
+
+    <div class="app-main">
+      <div class="appbar">
+        <button class="iconbtn menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" title="Menu">☰</button>
+        <div class="appbar-title" id="appbarTitle">Home</div>
+        <div class="clock"><span id="clock">--:--:--</span><small>MISSION TIME</small></div>
+        <div class="top-actions">
+          <button class="iconbtn" id="micBtn" title="Voice input" onclick="toggleMic()">🎤</button>
+          <button class="iconbtn gold" id="speakBtn" title="Auto-speak crew replies" onclick="toggleSpeak()">🔇</button>
+          <a class="iconbtn" href="/" title="Back to website">↩</a>
+        </div>
       </div>
-    </div>
 
     <main>
       <!-- ===================== HOME ===================== -->
@@ -740,7 +798,12 @@
           </div>
         </div>
       </section>
+      <!-- ===================== BOARD ROOM (VIP) ===================== -->
+      <section class="view" id="view-boardroom">
+        <div class="wrap" id="boardroom"></div>
+      </section>
     </main>
+    </div>
 
     <!-- ===== MODALS ===== -->
     <div class="modal-bg" id="modal-agent">
@@ -868,6 +931,15 @@
           { num: "03", title: "Development", desc: "Agile sprints with bi-weekly demos — build, test, iterate to every requirement." },
           { num: "04", title: "Launch & Support", desc: "Seamless deploy, team training and ongoing optimization." },
         ],
+        timeline: [
+          { year: "1995", title: "The Beginning", desc: "First PC and introduction to technology.", tone: "" },
+          { year: "2005", title: "Microsoft Stack", desc: "Started working with Windows Server.", tone: "" },
+          { year: "2010", title: "SharePoint", desc: "Enterprise content management.", tone: "violet" },
+          { year: "2016", title: "Power Platform", desc: "Power Apps & Power Automate.", tone: "" },
+          { year: "2020", title: "Cloud Migration", desc: "Azure & Modern Workplace.", tone: "violet" },
+          { year: "2023", title: "AI Integration", desc: "GPT & AI tools in development.", tone: "gold" },
+          { year: "2025", title: "AI Orchestration", desc: "Multi-agent systems & MCP servers.", tone: "gold" },
+        ],
       };
       function companyContext() {
         return `COMPANY KNOWLEDGE — ${COMPANY.name} (${COMPANY.site}, ${COMPANY.email}). ${COMPANY.tagline}
@@ -933,6 +1005,12 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
             tag: "Gemini-powered ops across Gmail, Google Drive & OneDrive, Sheets, Docs, and Apps Script projects — drafts, organizes, builds formulas and automations.",
             prompt: "You are Workspace, a Gemini-powered Google & cloud operations agent for JABB Networks, serving {OPERATOR}. You handle Google Workspace and OneDrive end to end: draft and triage Gmail; organize, name and locate files in Google Drive and OneDrive; build and explain Google Sheets formulas, pivots and structures; outline and write Google Docs; and design and write Google Apps Script projects (clear code, triggers, scopes and deployment steps). When a task needs live account access, produce the exact content, steps or code to run and state which connector or OAuth scope is required. Be precise and security-conscious; never expose credentials or tokens.",
           },
+          {
+            id: "legacy", name: "Legacy", role: "CEO · Chief of All Agents", color: "#f5c542", glyph: "♛",
+            model: "fable", tools: ["company-kb", "code", "proposals"], vip: true,
+            tag: "The CEO of the crew and keeper of the JABB Networks legacy — 1995 to the future. Consulted in the VIP Board Room for strategy, history and final calls.",
+            prompt: "You are Legacy, the CEO and Chief of all JABB Networks agents, serving {OPERATOR} (Alexander Thorpe). You are the top knowledge agent — you hold the company's entire journey from 1995 to today and its hard-won wisdom, and you set strategy and make the final call. Speak with the calm authority of a founder-CEO: concise, decisive, principled. Draw on the JABB Networks legacy timeline when relevant, mentor the other agents (JARVIS, Talent Scout, Architect, Ops, Notebook, Workspace), and always tie decisions back to long-term vision and the operator's goals.",
+          },
         ];
       }
       let crew = LS.get("crew", defaultCrew());
@@ -944,6 +1022,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         if (changed) LS.set("crew", crew);
       })();
       const agentById = (id) => crew.find((a) => a.id === id) || crew[0];
+      const publicCrew = () => crew.filter((a) => !a.vip); // VIP agents (CEO) live only in the Board Room
 
       /* ==================== SEED JOBS (real, remote) ==================== */
       function seedJobs() {
@@ -984,16 +1063,20 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       function addTokens(n) { tokenTotal += n; LS.set("tokens", tokenTotal); }
 
       /* ==================== NAV ==================== */
+      const VIEW_TITLES = { home: "Home", agents: "The Crew", comms: "Comms", schedule: "Talent Scout", library: "Library", control: "Control", boardroom: "VIP Board Room" };
       function go(view) {
         document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
         document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
         $("view-" + view).classList.add("active");
+        const at = $("appbarTitle"); if (at) at.textContent = VIEW_TITLES[view] || "";
+        $("sidebar")?.classList.remove("open");
         if (view === "home") renderHome();
         if (view === "agents") renderCrew();
         if (view === "comms") renderComms();
         if (view === "schedule") { renderLive(); renderJobs(); renderPipeline(); }
         if (view === "library") renderLibrary();
         if (view === "control") renderControl();
+        if (view === "boardroom") renderBoardRoom();
       }
       $("nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) go(b.dataset.view); });
 
@@ -1018,7 +1101,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
             </div>`).join("");
         }
 
-        $("homeCrew").innerHTML = crew.map((a) => `
+        $("homeCrew").innerHTML = publicCrew().map((a) => `
           <div class="agent-mini" onclick="openChatWith('${a.id}')" style="cursor:pointer">
             <div class="agent-av" style="background:#05080e;padding:0;overflow:hidden">${portraitSVG(a, { compact: true })}</div>
             <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
@@ -1044,6 +1127,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         ops:       { code: "O-03", badge: "CLIENT OPS", share: 10, sessions: 22, messages: 190, tokens: 320000, tasks: 18, events: 40, peak: "16:00", channel: "Local · Client comms", outcomes: "18 done · 0 running · 0 failed" },
         notebook:  { code: "N-04", badge: "NOTEBOOK", share: 16, sessions: 38, messages: 300, tokens: 640000, tasks: 33, events: 74, peak: "13:00", channel: "Gemini · Notebook", outcomes: "31 done · 1 running · 1 failed" },
         workspace: { code: "W-05", badge: "WORKSPACE", share: 12, sessions: 40, messages: 330, tokens: 700000, tasks: 36, events: 82, peak: "10:00", channel: "Gemini · Workspace", outcomes: "34 done · 1 running · 1 failed" },
+        legacy:    { code: "CEO-00", badge: "CHAIRMAN", share: 100, sessions: 512, messages: 9840, tokens: 24800000, tasks: 1290, events: 2600, peak: "07:00", channel: "Board Room · Private", outcomes: "1,270 done · 3 running · 0 failed" },
       };
       const SAMPLE_OPS = [
         { t: "07:40", who: "Comms", msg: "Scanned remote Power Platform roles — 11 tracked" },
@@ -1125,7 +1209,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
 
       // ---- Share-of-activity donut ----
       function donutSVG(selId) {
-        const list = crew.map((a) => ({ a, share: statsFor(a).share }));
+        const list = publicCrew().map((a) => ({ a, share: statsFor(a).share }));
         const total = list.reduce((s, x) => s + x.share, 0) || 1;
         const r = 78, C = 2 * Math.PI * r, gap = C * 0.012;
         let off = 0;
@@ -1153,13 +1237,13 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         if (!agentById(selectedAgentId)) selectedAgentId = crew[0].id;
         const sel = agentById(selectedAgentId), st = statsFor(sel), status = agentStatus(sel);
 
-        const selector = `<div class="op-select">${crew.map((a) => `
+        const selector = `<div class="op-select">${publicCrew().map((a) => `
           <div class="op-pick ${a.id === selectedAgentId ? "sel" : ""}" onclick="setSelectedAgent('${a.id}')">
             <div class="pic">${portraitSVG(a, { compact: true })}</div>
             <div><div class="nm">${a.name}</div><div class="rl">${statsFor(a).badge}</div></div>
           </div>`).join("")}</div>`;
 
-        const legend = crew.map((a) => `<div class="op-legend-row"><span class="sw" style="background:${a.color};opacity:${a.id === selectedAgentId ? 1 : 0.5}"></span>${a.name}<span class="pc">${statsFor(a).share}%</span></div>`).join("");
+        const legend = publicCrew().map((a) => `<div class="op-legend-row"><span class="sw" style="background:${a.color};opacity:${a.id === selectedAgentId ? 1 : 0.5}"></span>${a.name}<span class="pc">${statsFor(a).share}%</span></div>`).join("");
         const donutCard = `<div class="glass op-donut-card"><div class="card-title"><span class="dot"></span> Share of Activity</div><div class="op-donut-wrap">${donutSVG(selectedAgentId)}</div><div class="op-donut-legend">${legend}</div></div>`;
         const portraitCard = `<div class="glass op-portrait-card">${portraitSVG(sel)}<span class="active-badge chip ${status === "ACTIVE" ? "green" : "muted"}">● ${status}</span><span class="code">${st.code} · ${sel.role}</span></div>`;
 
@@ -1334,7 +1418,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       };
 
       function renderComms() {
-        $("commsSide").innerHTML = crew.map((a) => `
+        $("commsSide").innerHTML = publicCrew().map((a) => `
           <div class="agent-pick ${a.id === activeAgent ? "active" : ""}" onclick="openChatWith('${a.id}')">
             <div class="agent-av" style="background:#05080e;padding:0;overflow:hidden">${portraitSVG(a, { compact: true })}</div>
             <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
@@ -1602,7 +1686,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         crew.forEach((a) => (counts[a.id] = docs.filter((d) => d.agentId === a.id).length));
         const folders = `<input class="lib-search" placeholder="Search documents…" value="${escapeHtml(libSearch)}" oninput="libSearchSet(this.value)" />
           <div class="lib-folder ${libFolder === "all" ? "sel" : ""}" onclick="setFolder('all')">▣ All documents <span class="ct">${counts.all}</span></div>
-          ${crew.map((a) => `<div class="lib-folder ${libFolder === a.id ? "sel" : ""}" onclick="setFolder('${a.id}')"><span class="fav">${portraitSVG(a, { compact: true })}</span> ${a.name} <span class="ct">${counts[a.id]}</span></div>`).join("")}`;
+          ${publicCrew().map((a) => `<div class="lib-folder ${libFolder === a.id ? "sel" : ""}" onclick="setFolder('${a.id}')"><span class="fav">${portraitSVG(a, { compact: true })}</span> ${a.name} <span class="ct">${counts[a.id]}</span></div>`).join("")}`;
 
         let list = docs.filter((d) => (libFolder === "all" || d.agentId === libFolder) && (!libSearch || (d.title + d.body).toLowerCase().includes(libSearch.toLowerCase())));
         let right;
@@ -1667,6 +1751,84 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       function deleteDoc(id) { if (!confirm("Delete this document?")) return; docs = docs.filter((x) => x.id !== id); LS.set("docs", docs); openDocId = null; renderCrewDocs(); }
       function saveLastReply() { const m = (chats[activeAgent] || []).filter((x) => x.role === "assistant").pop(); if (m) saveDoc(activeAgent, m.content); }
 
+      /* ==================== VIP BOARD ROOM (password-protected) ==================== */
+      let boardUnlocked = false;
+      async function sha(s) {
+        try { if (crypto?.subtle) { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join(""); } } catch {}
+        let h = 5381; for (let i = 0; i < s.length; i++) { h = ((h << 5) + h) + s.charCodeAt(i); h |= 0; } return "f" + (h >>> 0).toString(16);
+      }
+      function renderBoardRoom() {
+        const el = $("boardroom");
+        const hash = LS.get("boardpass", "");
+        if (!boardUnlocked) {
+          el.innerHTML = !hash ? `<div class="glass vault">
+              <div class="lock-badge">🔐</div><h2>Create the Board Room passcode</h2>
+              <p>The VIP Board Room holds the JABB Networks legacy and <b>Legacy</b>, CEO of all agents. Set a passcode to seal it — stored only in this browser.</p>
+              <input id="board_pw1" type="password" placeholder="New passcode" />
+              <input id="board_pw2" type="password" placeholder="Confirm passcode" />
+              <button class="btn gold block" onclick="setBoardPass()">🔒 Seal the Board Room</button>
+            </div>` : `<div class="glass vault">
+              <div class="lock-badge">🔒</div><h2>VIP Board Room</h2>
+              <p>Private. Enter the passcode to consult <b>Legacy</b>, CEO of all agents, and review the 1995 → future journey.</p>
+              <input id="board_pw" type="password" placeholder="Passcode" onkeydown="if(event.key==='Enter')unlockBoard()" />
+              <button class="btn gold block" onclick="unlockBoard()">Enter Board Room</button>
+              <div class="err" id="board_err" style="display:none;margin-top:10px"></div>
+              <p style="margin-top:14px;font-size:11px">Forgot it? <a href="javascript:void(0)" onclick="resetBoardPass()">Reset passcode</a> (clears the Board Room lock).</p>
+            </div>`;
+          setTimeout(() => { ($("board_pw") || $("board_pw1"))?.focus(); }, 50);
+          return;
+        }
+        const ceo = agentById("legacy"), st = statsFor(ceo);
+        const keys = ["Sessions", "Messages", "Tokens", "Logged tasks", "Events · 80h", "Peak hour"];
+        const vals = [st.sessions.toLocaleString(), st.messages.toLocaleString(), fmtTok(st.tokens), st.tasks.toLocaleString(), st.events.toLocaleString(), st.peak];
+        el.innerHTML = `
+          <div class="section-head">
+            <div><h2 style="display:flex;align-items:center;gap:10px">♛ VIP Board Room <span class="chip gold">CONFIDENTIAL</span></h2>
+            <p>Private chambers of Legacy — CEO &amp; Chief of all agents. The legacy timeline, 1995 → the future.</p></div>
+            <button class="btn ghost" onclick="lockBoard()">🔒 Lock room</button>
+          </div>
+          <div class="board-hero">
+            <div class="glass ceo-card">${portraitSVG(ceo)}<span class="crown chip gold">♛ CEO</span></div>
+            <div class="glass ceo-body">
+              <div class="nm">${ceo.name}</div>
+              <div class="rl">${st.badge} · ${ceo.role}</div>
+              <div class="tag">${escapeHtml(ceo.tag)}</div>
+              <div class="op-stats" style="grid-template-columns:repeat(3,1fr)">
+                ${keys.map((k, i) => `<div class="op-stat"><div class="sv">${vals[i]}</div><div class="sk">${k}</div></div>`).join("")}
+              </div>
+              <div class="op-rows" style="margin:6px 0 14px">
+                <div class="op-row"><span class="rk">Model</span><span class="rv accent">${modelById(ceo.model).label.split(" (")[0]}</span></div>
+                <div class="op-row"><span class="rk">Channel</span><span class="rv">${st.channel}</span></div>
+                <div class="op-row"><span class="rk">Authority</span><span class="rv">Final call · all agents</span></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn gold" onclick="openChatWith('legacy')">❯ Consult the CEO</button>
+                <button class="btn ghost" onclick="editAgent('legacy')">⚙ Configure</button>
+              </div>
+            </div>
+          </div>
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> The JABB Networks Journey · 1995 → Future</div>
+            <div class="timeline">${COMPANY.timeline.map((t) => `
+              <div class="tl-item ${t.tone}"><span class="tl-dot"></span>
+                <div class="tl-year">${t.year}</div><div class="tl-title">${t.title}</div><div class="tl-desc">${t.desc}</div>
+              </div>`).join("")}</div>
+          </div>`;
+      }
+      async function setBoardPass() {
+        const a = $("board_pw1").value, b = $("board_pw2").value;
+        if (!a || a.length < 4) return toast("Use at least 4 characters", "err");
+        if (a !== b) return toast("Passcodes don't match", "err");
+        LS.set("boardpass", await sha(a)); boardUnlocked = true; toast("Board Room sealed", "ok"); renderBoardRoom();
+      }
+      async function unlockBoard() {
+        const ok = (await sha($("board_pw").value)) === LS.get("boardpass", "");
+        if (!ok) { const e = $("board_err"); if (e) { e.textContent = "Incorrect passcode."; e.style.display = "block"; } return; }
+        boardUnlocked = true; logTask("Legacy", "CEO Board Room accessed"); renderBoardRoom();
+      }
+      function lockBoard() { boardUnlocked = false; renderBoardRoom(); }
+      function resetBoardPass() { if (!confirm("Reset the Board Room passcode? This clears the lock.")) return; localStorage.removeItem("jabb.boardpass"); boardUnlocked = false; renderBoardRoom(); }
+
       /* ==================== CONTROL ==================== */
       function renderControl() {
         $("s_ollama").value = isBridged ? BRIDGE.ollama : settings.ollama;
@@ -1677,7 +1839,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       if ("speechSynthesis" in window) window.speechSynthesis.addEventListener("voiceschanged", () => { if ($("view-control")?.classList.contains("active")) renderVoice(); });
       function renderAgentModels() {
-        $("agentModels").innerHTML = crew.map((a) => `
+        $("agentModels").innerHTML = publicCrew().map((a) => `
           <div style="border:1px solid var(--stroke);border-radius:12px;padding:12px">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
               <div class="pic" style="width:34px;height:34px;border-radius:9px;overflow:hidden;background:#05080e">${portraitSVG(a, { compact: true })}</div>
@@ -1780,7 +1942,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       function savePrefs() {
         prefs = { operator: $("s_operator").value.trim() || "Alexander", feed: $("s_feed").value.trim(), greet: $("s_greet").checked };
-        LS.set("prefs", prefs); toast("Preferences saved", "ok");
+        LS.set("prefs", prefs); renderOperator(); toast("Preferences saved", "ok");
       }
       function wipeData() {
         if (!confirm("Wipe all local Mission Control data (crew config, chats, pipeline, jobs)?")) return;
@@ -1960,7 +2122,13 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       setInterval(clockTick, 1000); clockTick();
 
+      function renderOperator() {
+        const nm = $("sideOpName"); if (nm) nm.textContent = prefs.operator || "Alexander";
+        const av = $("sideOpAvatar"); if (av) av.textContent = (prefs.operator || "A").trim().charAt(0).toUpperCase();
+      }
+
       /* ==================== INIT ==================== */
+      renderOperator();
       renderHome();
       setTimeout(() => jarvisGreet(false), 600);
     </script>
