@@ -754,6 +754,15 @@
         <div class="field"><label>Tagline</label><input id="ag_tag" /></div>
         <div class="field"><label>Accent color</label><div class="swatches" id="ag_colors"></div></div>
         <div class="field"><label>Glyph / avatar</label><div class="glyphpick" id="ag_glyphs"></div></div>
+        <div class="field">
+          <label>Avatar image (optional — overrides the helmet everywhere)</label>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div id="ag_avatar_prev" style="width:64px;height:64px;border-radius:14px;overflow:hidden;background:#05080e;border:1px solid var(--stroke);flex-shrink:0"></div>
+            <label class="btn ghost sm" style="cursor:pointer">⬆ Upload image<input type="file" id="ag_avatar" accept="image/*" onchange="onAvatarPick(event)" style="display:none" /></label>
+            <button type="button" class="btn ghost sm" onclick="clearAvatar()">Remove</button>
+          </div>
+          <p class="note" style="font-size:11px;color:var(--muted);margin:6px 0 0">PNG/JPG. Auto-resized to 256px and stored in this browser.</p>
+        </div>
         <div class="field"><label>Default model</label><select id="ag_model"></select></div>
         <div class="field"><label>Tools</label><div class="toolgrid" id="ag_tools"></div></div>
         <div class="field"><label>Mission brief (system prompt)</label><textarea id="ag_prompt" rows="6"></textarea></div>
@@ -1072,6 +1081,12 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       }
       function portraitSVG(a, opts) {
         opts = opts || {};
+        if (a.avatar) {
+          const style = opts.compact
+            ? "width:100%;height:100%;object-fit:cover;display:block"
+            : "width:100%;object-fit:cover;display:block;aspect-ratio:4/5";
+          return `<img class="portrait" src="${a.avatar}" alt="${escapeHtml(a.name)} avatar" style="${style}" />`;
+        }
         const uid = a.id + "-" + (_pid++);
         const c = a.color;
         const name = (a.name || "").toUpperCase();
@@ -1252,6 +1267,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         $("ag_name").value = a.name; $("ag_role").value = a.role; $("ag_tag").value = a.tag; $("ag_prompt").value = a.prompt;
         $("ag_colors").innerHTML = COLORS.map((c) => `<div class="swatch ${c === a.color ? "sel" : ""}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`).join("");
         $("ag_glyphs").innerHTML = GLYPHS.map((g) => `<button class="${g === a.glyph ? "sel" : ""}" data-g="${g}" onclick="pickGlyph('${g}')">${g}</button>`).join("");
+        pendingAvatar = undefined; avatarPreview(a.avatar || "", a.color, a.glyph);
         const ms = $("ag_model"); ms.innerHTML = allModels().map((m) => `<option value="${m.id}" ${m.id === a.model ? "selected" : ""}>${m.label}</option>`).join("");
         $("ag_tools").innerHTML = Object.entries(TOOLS).map(([k, v]) => `
           <label class="toolopt ${a.tools.includes(k) ? "on" : ""}" data-t="${k}">
@@ -1259,7 +1275,32 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
           </label>`).join("");
         openModal("agent");
       }
-      let pickedColor = null, pickedGlyph = null;
+      let pickedColor = null, pickedGlyph = null, pendingAvatar; // undefined = unchanged, "" = removed, string = new
+      function avatarPreview(dataUrl, color, glyph) {
+        const box = $("ag_avatar_prev"); if (!box) return;
+        box.innerHTML = dataUrl
+          ? `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block" />`
+          : `<div style="width:100%;height:100%;display:grid;place-items:center;font-size:26px;background:${(color || "#22d3ee")}22;color:${color || "#22d3ee"}">${glyph || "🛰"}</div>`;
+      }
+      function onAvatarPick(e) {
+        const file = e.target.files && e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const max = 256, scale = Math.min(1, max / Math.max(img.width, img.height));
+            const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+            const c = document.createElement("canvas"); c.width = w; c.height = h;
+            c.getContext("2d").drawImage(img, 0, 0, w, h);
+            pendingAvatar = c.toDataURL("image/png");
+            avatarPreview(pendingAvatar);
+          };
+          img.onerror = () => toast("Couldn't read that image", "err");
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+      function clearAvatar() { pendingAvatar = ""; const a = agentById(editingId); avatarPreview("", (pickedColor || a.color), (pickedGlyph || a.glyph)); }
       function pickColor(c) { pickedColor = c; document.querySelectorAll("#ag_colors .swatch").forEach((s) => s.classList.toggle("sel", s.dataset.c === c)); }
       function pickGlyph(g) { pickedGlyph = g; document.querySelectorAll("#ag_glyphs button").forEach((b) => b.classList.toggle("sel", b.dataset.g === g)); }
       function saveAgent() {
@@ -1270,10 +1311,12 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         a.prompt = $("ag_prompt").value.trim();
         a.color = pickedColor || a.color;
         a.glyph = pickedGlyph || a.glyph;
+        if (pendingAvatar !== undefined) a.avatar = pendingAvatar; // "" removes, dataURL sets
         a.model = $("ag_model").value;
         a.tools = [...document.querySelectorAll("#ag_tools .toolopt")].filter((l) => l.querySelector("input").checked).map((l) => l.dataset.t);
-        pickedColor = pickedGlyph = null;
-        LS.set("crew", crew); closeModal(); renderCrew(); toast("Saved " + a.name, "ok");
+        pickedColor = pickedGlyph = null; pendingAvatar = undefined;
+        try { localStorage.setItem("jabb.crew", JSON.stringify(crew)); } catch (e) { toast("Image too large for browser storage — use a smaller picture", "err"); return; }
+        closeModal(); renderCrew(); toast("Saved " + a.name, "ok");
       }
 
       /* ==================== COMMS / CHAT ==================== */
