@@ -36,10 +36,13 @@
  */
 
 import { createServer } from 'node:http';
-import { readFileSync, existsSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const execFileP = promisify(execFile);
 
 // ── Config ──────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8899', 10);
@@ -48,6 +51,9 @@ const LMSTUDIO_URL = process.env.LMSTUDIO_URL || 'http://127.0.0.1:1234';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const SERPAPI_KEY = process.env.SERPAPI_KEY || '';
+// Path to a local clone of "Mother" (powerjt1/Master) that has push credentials.
+// Enables the dashboard's "⑂ To Mother" to create a branch + push automatically.
+const MOTHER_REPO_DIR = process.env.MOTHER_REPO_DIR || '';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TOKEN_FILE = join(__dirname, '.bridge-google-token.json');
 const CAL_CONFIGURED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
@@ -160,6 +166,41 @@ async function createCalendarEvent({ title, description, start, end, timezone })
   return { id: d.id, htmlLink: d.htmlLink };
 }
 
+// ── Git: commit content to a new branch under Mother and push ───────
+async function git(args) {
+  const { stdout } = await execFileP('git', ['-C', MOTHER_REPO_DIR, ...args], { maxBuffer: 10 * 1024 * 1024 });
+  return stdout.trim();
+}
+function safeRel(p) {
+  // reject absolute paths and any traversal; keep it inside the repo
+  const norm = p.replace(/\\/g, '/').replace(/^\/+/, '');
+  if (norm.split('/').some((seg) => seg === '..')) throw new Error('invalid path');
+  const abs = resolve(MOTHER_REPO_DIR, norm);
+  if (!abs.startsWith(resolve(MOTHER_REPO_DIR))) throw new Error('path escapes repo');
+  return { rel: norm, abs };
+}
+async function gitSave({ branch, path, content, message }) {
+  if (!MOTHER_REPO_DIR) throw new Error('not_configured');
+  const br = String(branch || '').replace(/[^A-Za-z0-9._\/-]/g, '').slice(0, 120) || ('agent/' + Date.now());
+  const { rel, abs } = safeRel(path || 'agent-notes/note.md');
+  // base branch (default main, fall back to current)
+  let base = 'main';
+  try { await git(['rev-parse', '--verify', 'origin/main']); } catch { try { base = (await git(['symbolic-ref', '--short', 'HEAD'])) || 'main'; } catch { base = 'main'; } }
+  try { await git(['fetch', 'origin', base]); } catch {}
+  try { await git(['checkout', '-B', br, 'origin/' + base]); } catch { await git(['checkout', '-B', br]); }
+  mkdirSync(dirname(abs), { recursive: true });
+  writeFileSync(abs, content != null ? String(content) : '');
+  await git(['add', '--', rel]);
+  await git(['-c', 'user.email=mission-control@jabbnetworks', '-c', 'user.name=JABB Mission Control', 'commit', '-m', message || ('agent: update ' + rel)]);
+  await git(['push', '-u', 'origin', br]);
+  let remote = '';
+  try { remote = await git(['remote', 'get-url', 'origin']); } catch {}
+  const m = remote.match(/github\.com[:/]+([^/]+)\/([^/.]+)/i);
+  const slug = m ? `${m[1]}/${m[2]}` : '';
+  const compareUrl = slug ? `https://github.com/${slug}/compare/${base}...${encodeURIComponent(br)}?expand=1` : '';
+  return { ok: true, branch: br, base, path: rel, compareUrl };
+}
+
 // ── Proxy to local services ─────────────────────────────────────────
 async function proxyFetch(targetUrl, req) {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -190,7 +231,8 @@ function bridgeConfigScript() {
         lmstudio: 'http://${LOCAL_IP}:${PORT}/proxy/lmstudio',
         localIP: '${LOCAL_IP}',
         port: ${PORT},
-        calendar: { configured: ${CAL_CONFIGURED}, authorized: ${calAuthorized()} }
+        calendar: { configured: ${CAL_CONFIGURED}, authorized: ${calAuthorized()} },
+        git: { configured: ${!!MOTHER_REPO_DIR} }
       };
     </script>`;
 }
@@ -299,8 +341,21 @@ const server = createServer(async (req, res) => {
         lmstudio: { url: LMSTUDIO_URL, available: lmstudioOk },
         calendar: { configured: CAL_CONFIGURED, authorized: calAuthorized() },
         serpapi: { configured: !!SERPAPI_KEY },
+        git: { configured: !!MOTHER_REPO_DIR, dir: MOTHER_REPO_DIR || null },
       },
     });
+  }
+
+  // Git: create branch under Mother + push (dashboard "⑂ To Mother")
+  if (url.pathname === '/git/save' && req.method === 'POST') {
+    if (!MOTHER_REPO_DIR) return json(res, 400, { error: 'not_configured', hint: 'Start bridge with MOTHER_REPO_DIR=/path/to/Master (a clone with push access)' });
+    try {
+      const body = JSON.parse((await readBody(req)).toString() || '{}');
+      const result = await gitSave(body);
+      return json(res, 200, result);
+    } catch (e) {
+      return json(res, 500, { error: e.message || 'git save failed' });
+    }
   }
 
   // ── Google Calendar ──
@@ -451,6 +506,7 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('     Enable: GOOGLE_CLIENT_ID=… GOOGLE_CLIENT_SECRET=… node open-coder-bridge.mjs');
   }
   console.log(`  🔎 SerpAPI (Google Jobs): ${SERPAPI_KEY ? 'configured ✅' : 'not set (add SERPAPI_KEY or pass key from the app)'}`);
+  console.log(`  ⑂ Mother git push: ${MOTHER_REPO_DIR ? 'configured ✅ (' + MOTHER_REPO_DIR + ')' : 'not set (MOTHER_REPO_DIR=/path/to/Master clone) — app falls back to GitHub web'}`);
   console.log('');
   console.log(`  Open on your phone (same Wi-Fi): http://${LOCAL_IP}:${PORT}`);
   console.log('');

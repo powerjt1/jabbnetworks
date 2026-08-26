@@ -790,8 +790,10 @@
             <div class="card-title green"><span class="dot"></span> Mission preferences</div>
             <div class="row2">
               <div class="field"><label>Operator name (how the crew greets you)</label><input id="s_operator" placeholder="Alexander" /></div>
-              <div class="field"><label>Job feed URL (JSON array, optional)</label><input id="s_feed" placeholder="https://…/jobs.json" /></div>
+              <div class="field"><label>Mother repo (owner/repo for "To Mother")</label><input id="s_mother" placeholder="powerjt1/Master" /></div>
             </div>
+            <div class="field"><label>Job feed URL (JSON array, optional)</label><input id="s_feed" placeholder="https://…/jobs.json" /></div>
+            <div class="banner info">Every crew reply offers <b>two outputs</b>: <b>⬇ HTML</b> (downloads a self-contained preview) and <b>⑂ To Mother</b> (new branch on <code id="motherLbl">powerjt1/Master</code> + PR — via the PC bridge if it can push, else GitHub's prefilled new-file page).</div>
             <label class="toolopt" style="max-width:280px"><input type="checkbox" id="s_greet" /> Speak greeting on launch</label>
             <div style="margin-top:12px"><button class="btn" onclick="savePrefs()">Save preferences</button>
             <button class="btn ghost" onclick="wipeData()" style="margin-left:8px">Wipe local data</button></div>
@@ -877,7 +879,8 @@
       const $ = (id) => document.getElementById(id);
 
       let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "", serpapi: "", gemini: "" });
-      let prefs = LS.get("prefs", { operator: "Alexander", feed: "", greet: true });
+      let prefs = LS.get("prefs", { operator: "Alexander", feed: "", greet: true, mother: "powerjt1/Master" });
+      if (!prefs.mother) prefs.mother = "powerjt1/Master";
 
       /* ==================== BRIDGE (optional PC proxy) ==================== */
       const BRIDGE = window.__BRIDGE__ || null;
@@ -1451,7 +1454,11 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
           <div class="msg ${m.role}">
             <div class="mav" ${m.role === "assistant" ? `style="background:${a.color}22;color:${a.color}"` : ""}>${m.role === "assistant" ? a.glyph : "◆"}</div>
             <div class="bubble ${m.role}"><div class="rolen">${m.role === "user" ? prefs.operator : a.name}</div>${m.role === "user" ? escapeHtml(m.content) : md(m.content)}
-              ${m.role === "assistant" && m.content.trim().length > 40 ? `<div class="msg-actions"><button onclick="saveDoc('${activeAgent}', chats['${activeAgent}'][${i}].content)">💾 Save to Library</button></div>` : ""}
+              ${m.role === "assistant" && m.content.trim().length > 40 ? `<div class="msg-actions">
+                <button onclick="downloadReplyHtml('${activeAgent}', ${i})" title="Output 2 — self-contained HTML you can open now">⬇ HTML</button>
+                <button onclick="saveReplyToMother('${activeAgent}', ${i})" title="Output 1 — new branch under Mother (powerjt1/Master) + PR">⑂ To Mother</button>
+                <button onclick="saveDoc('${activeAgent}', chats['${activeAgent}'][${i}].content)" title="Save to the in-app Library">💾 Library</button>
+              </div>` : ""}
             </div>
           </div>`).join("");
         box.scrollTop = box.scrollHeight;
@@ -1751,6 +1758,61 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       function deleteDoc(id) { if (!confirm("Delete this document?")) return; docs = docs.filter((x) => x.id !== id); LS.set("docs", docs); openDocId = null; renderCrewDocs(); }
       function saveLastReply() { const m = (chats[activeAgent] || []).filter((x) => x.role === "assistant").pop(); if (m) saveDoc(activeAgent, m.content); }
 
+      /* ===== TWO-OUTPUT CONTRACT (per crew reply) ===== */
+      function replyTitle(content) { return (content.split("\n").find((l) => l.trim()) || "Crew reply").replace(/[#*`>]/g, "").trim().slice(0, 70); }
+      function slug(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40); }
+      // Output 2 — self-contained HTML preview of a single reply, downloaded.
+      function downloadReplyHtml(agentId, idx) {
+        const a = agentById(agentId); const content = (chats[agentId] || [])[idx]?.content; if (!content) return;
+        const title = replyTitle(content); const when = new Date().toLocaleString();
+        const html = `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+          <title>${escapeHtml(title)} · ${escapeHtml(a.name)}</title>
+          <style>:root{--bg:#04070d;--glass:rgba(14,24,38,.6);--stroke:rgba(90,160,210,.2);--fg:#e4f2ff;--muted:#7f9cb5;--accent:#22d3ee;--gold:#f5c542}
+          *{box-sizing:border-box}body{margin:0;background:radial-gradient(700px 460px at 82% -8%,rgba(34,211,238,.10),transparent 60%),var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.65;padding:28px 18px}
+          .wrap{max-width:820px;margin:0 auto}.glass{background:var(--glass);border:1px solid var(--stroke);border-radius:16px;backdrop-filter:blur(16px)}
+          .head{display:flex;align-items:center;gap:12px;padding:18px 20px;margin-bottom:16px}.av{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:${a.color}22;color:${a.color};overflow:hidden}
+          .av img{width:100%;height:100%;object-fit:cover}h1{font-size:19px;margin:0}.sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+          .card{padding:20px}.body{font-size:15px;white-space:pre-wrap}pre{background:rgba(4,7,13,.7);border:1px solid var(--stroke);border-radius:9px;padding:12px;overflow-x:auto}
+          code{font-family:ui-monospace,monospace;font-size:13px}.body :not(pre)>code{background:rgba(4,7,13,.6);color:var(--gold);padding:1px 5px;border-radius:4px}
+          .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:10px}</style></head>
+          <body><div class="wrap"><div class="glass head"><div class="av">${a.avatar ? `<img src="${a.avatar}"/>` : a.glyph}</div>
+          <div><h1>${escapeHtml(title)}</h1><div class="sub">${escapeHtml(a.name)} · ${escapeHtml(a.role)} · ${when}</div></div></div>
+          <div class="glass card"><div class="body">${md(content)}</div></div>
+          <div class="foot">JABB Networks Mission Control · Output 2 of the two-output contract</div></div></body></html>`;
+        downloadFile((slug(a.name) + "-" + slug(title) + ".html") || "reply.html", html);
+        toast("HTML preview downloaded", "ok");
+        logTask(a.name, "Exported reply as HTML: " + title.slice(0, 40));
+      }
+      // Output 1 — commit to a NEW branch under Mother (powerjt1/Master) + PR.
+      async function saveReplyToMother(agentId, idx) {
+        const a = agentById(agentId); const content = (chats[agentId] || [])[idx]?.content; if (!content) return;
+        const title = replyTitle(content);
+        const mother = prefs.mother || "powerjt1/Master";
+        const branch = "agent/" + slug(a.name) + "-" + Date.now().toString(36);
+        const path = "jabb-networks/agent-notes/" + slug(a.name) + "-" + slug(title) + ".md";
+        const mdBody = `# ${title}\n\n> ${a.name} · ${a.role} · ${new Date().toISOString()} · JABB Networks Mission Control\n\n${content}\n`;
+        // Path A: PC bridge with git configured pushes for you.
+        if (isBridged && BRIDGE.git?.configured) {
+          try {
+            const r = await fetch(BRIDGE.url + "/git/save", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({ repo: mother, branch, path, content: mdBody, message: `agent(${a.name}): ${title}` }),
+            });
+            const d = await r.json();
+            if (r.ok && d.ok) { toast("Pushed to Mother → " + branch, "ok"); logTask(a.name, "Committed to Mother: " + branch); if (d.compareUrl || d.prUrl) window.open(d.prUrl || d.compareUrl, "_blank", "noopener"); return; }
+            toast("Bridge git error: " + (d.error || "failed") + " — using GitHub fallback", "err");
+          } catch (e) { /* fall through */ }
+        }
+        // Path B (no bridge git): open GitHub's prefilled new-file page + download a .md backup.
+        downloadFile(path.split("/").pop(), mdBody);
+        const base = "https://github.com/" + mother + "/new/main?filename=" + encodeURIComponent(path);
+        const withValue = base + "&value=" + encodeURIComponent(mdBody);
+        const url = withValue.length < 7000 ? withValue : base; // URL length guard
+        window.open(url, "_blank", "noopener");
+        toast("Opened Mother on GitHub — commit to a NEW branch. .md also downloaded.", "ok");
+        logTask(a.name, "Prepared Mother commit: " + path);
+      }
+
       /* ==================== VIP BOARD ROOM (password-protected) ==================== */
       let boardUnlocked = false;
       async function sha(s) {
@@ -1834,6 +1896,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         $("s_ollama").value = isBridged ? BRIDGE.ollama : settings.ollama;
         $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic; $("s_serpapi").value = settings.serpapi || ""; $("s_gemini").value = settings.gemini || "";
         $("s_operator").value = prefs.operator; $("s_feed").value = prefs.feed; $("s_greet").checked = !!prefs.greet;
+        $("s_mother").value = prefs.mother || "powerjt1/Master"; const ml = $("motherLbl"); if (ml) ml.textContent = prefs.mother || "powerjt1/Master";
         if (isBridged) { const b = $("bridgeBanner"); b.style.display = "block"; b.innerHTML = "🔗 <b>Bridge active</b> — local models routed via " + BRIDGE.url + " (Ollama: " + BRIDGE.ollama + ")"; }
         renderModels(); renderAgentModels(); renderVoice();
       }
@@ -1941,7 +2004,7 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         logTask("JARVIS", "Generated full mission summary report");
       }
       function savePrefs() {
-        prefs = { operator: $("s_operator").value.trim() || "Alexander", feed: $("s_feed").value.trim(), greet: $("s_greet").checked };
+        prefs = { operator: $("s_operator").value.trim() || "Alexander", feed: $("s_feed").value.trim(), greet: $("s_greet").checked, mother: $("s_mother").value.trim() || "powerjt1/Master" };
         LS.set("prefs", prefs); renderOperator(); toast("Preferences saved", "ok");
       }
       function wipeData() {
