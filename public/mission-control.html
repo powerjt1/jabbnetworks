@@ -1706,9 +1706,11 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
             <div style="display:flex;gap:8px;align-items:center;margin-top:12px"><span class="chip" style="color:${a.color};border-color:${a.color}55">${st.badge}</span><span style="font-size:11px;color:var(--muted)">${new Date(openDoc.created).toLocaleString()}</span></div>
             <h3>${escapeHtml(openDoc.title)}</h3>
             <div class="doc-actions">
-              <button class="btn sm" onclick="downloadDoc('${openDoc.id}')">⬇ Download .md</button>
-              <button class="btn ghost sm" onclick="sendToNotebook('${openDoc.id}')">${geminiLogo(16)} Open in Gemini Notebook</button>
-              <button class="btn ghost sm" onclick="copyDoc('${openDoc.id}')">⧉ Copy text</button>
+              <button class="btn sm" onclick="exportDocHtml('${openDoc.id}')">⬇ HTML</button>
+              <button class="btn sm" onclick="pushDocToMother('${openDoc.id}')">⑂ To Mother</button>
+              <button class="btn ghost sm" onclick="downloadDoc('${openDoc.id}')">⬇ .md</button>
+              <button class="btn ghost sm" onclick="sendToNotebook('${openDoc.id}')">${geminiLogo(16)} Gemini Notebook</button>
+              <button class="btn ghost sm" onclick="copyDoc('${openDoc.id}')">⧉ Copy</button>
               <button class="btn ghost sm" onclick="deleteDoc('${openDoc.id}')">✕ Delete</button>
             </div>
             <div style="font-size:11px;color:var(--muted)">Author: ${a.name} · Words: ${words} · Size: ${(new Blob([openDoc.body]).size / 1024).toFixed(1)} KB · File: ${openDoc.id}.md</div>
@@ -1761,11 +1763,10 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
       /* ===== TWO-OUTPUT CONTRACT (per crew reply) ===== */
       function replyTitle(content) { return (content.split("\n").find((l) => l.trim()) || "Crew reply").replace(/[#*`>]/g, "").trim().slice(0, 70); }
       function slug(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40); }
-      // Output 2 — self-contained HTML preview of a single reply, downloaded.
-      function downloadReplyHtml(agentId, idx) {
-        const a = agentById(agentId); const content = (chats[agentId] || [])[idx]?.content; if (!content) return;
-        const title = replyTitle(content); const when = new Date().toLocaleString();
-        const html = `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+      // Output 2 — self-contained HTML preview, downloaded. Generic over any (agent, title, content).
+      function buildReplyHtml(a, title, content) {
+        const when = new Date().toLocaleString();
+        return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
           <title>${escapeHtml(title)} · ${escapeHtml(a.name)}</title>
           <style>:root{--bg:#04070d;--glass:rgba(14,24,38,.6);--stroke:rgba(90,160,210,.2);--fg:#e4f2ff;--muted:#7f9cb5;--accent:#22d3ee;--gold:#f5c542}
           *{box-sizing:border-box}body{margin:0;background:radial-gradient(700px 460px at 82% -8%,rgba(34,211,238,.10),transparent 60%),var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.65;padding:28px 18px}
@@ -1779,14 +1780,16 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
           <div><h1>${escapeHtml(title)}</h1><div class="sub">${escapeHtml(a.name)} · ${escapeHtml(a.role)} · ${when}</div></div></div>
           <div class="glass card"><div class="body">${md(content)}</div></div>
           <div class="foot">JABB Networks Mission Control · Output 2 of the two-output contract</div></div></body></html>`;
-        downloadFile((slug(a.name) + "-" + slug(title) + ".html") || "reply.html", html);
-        toast("HTML preview downloaded", "ok");
-        logTask(a.name, "Exported reply as HTML: " + title.slice(0, 40));
       }
-      // Output 1 — commit to a NEW branch under Mother (powerjt1/Master) + PR.
-      async function saveReplyToMother(agentId, idx) {
-        const a = agentById(agentId); const content = (chats[agentId] || [])[idx]?.content; if (!content) return;
-        const title = replyTitle(content);
+      function exportHtml(a, title, content) {
+        if (!content) return;
+        downloadFile((slug(a.name) + "-" + slug(title) + ".html") || "reply.html", buildReplyHtml(a, title, content));
+        toast("HTML preview downloaded", "ok");
+        logTask(a.name, "Exported HTML: " + title.slice(0, 40));
+      }
+      // Output 1 — commit to a NEW branch under Mother (powerjt1/Master) + PR. Generic.
+      async function pushToMother(a, title, content) {
+        if (!content) return;
         const mother = prefs.mother || "powerjt1/Master";
         const branch = "agent/" + slug(a.name) + "-" + Date.now().toString(36);
         const path = "jabb-networks/agent-notes/" + slug(a.name) + "-" + slug(title) + ".md";
@@ -1812,6 +1815,22 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
         toast("Opened Mother on GitHub — commit to a NEW branch. .md also downloaded.", "ok");
         logTask(a.name, "Prepared Mother commit: " + path);
       }
+      // Wrappers — chat replies
+      function downloadReplyHtml(agentId, idx) { const a = agentById(agentId); const c = (chats[agentId] || [])[idx]?.content; if (c) exportHtml(a, replyTitle(c), c); }
+      function saveReplyToMother(agentId, idx) { const a = agentById(agentId); const c = (chats[agentId] || [])[idx]?.content; if (c) pushToMother(a, replyTitle(c), c); }
+      // Wrappers — Library documents
+      function exportDocHtml(id) { const d = docs.find((x) => x.id === id); if (d) exportHtml(agentById(d.agentId), d.title, d.body); }
+      function pushDocToMother(id) { const d = docs.find((x) => x.id === id); if (d) pushToMother(agentById(d.agentId), d.title, d.body); }
+      // Wrappers — Board Room CEO (uses the CEO's latest reply, else composed board minutes)
+      function boardContent() {
+        const last = (chats.legacy || []).filter((x) => x.role === "assistant").pop();
+        if (last) return { title: replyTitle(last.content), content: last.content };
+        const ceo = agentById("legacy");
+        const tl = COMPANY.timeline.map((t) => `- **${t.year} — ${t.title}:** ${t.desc}`).join("\n");
+        return { title: "Board Room Minutes — JABB Networks Journey", content: `${ceo.tag}\n\n## The JABB Networks Journey (1995 → Future)\n\n${tl}` };
+      }
+      function boardExportHtml() { const { title, content } = boardContent(); exportHtml(agentById("legacy"), title, content); }
+      function boardToMother() { const { title, content } = boardContent(); pushToMother(agentById("legacy"), title, content); }
 
       /* ==================== VIP BOARD ROOM (password-protected) ==================== */
       let boardUnlocked = false;
@@ -1865,6 +1884,8 @@ The owner/operator is ${prefs.operator}. Always represent JABB Networks accurate
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn gold" onclick="openChatWith('legacy')">❯ Consult the CEO</button>
+                <button class="btn ghost" onclick="boardExportHtml()">⬇ HTML</button>
+                <button class="btn ghost" onclick="boardToMother()">⑂ To Mother</button>
                 <button class="btn ghost" onclick="editAgent('legacy')">⚙ Configure</button>
               </div>
             </div>
