@@ -1,4 +1,4 @@
-/* JABB Networks · JARVIS — Voice & Video side panel
+/* JABB Networks · SENTINEL — Voice & Video side panel
    - Video connection: webcam or screen share (getUserMedia / getDisplayMedia)
    - Voice connection: continuous speech-to-text -> AI crew -> text-to-speech
    - Talks to free local models (Ollama/Nemotron), LM Studio, or cloud.
@@ -20,20 +20,20 @@ let cfg = { ...DEFAULTS };
 function loadCfg() {
   return new Promise((resolve) => {
     try {
-      chrome.storage.local.get("jarvisCfg", (r) => { cfg = { ...DEFAULTS, ...(r?.jarvisCfg || {}) }; resolve(cfg); });
+      chrome.storage.local.get("sentinelCfg", (r) => { cfg = { ...DEFAULTS, ...(r?.sentinelCfg || {}) }; resolve(cfg); });
     } catch { resolve(cfg); }
   });
 }
-function saveCfg() { try { chrome.storage.local.set({ jarvisCfg: cfg }); } catch {} }
+function saveCfg() { try { chrome.storage.local.set({ sentinelCfg: cfg }); } catch {} }
 
 /* ---------- Crew personas ---------- */
 const CREW = {
-  jarvis: { name: "JARVIS", glyph: "🛰", prompt: "You are JARVIS, orchestrating AI for JABB Networks, serving {OP}. Greet as 'Hi {OP}'. You coordinate a crew (Talent Scout for remote Power Platform jobs + RTR scheduling, Power Platform Architect, Ops & Client Success). Be concise, calm and capable. This is a VOICE conversation — keep replies short, natural and speakable; avoid long code unless asked." },
+  sentinel: { name: "SENTINEL", glyph: "🛰", prompt: "You are SENTINEL, orchestrating AI for JABB Networks, serving {OP}. Greet as 'Hi {OP}'. You coordinate a crew (Talent Scout for remote Power Platform jobs + RTR scheduling, Power Platform Architect, Ops & Client Success). Be concise, calm and capable. This is a VOICE conversation — keep replies short, natural and speakable; avoid long code unless asked." },
   scout: { name: "Talent Scout", glyph: "✈", prompt: "You are Talent Scout for {OP}, a recruiter specializing in REMOTE-ONLY Microsoft Power Platform roles (Power Apps, Power Automate, Power BI, Copilot Studio, Dynamics 365). Recommend remote roles, tailor applications, and explain RTR (Right to Represent) etiquette. Voice conversation — keep it short and clear." },
   architect: { name: "Power Platform Architect", glyph: "🧠", prompt: "You are the Power Platform Architect at JABB Networks, serving {OP}. Expert in Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse, Dynamics 365 and web app + hosting. Give buildable guidance. Voice conversation — be concise unless asked to go deep." },
   ops: { name: "Ops & Client Success", glyph: "✉", prompt: "You are Ops & Client Success at JABB Networks, serving {OP}. Draft proposals/emails, answer website + hosting questions, map needs to plans. Warm and concise. Voice conversation — keep replies short." },
 };
-let agentId = "jarvis";
+let agentId = "sentinel";
 let history = []; // {role, content}
 
 /* ---------- Media / video connection ---------- */
@@ -80,7 +80,7 @@ function snapshot() {
   c.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "jarvis-snapshot-" + Date.now() + ".png";
+    a.href = url; a.download = "sentinel-snapshot-" + Date.now() + ".png";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
     addMsg("assistant", "📸 Snapshot captured and saved.");

@@ -16,7 +16,7 @@ Every change you make MUST produce **two outputs**:
 **Output 1 — Git (canonical): a NEW branch under “Mother.”**
 - **Mother = `powerjt1/Master`** (the canonical repo). This is home base.
 - Create a **new branch per task**, named `agent/<yourname>-<short-task>`
-  (e.g., `agent/jarvis-add-billing-view`, `agent/workspace-gmail-triage`).
+  (e.g., `agent/sentinel-add-billing-view`, `agent/workspace-gmail-triage`).
 - Commit there and **open a Pull Request into `Master:main`**. Never push straight to `main`.
 - The JABB Networks app lives under **`jabb-networks/`** in Mother. Put app changes there.
 - Do **not** touch the Ivy Building Management files at the repo root.
@@ -37,7 +37,7 @@ If you can only do one before running out of room, do **Output 1** (git) first, 
 
 ## 1) WHAT THIS PROJECT IS
 
-A JARVIS-themed **“Hermes Mission Control”** dashboard for JABB Networks (a Microsoft
+A SENTINEL-themed **“Sentinel · Mission Control”** dashboard for JABB Networks (a Microsoft
 Power Platform + web/hosting consultancy) plus supporting pieces. It is deliberately
 **self-contained and offline-first**, defaulting to **free local AI models**.
 
@@ -61,7 +61,7 @@ Key surfaces:
 Public crew (shown in Agents/Comms/Home, editable, saved to `localStorage`):
 | id | name | role | default model | notes |
 |----|------|------|---------------|-------|
-| `jarvis` | JARVIS | Orchestrator | Nemotron (Ollama) | greets operator, routes work, voices replies |
+| `sentinel` | SENTINEL | Orchestrator | Nemotron (Ollama) | greets operator, routes work, voices replies |
 | `scout` | Talent Scout | Remote jobs + RTR | Nemotron | remote-only Power Platform jobs, RTR→calendar |
 | `architect` | Power Platform Architect | Solution design | Nemotron | Power Apps/Automate/BI/Copilot Studio |
 | `ops` | Ops & Client Success | Proposals/hosting/comms | Nemotron | proposals, website+hosting, summaries |
@@ -136,7 +136,7 @@ Aesthetic: **dark glassmorphism** — `--accent` cyan `#22d3ee`, `--gold` `#f5c5
 
 - Never delete or overwrite the Ivy files at Mother’s root.
 - Never push straight to `Master:main` — always a task branch + PR.
-- Keep the glassy JARVIS aesthetic and the helmet portrait system.
+- Keep the glassy SENTINEL aesthetic and the helmet portrait system.
 - The Board Room passcode is **client-side only** (localStorage) — it gates the UI on one
   browser; it is not server-enforced auth. Don’t claim otherwise.
 - Local models need `OLLAMA_ORIGINS=* ollama serve`; cloud/Gemini/Fable need the operator’s

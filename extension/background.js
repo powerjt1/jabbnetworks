@@ -1,5 +1,5 @@
-// JABB Networks · JARVIS — background service worker (MV3)
-// Opens the JARVIS side panel when the toolbar icon is clicked.
+// JABB Networks · SENTINEL — background service worker (MV3)
+// Opens the SENTINEL side panel when the toolbar icon is clicked.
 
 chrome.runtime.onInstalled.addListener(() => {
   try {

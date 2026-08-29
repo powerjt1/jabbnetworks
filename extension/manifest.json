@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "JABB Networks · JARVIS Voice & Video",
+  "name": "JABB Networks · SENTINEL Voice & Video",
   "version": "1.0.0",
-  "description": "Hands-free JARVIS voice + live video connection to your JABB Networks crew and free local AI models (Ollama/Nemotron).",
+  "description": "Hands-free SENTINEL voice + live video connection to your JABB Networks crew and free local AI models (Ollama/Nemotron).",
   "permissions": ["sidePanel", "storage", "tabs"],
   "optional_permissions": ["tabCapture"],
   "host_permissions": [
@@ -15,7 +15,7 @@
   "optional_host_permissions": ["http://*/*", "https://*/*"],
   "background": { "service_worker": "background.js" },
   "action": {
-    "default_title": "Open JARVIS (voice & video)",
+    "default_title": "Open SENTINEL (voice & video)",
     "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
   },
   "side_panel": { "default_path": "sidepanel.html" },

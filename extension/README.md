@@ -1,11 +1,11 @@
-# JABB Networks · JARVIS Voice & Video (Chrome extension)
+# JABB Networks · SENTINEL Voice & Video (Chrome extension)
 
 A Manifest V3 Chrome extension that gives you a hands-free **voice + live video** connection
 to your JABB Networks crew and free local AI models — from a side panel in any tab.
 
 ## Features
 - **Voice connection** — continuous speech-to-text → crew reply → text-to-speech. Talk to
-  JARVIS, Talent Scout, the Power Platform Architect, or Ops & Client Success hands-free.
+  SENTINEL, Talent Scout, the Power Platform Architect, or Ops & Client Success hands-free.
 - **Video connection** — webcam or screen share preview, plus a snapshot capture.
 - **Model-agnostic** — defaults to NVIDIA Nemotron via Ollama; switch to LM Studio / OpenAI /
   Anthropic in ⚙ settings. Voice works the same across every model.
@@ -15,7 +15,7 @@ to your JABB Networks crew and free local AI models — from a side panel in any
 1. Open `chrome://extensions`.
 2. Toggle **Developer mode** (top right).
 3. Click **Load unpacked** and select this `extension/` folder.
-4. Pin the extension and click its icon — the JARVIS side panel opens.
+4. Pin the extension and click its icon — the SENTINEL side panel opens.
 
 ## Connect a model
 - **Ollama (recommended, free):** run `OLLAMA_ORIGINS=* ollama serve` and
