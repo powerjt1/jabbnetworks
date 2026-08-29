@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{TITLE}} · Change Preview</title>
+    <!--
+      JABB NETWORKS — CHANGE PREVIEW TEMPLATE (Output 2 of the two-output contract).
+      Copy this file, replace every {{PLACEHOLDER}}, keep it self-contained, then:
+        • deliver it as a download to the operator, and
+        • commit it to your task branch under  previews/<date>-<short-task>.html
+      Placeholders: {{TITLE}} {{AGENT}} {{DATE}} {{BRANCH}} {{PR_URL}} {{SUMMARY}}
+        {{CHANGES_LIST}} (<li> items) {{FILES_LIST}} (<li> items)
+        {{SCREENSHOT_DATA_URI}} (data: URI or leave the placeholder to hide the block)
+        {{HOWTO}} (how to view/run) {{NOTES}}
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+    <style>
+      :root { --bg:#04070d; --glass:rgba(14,24,38,.6); --stroke:rgba(90,160,210,.2); --stroke2:rgba(90,160,210,.34);
+        --fg:#e4f2ff; --muted:#7f9cb5; --accent:#22d3ee; --gold:#f5c542; --green:#34d399; --violet:#a78bfa;
+        --font:"Inter",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace; }
+      * { box-sizing:border-box; } html,body{ margin:0; }
+      body { background:
+          radial-gradient(700px 460px at 82% -8%, rgba(34,211,238,.10), transparent 60%),
+          radial-gradient(560px 380px at 4% 108%, rgba(167,139,250,.10), transparent 60%), var(--bg);
+        color:var(--fg); font-family:var(--font); line-height:1.6; padding:28px 18px; }
+      .wrap { max-width:920px; margin:0 auto; }
+      .glass { background:var(--glass); border:1px solid var(--stroke); border-radius:16px; backdrop-filter:blur(16px); }
+      .head { display:flex; align-items:center; gap:14px; padding:20px 22px; margin-bottom:16px; }
+      .mark { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-weight:800; color:#04070d;
+        background:conic-gradient(from 130deg,#22d3ee,#2b7fff,#a78bfa,#f5c542,#22d3ee); position:relative; }
+      .mark::after{ content:""; position:absolute; inset:2px; border-radius:10px; background:#060b14; }
+      .mark span{ position:relative; z-index:1; color:var(--accent); }
+      h1 { font-size:20px; margin:0; letter-spacing:.2px; }
+      .sub { color:var(--muted); font-size:12.5px; margin-top:3px; }
+      .meta { margin-left:auto; text-align:right; font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+      .card { padding:18px 22px; margin-bottom:16px; }
+      .card h2 { font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+      .card h2 .dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); }
+      .chip { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:4px 10px; border-radius:999px;
+        background:rgba(34,211,238,.14); color:var(--accent); border:1px solid var(--stroke2); font-family:var(--mono); }
+      .chip.gold{ background:rgba(245,197,66,.14); color:var(--gold); border-color:rgba(245,197,66,.34); }
+      a { color:var(--accent); }
+      ul { margin:0; padding-left:20px; } li { margin:6px 0; }
+      code { font-family:var(--mono); background:rgba(4,7,13,.6); color:var(--gold); padding:1px 5px; border-radius:4px; }
+      .shot { width:100%; border-radius:12px; border:1px solid var(--stroke); display:block; }
+      .summary { font-size:15px; }
+      .foot { text-align:center; color:var(--muted); font-size:11.5px; margin-top:8px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="glass head">
+        <div class="mark"><span>J</span></div>
+        <div>
+          <h1>{{TITLE}}</h1>
+          <div class="sub">JABB Networks · change preview by {{AGENT}}</div>
+        </div>
+        <div class="meta">{{DATE}}<br /><span class="chip">branch: {{BRANCH}}</span></div>
+      </div>
+
+      <div class="glass card">
+        <h2><span class="dot"></span> Summary</h2>
+        <div class="summary">{{SUMMARY}}</div>
+        <p style="margin:12px 0 0"><a href="{{PR_URL}}">Open the Pull Request into Master:main →</a></p>
+      </div>
+
+      <div class="glass card">
+        <h2><span class="dot"></span> What changed</h2>
+        <ul>{{CHANGES_LIST}}</ul>
+      </div>
+
+      <div class="glass card">
+        <h2><span class="dot"></span> Files touched</h2>
+        <ul>{{FILES_LIST}}</ul>
+      </div>
+
+      <div class="glass card">
+        <h2><span class="dot"></span> Preview</h2>
+        <img class="shot" alt="Preview" src="{{SCREENSHOT_DATA_URI}}" />
+      </div>
+
+      <div class="glass card">
+        <h2><span class="dot"></span> How to view / run</h2>
+        <div>{{HOWTO}}</div>
+      </div>
+
+      <div class="glass card">
+        <h2><span class="dot"></span> Notes</h2>
+        <div>{{NOTES}}</div>
+      </div>
+
+      <div class="foot">Generated per the JABB Networks two-output contract · see AGENTS.md</div>
+    </div>
+  </body>
+</html>

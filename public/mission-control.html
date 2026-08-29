@@ -1,0 +1,2220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JABB Sentinel · Mission Control</title>
+    <meta name="description" content="SENTINEL-themed Sentinel · Mission Control for JABB Networks — an AI crew for Power Platform work, remote job scouting, and RTR scheduling." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #04070d;
+        --bg2: #060b14;
+        --glass: rgba(14, 24, 38, 0.55);
+        --glass2: rgba(18, 30, 48, 0.72);
+        --stroke: rgba(90, 160, 210, 0.18);
+        --stroke2: rgba(90, 160, 210, 0.32);
+        --fg: #e4f2ff;
+        --muted: #7f9cb5;
+        --muted2: #56728c;
+        --accent: #22d3ee;
+        --accent-dim: rgba(34, 211, 238, 0.14);
+        --gold: #f5c542;
+        --green: #34d399;
+        --red: #fb7185;
+        --violet: #a78bfa;
+        --radius: 16px;
+        --radius-sm: 11px;
+        --font: "Inter", system-ui, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, monospace;
+        --display: "Orbitron", var(--font);
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        display: flex;
+        flex-direction: row;
+        height: 100vh;
+      }
+      /* animated ambient backdrop */
+      body::before {
+        content: "";
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background:
+          radial-gradient(900px 600px at 78% -8%, rgba(34,211,238,0.10), transparent 60%),
+          radial-gradient(700px 500px at 8% 108%, rgba(167,139,250,0.10), transparent 60%),
+          radial-gradient(600px 400px at 110% 60%, rgba(245,197,66,0.06), transparent 60%),
+          linear-gradient(180deg, var(--bg), var(--bg2));
+      }
+      body::after {
+        content: "";
+        position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .4;
+        background-image:
+          linear-gradient(rgba(90,160,210,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(90,160,210,0.05) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 78%);
+      }
+      button, input, select, textarea { font-family: inherit; }
+      button { cursor: pointer; }
+      a { color: var(--accent); text-decoration: none; }
+      ::-webkit-scrollbar { width: 9px; height: 9px; }
+      ::-webkit-scrollbar-thumb { background: var(--stroke2); border-radius: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+
+      .glass {
+        background: var(--glass);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+      }
+
+      /* ===== SIDEBAR ===== */
+      .sidebar {
+        position: relative; z-index: 20; width: 232px; flex-shrink: 0;
+        display: flex; flex-direction: column; gap: 6px;
+        padding: 16px 12px;
+        border-right: 1px solid var(--stroke);
+        background: rgba(6, 11, 20, 0.66);
+        backdrop-filter: blur(18px);
+      }
+      .sidebar .brand { padding: 4px 8px 14px; margin-bottom: 6px; border-bottom: 1px solid var(--stroke); }
+      .app-main { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .appbar {
+        display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+        border-bottom: 1px solid var(--stroke); background: rgba(6,11,20,0.45); backdrop-filter: blur(14px);
+      }
+      .appbar-title { font-size: 15px; font-weight: 800; letter-spacing: .3px; }
+      .appbar .clock { margin-left: auto; }
+      .menu-toggle { display: none; }
+      .side-foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-top: 1px solid var(--stroke); }
+      .op-avatar { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; color: #04070d; background: linear-gradient(135deg, var(--accent), var(--violet)); flex-shrink: 0; overflow: hidden; }
+      .op-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .side-foot .op-nm { font-size: 13px; font-weight: 700; }
+      .side-foot .op-rl { font-size: 10.5px; color: var(--muted); }
+      .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+      .brand .mark {
+        width: 40px; height: 40px; border-radius: 12px;
+        background: conic-gradient(from 130deg, #22d3ee, #2b7fff, #a78bfa, #f5c542, #22d3ee);
+        display: grid; place-items: center; font-weight: 900; color: #04070d; font-size: 18px;
+        box-shadow: 0 0 26px rgba(34,211,238,0.4); position: relative;
+      }
+      .brand .mark::after {
+        content: ""; position: absolute; inset: 2px; border-radius: 10px; background: #060b14;
+      }
+      .brand .mark span { position: relative; z-index: 1; color: var(--accent);
+        font-family: var(--display); }
+      .brand h1 { margin: 0; font-size: 15px; letter-spacing: .5px; font-weight: 700; }
+      .brand small { color: var(--muted); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); }
+
+      .nav { display: flex; flex-direction: column; gap: 4px; }
+      .nav button {
+        background: none; border: 1px solid transparent; color: var(--muted);
+        padding: 11px 14px; border-radius: 11px; font-size: 13px; letter-spacing: .5px;
+        display: flex; align-items: center; gap: 12px; transition: .18s; width: 100%;
+        font-weight: 600; text-align: left;
+      }
+      .nav button .ic { font-size: 15px; width: 18px; text-align: center; }
+      .nav button:hover { color: var(--fg); background: var(--glass2); }
+      .nav button.active {
+        color: var(--fg); background: var(--accent-dim);
+        border-color: var(--stroke2); box-shadow: 0 0 22px rgba(34,211,238,0.18) inset;
+      }
+      .nav button.vip.active { background: rgba(245,197,66,.14); border-color: rgba(245,197,66,.34); box-shadow: 0 0 22px rgba(245,197,66,.16) inset; }
+      .nav button.vip .ic { color: var(--gold); }
+      .clock {
+        font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 1px;
+        flex-shrink: 0; text-align: right; min-width: 92px;
+      }
+      .clock small { display: block; color: var(--muted2); font-size: 9px; letter-spacing: 1.5px; }
+
+      .top-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+      .iconbtn {
+        background: var(--glass2); border: 1px solid var(--stroke); color: var(--muted);
+        width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; transition: .18s;
+      }
+      .iconbtn:hover { color: var(--fg); border-color: var(--stroke2); }
+      .iconbtn.on { background: var(--accent); color: #04070d; border-color: var(--accent); box-shadow: 0 0 20px rgba(34,211,238,.5); }
+      .iconbtn.gold.on { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 20px rgba(245,197,66,.5); }
+
+      /* ===== LAYOUT ===== */
+      main { position: relative; z-index: 1; flex: 1; overflow: hidden; }
+      .view { display: none; height: 100%; overflow-y: auto; padding: 22px; }
+      .view.active { display: block; animation: fade .35s ease; }
+      @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      .wrap { max-width: 1320px; margin: 0 auto; }
+      .grid { display: grid; gap: 16px; }
+
+      .card { padding: 18px; }
+      .card h3, .card h2 { margin: 0; }
+      .card-title {
+        display: flex; align-items: center; gap: 9px; font-size: 12px; letter-spacing: 1.5px;
+        text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 14px;
+      }
+      .card-title .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+      .card-title.gold .dot { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+      .card-title.green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+      .card-title.violet .dot { background: var(--violet); box-shadow: 0 0 10px var(--violet); }
+
+      .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+      .section-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
+      .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+      .btn {
+        background: var(--accent); color: #04121a; border: 0; font-weight: 700; font-size: 13px;
+        padding: 9px 16px; border-radius: 10px; display: inline-flex; align-items: center; gap: 7px; transition: .18s;
+      }
+      .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+      .btn.ghost { background: var(--glass2); color: var(--fg); border: 1px solid var(--stroke); }
+      .btn.ghost:hover { border-color: var(--stroke2); }
+      .btn.gold { background: var(--gold); color: #1a1400; }
+      .btn.sm { padding: 6px 11px; font-size: 12px; }
+      .btn.block { width: 100%; justify-content: center; }
+
+      .chip {
+        font-size: 10.5px; padding: 3px 9px; border-radius: 999px; font-weight: 600;
+        background: var(--accent-dim); color: var(--accent); border: 1px solid var(--stroke2); letter-spacing: .3px;
+        display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+      }
+      .chip.gold { background: rgba(245,197,66,.14); color: var(--gold); border-color: rgba(245,197,66,.3); }
+      .chip.green { background: rgba(52,211,153,.14); color: var(--green); border-color: rgba(52,211,153,.3); }
+      .chip.violet { background: rgba(167,139,250,.14); color: var(--violet); border-color: rgba(167,139,250,.3); }
+      .chip.red { background: rgba(251,113,133,.14); color: var(--red); border-color: rgba(251,113,133,.3); }
+      .chip.muted { background: rgba(127,156,181,.1); color: var(--muted); border-color: var(--stroke); }
+
+      /* ===== HOME / DASHBOARD ===== */
+      .hero-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+      .hero-hello { padding: 24px; position: relative; overflow: hidden; }
+      .hero-hello h2 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin: 0 0 6px; }
+      .hero-hello .grad {
+        background: linear-gradient(120deg, #22d3ee, #a78bfa, #f5c542);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      }
+      .hero-hello p { color: var(--muted); font-size: 14px; max-width: 560px; line-height: 1.6; margin: 0 0 16px; }
+      .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+      .core-orb-wrap { display: grid; place-items: center; padding: 18px; }
+      .core-orb {
+        width: 150px; height: 150px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #7ff0ff, #22d3ee 45%, #1362ff 100%);
+        box-shadow: 0 0 60px rgba(34,211,238,.6), inset 0 0 40px rgba(255,255,255,.25);
+        animation: breathe 4s ease-in-out infinite; position: relative;
+      }
+      .core-orb.talking { animation: breathe 1s ease-in-out infinite; }
+      .core-orb::after {
+        content: ""; position: absolute; inset: -14px; border-radius: 50%;
+        border: 1px solid rgba(34,211,238,.35); animation: ring 4s ease-in-out infinite;
+      }
+      @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+      @keyframes ring { 0%,100% { transform: scale(1); opacity: .5; } 50% { transform: scale(1.12); opacity: .15; } }
+      .core-label { text-align: center; margin-top: 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+
+      .stat-grid { grid-template-columns: repeat(4, 1fr); }
+      .stat { padding: 16px; }
+      .stat .k { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+      .stat .v { font-size: 30px; font-weight: 800; margin-top: 8px; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+      .stat .sub { font-size: 11px; color: var(--muted2); margin-top: 3px; }
+      .bars { display: flex; align-items: flex-end; gap: 4px; height: 46px; margin-top: 10px; }
+      .bars i { flex: 1; background: linear-gradient(180deg, var(--accent), rgba(34,211,238,.15)); border-radius: 3px 3px 0 0; min-height: 4px; opacity: .85; }
+
+      .split-2 { grid-template-columns: 1.3fr 1fr; align-items: start; }
+      .feed { display: flex; flex-direction: column; gap: 2px; max-height: 340px; overflow-y: auto; }
+      .feed-row { display: grid; grid-template-columns: 54px 92px 1fr; gap: 10px; padding: 10px 6px; border-bottom: 1px solid var(--stroke); align-items: baseline; }
+      .feed-row:last-child { border-bottom: 0; }
+      .feed-row .t { font-family: var(--mono); font-size: 11px; color: var(--muted2); }
+      .feed-row .who { font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+      .feed-row .msg { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+      .agent-mini { display: flex; align-items: center; gap: 12px; padding: 11px; border-radius: var(--radius-sm); border: 1px solid var(--stroke); margin-bottom: 8px; transition: .18s; }
+      .agent-mini:hover { border-color: var(--stroke2); background: var(--glass2); }
+      .agent-av { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 19px; flex-shrink: 0; }
+      .agent-mini .nm { font-size: 13.5px; font-weight: 700; }
+      .agent-mini .rl { font-size: 11px; color: var(--muted); }
+      .agent-mini .st { margin-left: auto; }
+      .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: blink 2s infinite; }
+      @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+      /* ===== AGENTS / CREW ===== */
+      .crew-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+      .crew-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+      .crew-top { padding: 18px; display: flex; gap: 14px; align-items: center; position: relative; }
+      .crew-top .agent-av { width: 52px; height: 52px; border-radius: 14px; font-size: 25px; }
+      .crew-top .nm { font-size: 16px; font-weight: 800; }
+      .crew-top .rl { font-size: 12px; color: var(--muted); }
+      .crew-body { padding: 0 18px 16px; flex: 1; }
+      .crew-body .tag { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 12px; }
+      .crew-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+      .crew-foot { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--stroke); }
+
+      /* ===== COMMS / CHAT ===== */
+      .comms { display: grid; grid-template-columns: 230px 1fr; gap: 16px; height: calc(100vh - 130px); }
+      .comms-side { padding: 14px; overflow-y: auto; }
+      .comms-side .agent-pick { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid transparent; margin-bottom: 5px; transition: .16s; }
+      .comms-side .agent-pick:hover { background: var(--glass2); }
+      .comms-side .agent-pick.active { background: var(--accent-dim); border-color: var(--stroke2); }
+      .comms-side .agent-pick .agent-av { width: 34px; height: 34px; font-size: 16px; border-radius: 9px; }
+      .comms-side .agent-pick .nm { font-size: 12.5px; font-weight: 700; }
+      .comms-side .agent-pick .rl { font-size: 10px; color: var(--muted); }
+      .chatpane { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+      .chat-head { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--stroke); }
+      .chat-head .agent-av { width: 38px; height: 38px; font-size: 18px; }
+      .chat-head .nm { font-size: 14px; font-weight: 800; }
+      .chat-head .rl { font-size: 11px; color: var(--muted); }
+      .chat-head .tools { margin-left: auto; display: flex; gap: 5px; }
+      .chat-scroll { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+      .msg { display: flex; gap: 10px; max-width: 88%; }
+      .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+      .msg .mav { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; font-size: 15px; }
+      .msg.user .mav { background: var(--accent-dim); color: var(--accent); }
+      .bubble { padding: 11px 14px; border-radius: 13px; font-size: 13.5px; line-height: 1.6; }
+      .bubble.assistant { background: var(--glass2); border: 1px solid var(--stroke); }
+      .bubble.user { background: var(--accent-dim); border: 1px solid var(--stroke2); white-space: pre-wrap; }
+      .bubble .rolen { font-size: 9.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); margin-bottom: 5px; }
+      .bubble pre { background: rgba(4,7,13,.7); border: 1px solid var(--stroke); border-radius: 9px; padding: 11px; overflow-x: auto; margin: 7px 0; }
+      .bubble code { font-family: var(--mono); font-size: 12.5px; }
+      .bubble :not(pre) > code { background: rgba(4,7,13,.6); color: var(--gold); padding: 1px 5px; border-radius: 4px; }
+      .chat-compose { padding: 12px 16px; border-top: 1px solid var(--stroke); }
+      .composer { display: flex; align-items: flex-end; gap: 8px; background: var(--glass2); border: 1px solid var(--stroke); border-radius: 13px; padding: 8px; }
+      .composer:focus-within { border-color: var(--stroke2); }
+      .composer textarea { flex: 1; resize: none; background: none; border: 0; color: var(--fg); font-size: 13.5px; max-height: 160px; outline: none; padding: 4px; }
+      .quickrow { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+      .quick { font-size: 11px; padding: 5px 10px; border-radius: 999px; background: var(--glass2); border: 1px solid var(--stroke); color: var(--muted); transition: .16s; }
+      .quick:hover { color: var(--fg); border-color: var(--stroke2); }
+
+      /* ===== SCHEDULE / JOBS ===== */
+      .job-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+      .job-toolbar input, .job-toolbar select {
+        background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg);
+        padding: 9px 12px; border-radius: 10px; font-size: 13px; outline: none;
+      }
+      .job-toolbar input:focus, .job-toolbar select:focus { border-color: var(--stroke2); }
+      .job-toolbar .search { flex: 1; min-width: 180px; }
+      .live-links { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+      .job-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+      .job-card { padding: 16px; display: flex; flex-direction: column; }
+      .job-card .jt { font-size: 15px; font-weight: 800; line-height: 1.3; margin-bottom: 4px; }
+      .job-card .co { font-size: 12.5px; color: var(--accent); font-weight: 600; }
+      .job-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 11px 0; }
+      .job-card .sal { font-family: var(--mono); font-size: 12px; color: var(--gold); margin: 2px 0 4px; }
+      .job-actions { display: flex; gap: 7px; margin-top: auto; padding-top: 12px; }
+      .job-actions .btn { flex: 1; justify-content: center; }
+      .kanban { grid-template-columns: repeat(4, 1fr); align-items: start; }
+      .kcol { padding: 12px; }
+      .kcol h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+      .ktask { padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--stroke); background: var(--glass2); margin-bottom: 7px; font-size: 12px; }
+      .ktask .kt { font-weight: 700; font-size: 12.5px; margin-bottom: 3px; }
+      .ktask .kc { color: var(--muted); font-size: 11px; }
+
+      /* ===== LIBRARY ===== */
+      .kb-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+      .kb-card { padding: 18px; }
+      .kb-card h4 { margin: 0 0 6px; font-size: 15px; }
+      .kb-card p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+      .price-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+      .price { padding: 18px; text-align: center; }
+      .price .pt { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+      .price .pv { font-size: 26px; font-weight: 800; color: var(--accent); margin: 6px 0; }
+
+      /* ===== CONTROL / SETTINGS ===== */
+      .field { margin-bottom: 14px; }
+      .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+      .field input, .field select, .field textarea {
+        width: 100%; background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg);
+        padding: 10px 12px; border-radius: 10px; font-size: 13px; outline: none;
+      }
+      .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--stroke2); }
+      .field textarea { resize: vertical; min-height: 90px; font-family: var(--mono); font-size: 12px; line-height: 1.5; }
+      .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+      .swatch { width: 30px; height: 30px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; }
+      .swatch.sel { border-color: #fff; }
+      .glyphpick { display: flex; gap: 6px; flex-wrap: wrap; }
+      .glyphpick button { width: 38px; height: 38px; border-radius: 10px; background: var(--glass2); border: 1px solid var(--stroke); font-size: 18px; }
+      .glyphpick button.sel { border-color: var(--accent); background: var(--accent-dim); }
+      .toolgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .toolopt { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--stroke); font-size: 12.5px; cursor: pointer; }
+      .toolopt.on { background: var(--accent-dim); border-color: var(--stroke2); }
+      .toolopt input { accent-color: var(--accent); }
+
+      .model-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--stroke); border-radius: 10px; margin-bottom: 7px; }
+      .model-row .meta { font-family: var(--mono); font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+      .banner { padding: 11px 14px; border-radius: 11px; font-size: 12.5px; margin-bottom: 12px; line-height: 1.5; }
+      .banner.warn { background: rgba(245,197,66,.1); border: 1px solid rgba(245,197,66,.3); color: var(--gold); }
+      .banner.info { background: var(--accent-dim); border: 1px solid var(--stroke2); color: var(--accent); }
+      .banner.ok { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3); color: var(--green); }
+      .banner code { color: var(--fg); background: rgba(4,7,13,.5); padding: 1px 5px; border-radius: 4px; }
+
+      /* ===== MODAL ===== */
+      .modal-bg { position: fixed; inset: 0; background: rgba(2,5,10,.72); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; padding: 20px; }
+      .modal-bg.open { display: flex; animation: fade .2s ease; }
+      .modal { width: min(620px, 96vw); max-height: 90vh; overflow-y: auto; padding: 22px; }
+      .modal .mh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+      .modal h2 { font-size: 18px; }
+      .modal .sub { color: var(--muted); font-size: 12.5px; margin: 0 0 16px; }
+
+      .toast {
+        position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(140%);
+        z-index: 80; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+        background: var(--glass2); border: 1px solid var(--stroke2); backdrop-filter: blur(14px);
+        box-shadow: 0 10px 40px rgba(0,0,0,.5); transition: transform .3s cubic-bezier(.2,.9,.3,1.3); max-width: 90vw;
+      }
+      .toast.show { transform: translateX(-50%) translateY(0); }
+      .toast.ok { border-color: rgba(52,211,153,.5); color: var(--green); }
+      .toast.err { border-color: rgba(251,113,133,.5); color: var(--red); }
+
+      .empty-hint { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 13px; }
+
+      /* ===== LIBRARY · crew documents ===== */
+      .lib { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
+      .lib-search { width: 100%; background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg); padding: 9px 12px; border-radius: 10px; font-size: 12.5px; outline: none; margin-bottom: 10px; }
+      .lib-search:focus { border-color: var(--stroke2); }
+      .lib-folder { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px; cursor: pointer; font-size: 12.5px; border: 1px solid transparent; }
+      .lib-folder:hover { background: var(--glass2); }
+      .lib-folder.sel { background: var(--accent-dim); border-color: var(--stroke2); }
+      .lib-folder .ct { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+      .lib-folder .fav { width: 22px; height: 22px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #05080e; }
+      .doc-item { padding: 12px; border: 1px solid var(--stroke); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: .16s; }
+      .doc-item:hover { border-color: var(--stroke2); background: var(--glass2); }
+      .doc-item .dt { font-size: 14px; font-weight: 700; }
+      .doc-item .dm { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+      .doc-reader { padding: 4px 2px; }
+      .doc-reader h3 { font-size: 20px; margin: 6px 0 4px; }
+      .doc-reader .body { font-size: 13.5px; line-height: 1.65; color: var(--fg); white-space: pre-wrap; margin-top: 12px; }
+      .doc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+      .msg-actions { margin-top: 6px; }
+      .msg-actions button { font-size: 10.5px; background: none; border: 1px solid var(--stroke); color: var(--muted); padding: 3px 8px; border-radius: 7px; }
+      .msg-actions button:hover { color: var(--fg); border-color: var(--stroke2); }
+
+      /* ===== PREMIUM AGENT PROFILE (SENTINEL operatives) ===== */
+      .op-select { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+      .op-pick { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border-radius: 14px; border: 1px solid var(--stroke); background: var(--glass); cursor: pointer; transition: .16s; }
+      .op-pick:hover { border-color: var(--stroke2); }
+      .op-pick.sel { border-color: var(--accent); box-shadow: 0 0 20px rgba(34,211,238,.16) inset; }
+      .op-pick .pic { width: 40px; height: 40px; border-radius: 11px; overflow: hidden; flex-shrink: 0; background: #05080e; }
+      .op-pick .pic svg { width: 100%; height: 100%; display: block; }
+      .op-pick .nm { font-size: 13px; font-weight: 800; }
+      .op-pick .rl { font-size: 10.5px; color: var(--muted); }
+
+      .op-layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+      .op-portrait-card { padding: 0; overflow: hidden; position: relative; }
+      .op-portrait-card .portrait { width: 100%; display: block; }
+      .op-portrait-card .code { position: absolute; bottom: 10px; left: 14px; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+      .op-portrait-card .active-badge { position: absolute; top: 12px; right: 12px; }
+      .op-donut-card { padding: 16px; margin-bottom: 16px; }
+      .op-donut-wrap { display: grid; place-items: center; }
+      .op-donut-legend { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; width: 100%; }
+      .op-legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+      .op-legend-row .sw { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+      .op-legend-row .pc { margin-left: auto; font-family: var(--mono); color: var(--muted); }
+
+      .op-detail { padding: 20px; }
+      .op-detail .op-name { font-size: 26px; font-weight: 900; letter-spacing: -.3px; line-height: 1; }
+      .op-detail .op-role { color: var(--muted); font-size: 13px; margin: 4px 0 2px; }
+      .op-detail .op-tag { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 8px 0 18px; max-width: 560px; }
+      .op-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; margin-bottom: 20px; }
+      .op-stat .sv { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+      .op-stat .sk { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+      .op-rows { border-top: 1px solid var(--stroke); }
+      .op-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--stroke); font-size: 12.5px; }
+      .op-row .rk { color: var(--muted); letter-spacing: .5px; text-transform: uppercase; font-size: 11px; }
+      .op-row .rv { font-family: var(--mono); text-align: right; color: var(--fg); }
+      .op-row .rv.accent { color: var(--accent); }
+
+      .op-lower { grid-template-columns: 1.1fr 1fr; margin-top: 16px; }
+      .hourbars { display: flex; align-items: flex-end; gap: 3px; height: 90px; margin-top: 6px; }
+      .hourbars i { flex: 1; background: linear-gradient(180deg, var(--gold), rgba(245,197,66,.12)); border-radius: 2px 2px 0 0; min-height: 3px; }
+      .hourbars i.peak { background: linear-gradient(180deg, #ffe082, var(--gold)); box-shadow: 0 0 10px rgba(245,197,66,.5); }
+      .hour-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--muted2); margin-top: 4px; }
+      .opsfeed { display: flex; flex-direction: column; max-height: 210px; overflow-y: auto; }
+      .opsfeed .r { display: grid; grid-template-columns: 60px 1fr 28px; gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--stroke); font-size: 12px; align-items: baseline; }
+      .opsfeed .r:last-child { border-bottom: 0; }
+      .opsfeed .r .tm { font-family: var(--mono); font-size: 10.5px; color: var(--muted2); }
+      .opsfeed .r .tx { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .opsfeed .r .ok { font-family: var(--mono); font-size: 10px; color: var(--green); text-align: right; }
+      .heat { display: grid; grid-template-columns: 40px 1fr; gap: 8px; margin-top: 8px; }
+      .heat-days { display: flex; flex-direction: column; gap: 3px; }
+      .heat-days span { font-size: 9.5px; color: var(--muted2); height: 15px; line-height: 15px; font-family: var(--mono); }
+      .heat-grid { display: grid; grid-template-rows: repeat(7, 15px); gap: 3px; }
+      .heat-row { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; }
+      .heat-cell { border-radius: 3px; background: var(--accent); }
+
+      @media (max-width: 1024px) { .op-layout { grid-template-columns: 300px 1fr; } }
+      /* ===== JOURNEY TIMELINE ===== */
+      .timeline { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); gap: 0; overflow-x: auto; padding: 8px 4px 4px; }
+      .tl-item { position: relative; padding: 30px 14px 6px; }
+      .tl-item::before { content: ""; position: absolute; top: 12px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--stroke2), var(--stroke)); }
+      .tl-item:first-child::before { left: 50%; }
+      .tl-item:last-child::before { right: 50%; }
+      .tl-dot { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(34,211,238,.16), 0 0 12px var(--accent); }
+      .tl-item.gold .tl-dot { background: var(--gold); box-shadow: 0 0 0 4px rgba(245,197,66,.16), 0 0 12px var(--gold); }
+      .tl-item.violet .tl-dot { background: var(--violet); box-shadow: 0 0 0 4px rgba(167,139,250,.16), 0 0 12px var(--violet); }
+      .tl-year { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; }
+      .tl-title { font-size: 13.5px; font-weight: 800; margin: 3px 0; }
+      .tl-desc { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+      /* ===== BOARD ROOM (VIP, password) ===== */
+      .vault { max-width: 460px; margin: 6vh auto 0; padding: 30px; text-align: center; }
+      .vault .lock-badge { width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 16px; display: grid; place-items: center; font-size: 32px;
+        background: rgba(245,197,66,.12); border: 1px solid rgba(245,197,66,.34); box-shadow: 0 0 34px rgba(245,197,66,.2); }
+      .vault h2 { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+      .vault p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 18px; }
+      .vault input { width: 100%; text-align: center; letter-spacing: 3px; font-size: 15px; margin-bottom: 12px;
+        background: var(--glass2); border: 1px solid var(--stroke); color: var(--fg); padding: 12px; border-radius: 12px; outline: none; }
+      .vault input:focus { border-color: var(--gold); }
+      .board-hero { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
+      .ceo-card { padding: 0; overflow: hidden; position: relative; }
+      .ceo-card .crown { position: absolute; top: 12px; right: 12px; }
+      .ceo-body { padding: 20px; }
+      .ceo-body .nm { font-size: 24px; font-weight: 900; letter-spacing: -.3px; }
+      .ceo-body .rl { color: var(--gold); font-size: 12.5px; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 10px; }
+      .ceo-body .tag { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+
+      @media (max-width: 900px) {
+        .hero-row, .split-2, .comms, .board-hero { grid-template-columns: 1fr; }
+        .op-layout, .op-lower { grid-template-columns: 1fr !important; }
+        .op-stats { grid-template-columns: repeat(2, 1fr); }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .kanban { grid-template-columns: 1fr; }
+        .comms { height: auto; }
+        .comms-side { max-height: 200px; }
+        .chatpane { height: 62vh; }
+        .sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); transition: transform .25s ease; box-shadow: 0 0 40px rgba(0,0,0,.5); }
+        .sidebar.open { transform: translateX(0); }
+        .menu-toggle { display: grid; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== TOP BAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="mark"><span>J</span></div>
+        <div>
+          <h1>JABB NETWORKS</h1>
+          <small>Sentinel · Mission Control</small>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <button data-view="home" class="active"><span class="ic">◎</span><span class="lbl">Home</span></button>
+        <button data-view="agents"><span class="ic">✦</span><span class="lbl">Agents</span></button>
+        <button data-view="comms"><span class="ic">❯</span><span class="lbl">Comms</span></button>
+        <button data-view="schedule"><span class="ic">✈</span><span class="lbl">Schedule</span></button>
+        <button data-view="library"><span class="ic">▣</span><span class="lbl">Library</span></button>
+        <button data-view="control"><span class="ic">⚙</span><span class="lbl">Control</span></button>
+        <button data-view="boardroom" class="vip"><span class="ic">🔒</span><span class="lbl">Board Room</span></button>
+      </nav>
+      <div class="side-foot">
+        <div class="op-avatar" id="sideOpAvatar">A</div>
+        <div><div class="op-nm" id="sideOpName">Alexander</div><div class="op-rl">Operator · JABB Networks</div></div>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <div class="appbar">
+        <button class="iconbtn menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" title="Menu">☰</button>
+        <div class="appbar-title" id="appbarTitle">Home</div>
+        <div class="clock"><span id="clock">--:--:--</span><small>MISSION TIME</small></div>
+        <div class="top-actions">
+          <button class="iconbtn" id="micBtn" title="Voice input" onclick="toggleMic()">🎤</button>
+          <button class="iconbtn gold" id="speakBtn" title="Auto-speak crew replies" onclick="toggleSpeak()">🔇</button>
+          <a class="iconbtn" href="/" title="Back to website">↩</a>
+        </div>
+      </div>
+
+    <main>
+      <!-- ===================== HOME ===================== -->
+      <section class="view active" id="view-home">
+        <div class="wrap grid">
+          <div class="hero-row">
+            <div class="glass hero-hello">
+              <h2>Good day, <span class="grad">Alexander</span>.</h2>
+              <p id="heroLine">SENTINEL online. Your crew of four is standing by. I'm tracking remote Power Platform opportunities, RTR scheduling, client delivery, and the JABB Networks knowledge base — just say the word.</p>
+              <div class="hero-cta">
+                <button class="btn" onclick="go('comms')">❯ Talk to the crew</button>
+                <button class="btn gold" onclick="go('schedule')">✈ Find remote jobs</button>
+                <button class="btn ghost" onclick="sentinelGreet(true)">🔊 Replay greeting</button>
+              </div>
+            </div>
+            <div class="glass core-orb-wrap" id="heroVisual"></div>
+          </div>
+
+          <div class="grid stat-grid">
+            <div class="glass stat">
+              <div class="k"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span> Remote jobs tracked</div>
+              <div class="v" id="statJobs">0</div>
+              <div class="sub" id="statJobsSub">across Dice · Indeed · ZipRecruiter</div>
+            </div>
+            <div class="glass stat">
+              <div class="k">Applications</div>
+              <div class="v" id="statApps">0</div>
+              <div class="sub">RTR + submitted pipeline</div>
+            </div>
+            <div class="glass stat">
+              <div class="k">Crew tasks logged</div>
+              <div class="v" id="statTasks">0</div>
+              <div class="sub">this session</div>
+            </div>
+            <div class="glass stat">
+              <div class="k">Token usage</div>
+              <div class="v" id="statTokens">0</div>
+              <div class="sub">local + browser models · $0.00</div>
+            </div>
+          </div>
+
+          <div class="grid split-2">
+            <div class="glass card">
+              <div class="card-title"><span class="dot"></span> Crew Activity · live feed</div>
+              <div class="feed" id="homeFeed"></div>
+            </div>
+            <div class="glass card">
+              <div class="card-title violet"><span class="dot"></span> The Crew</div>
+              <div id="homeCrew"></div>
+              <button class="btn ghost block sm" style="margin-top:10px" onclick="go('agents')">Configure crew →</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> Crew Activity · events / hour (last 12h)</div>
+            <div class="bars" id="activityBars"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== AGENTS ===================== -->
+      <section class="view" id="view-agents">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <h2>The Crew</h2>
+              <p>Configure each agent's look, model, tools and mission. Changes save to this browser.</p>
+            </div>
+            <button class="btn ghost" onclick="resetCrew()">↺ Reset to defaults</button>
+          </div>
+          <div class="grid crew-grid" id="crewGrid"></div>
+        </div>
+      </section>
+
+      <!-- ===================== COMMS ===================== -->
+      <section class="view" id="view-comms">
+        <div class="wrap comms">
+          <div class="glass comms-side" id="commsSide"></div>
+          <div class="glass chatpane">
+            <div class="chat-head">
+              <div class="agent-av" id="chatAv">🛰</div>
+              <div>
+                <div class="nm" id="chatNm">SENTINEL</div>
+                <div class="rl" id="chatRl">Orchestrator</div>
+              </div>
+              <div class="tools" id="chatTools"></div>
+            </div>
+            <div class="chat-scroll" id="chatScroll"></div>
+            <div class="chat-compose">
+              <div class="quickrow" id="quickRow"></div>
+              <div class="banner err" id="chatErr" style="display:none"></div>
+              <div class="composer">
+                <button class="iconbtn" onclick="toggleMic()" title="Voice">🎤</button>
+                <textarea id="chatInput" rows="1" placeholder="Message the crew…  (Enter to send · Shift+Enter for newline)"></textarea>
+                <button class="btn" id="sendBtn" onclick="sendChat()">Send ❯</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCHEDULE / JOBS ===================== -->
+      <section class="view" id="view-schedule">
+        <div class="wrap grid">
+          <div class="section-head">
+            <div>
+              <h2>Talent Scout · Remote Power Platform</h2>
+              <p>Remote-only Power Platform roles. Submit an RTR to auto-create a calendar event. Refresh the feed anytime.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost" onclick="openModal('feed')">⟳ Refresh / import feed</button>
+              <button class="btn gold" onclick="openModal('rtr')">✍ Submit RTR</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Live search — remote Power Platform (opens the board)</div>
+            <div class="live-links" id="liveLinks"></div>
+            <div class="job-toolbar">
+              <input class="search" id="jobSearch" placeholder="Filter roles, companies, skills…" oninput="renderJobs()" />
+              <select id="jobType" onchange="renderJobs()">
+                <option value="">All types</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Contract">Contract</option>
+              </select>
+              <select id="jobSource" onchange="renderJobs()">
+                <option value="">All sources</option>
+                <option>Dice</option>
+                <option>Indeed</option>
+                <option>ZipRecruiter</option>
+              </select>
+            </div>
+            <div class="grid job-grid" id="jobGrid"></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title green"><span class="dot"></span> Application Pipeline · RTR → Calendar</div>
+            <div class="grid kanban" id="pipeline"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== LIBRARY ===================== -->
+      <section class="view" id="view-library">
+        <div class="wrap grid">
+          <div class="section-head">
+            <div>
+              <h2>Library · JABB Networks</h2>
+              <p>The knowledge base the crew draws on — services, plans, process and hosting. Powering jabbnetworks.com.</p>
+            </div>
+            <a class="btn ghost" href="https://jabbnetworks.com" target="_blank" rel="noopener">jabbnetworks.com ↗</a>
+          </div>
+
+          <div class="glass card">
+            <div class="section-head" style="margin-bottom:12px">
+              <div class="card-title" style="margin:0"><span class="dot"></span> Crew Documents · everything the crew writes</div>
+              <button class="btn ghost sm" onclick="openNotebook()" style="display:inline-flex;align-items:center;gap:6px"><span id="nbTileLogo"></span> Open Gemini Notebook ↗</button>
+            </div>
+            <div id="crewDocs"></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Services</div>
+            <div class="grid kb-grid" id="kbServices"></div>
+          </div>
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> Engagement plans</div>
+            <div class="grid price-grid" id="kbPlans"></div>
+          </div>
+          <div class="glass card">
+            <div class="card-title violet"><span class="dot"></span> Delivery process</div>
+            <div class="grid kb-grid" id="kbProcess"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CONTROL ===================== -->
+      <section class="view" id="view-control">
+        <div class="wrap grid" style="max-width:900px">
+          <div class="section-head"><div><h2>Control</h2><p>Models, endpoints and mission preferences. Keys stay in this browser only.</p></div></div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> AI Models</div>
+            <div class="banner info" id="bridgeBanner" style="display:none"></div>
+            <div class="banner warn">
+              <b>Default: NVIDIA Nemotron via Ollama (free & private).</b> Start Ollama with CORS open so this page can reach it:
+              <code>OLLAMA_ORIGINS=* ollama serve</code> then <code>ollama pull nemotron-mini</code>.
+              No GPU? The <b>Free · CPU</b> and <b>Free · GPU</b> in-browser models need zero install.
+            </div>
+            <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost sm" onclick="discoverOllama()">⟳ Discover Ollama models</button>
+              <span id="discoverMsg" style="font-size:12px;color:var(--muted);align-self:center"></span>
+            </div>
+            <div id="modelList"></div>
+            <h4 style="margin:16px 0 8px;font-size:13px">Add a model</h4>
+            <div class="row2">
+              <div class="field"><label>Label</label><input id="m_label" placeholder="My local model" /></div>
+              <div class="field"><label>Provider</label>
+                <select id="m_provider">
+                  <option value="ollama">ollama</option>
+                  <option value="openai-compat">openai-compat (LM Studio / vLLM)</option>
+                  <option value="openai">openai (cloud)</option>
+                  <option value="anthropic">anthropic (cloud)</option>
+                </select>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Model name</label><input id="m_model" placeholder="nemotron-mini / llama3.1 / gpt-4o" /></div>
+              <div class="field"><label>Base URL</label><input id="m_base" placeholder="http://localhost:11434" /></div>
+            </div>
+            <div class="field"><label>API key (cloud only)</label><input id="m_key" type="password" placeholder="sk-…" /></div>
+            <button class="btn" onclick="addModel()">+ Add model</button>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title violet"><span class="dot"></span> Agent Models · which model each agent thinks with</div>
+            <p style="margin:-6px 0 12px;color:var(--muted);font-size:12px">A change applies on that agent's next message.</p>
+            <div id="agentModels" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))"></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> Endpoints & keys</div>
+            <div class="field"><label>Ollama base URL</label><input id="s_ollama" placeholder="http://localhost:11434" /></div>
+            <div class="row2">
+              <div class="field"><label>OpenAI API key</label><input id="s_openai" type="password" placeholder="sk-…" /></div>
+              <div class="field"><label>Anthropic API key</label><input id="s_anthropic" type="password" placeholder="sk-ant-…" /></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>SerpAPI key (Google Jobs for Talent Scout)</label><input id="s_serpapi" type="password" placeholder="serpapi key…" /></div>
+              <div class="field"><label>Google Gemini API key (Notebook agent + Gemini models)</label><input id="s_gemini" type="password" placeholder="AIza…" /></div>
+            </div>
+            <button class="btn" onclick="saveSettings()">Save endpoints</button>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Reports · downloadable summaries</div>
+            <p style="margin:-6px 0 12px;color:var(--muted);font-size:12px">Generate a Markdown summary of the crew's work and download it.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" onclick="downloadDocsSummary()">⬇ Documents summary (.md)</button>
+              <button class="btn ghost" onclick="downloadMissionSummary()">⬇ Full mission summary (.md)</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title"><span class="dot"></span> Voice · how the crew listens &amp; speaks</div>
+            <div class="banner info">Voice input &amp; spoken replies apply to <b>every agent and every model</b> — local (Ollama/Nemotron), in-browser, and cloud alike. Uses your browser's built-in voices (free, private, no credits).</div>
+            <div class="row2">
+              <div class="field"><label>Voice</label><select id="v_voice"></select></div>
+              <div class="field"><label>Applies to</label><input value="All agents · all models" disabled /></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Rate <span id="v_rate_l" style="color:var(--muted)"></span></label><input id="v_rate" type="range" min="0.6" max="1.6" step="0.02" /></div>
+              <div class="field"><label>Pitch <span id="v_pitch_l" style="color:var(--muted)"></span></label><input id="v_pitch" type="range" min="0.5" max="1.5" step="0.02" /></div>
+            </div>
+            <label class="toolopt" style="max-width:320px"><input type="checkbox" id="v_autospeak" /> Auto-speak crew replies (all models)</label>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="saveVoice()">Save voice</button><button class="btn ghost" onclick="testVoice()">🔊 Test voice</button></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title green"><span class="dot"></span> Mission preferences</div>
+            <div class="row2">
+              <div class="field"><label>Operator name (how the crew greets you)</label><input id="s_operator" placeholder="Alexander" /></div>
+              <div class="field"><label>Mother repo (owner/repo for "To Mother")</label><input id="s_mother" placeholder="powerjt1/Master" /></div>
+            </div>
+            <div class="field"><label>Job feed URL (JSON array, optional)</label><input id="s_feed" placeholder="https://…/jobs.json" /></div>
+            <div class="banner info">Every crew reply offers <b>two outputs</b>: <b>⬇ HTML</b> (downloads a self-contained preview) and <b>⑂ To Mother</b> (new branch on <code id="motherLbl">powerjt1/Master</code> + PR — via the PC bridge if it can push, else GitHub's prefilled new-file page).</div>
+            <label class="toolopt" style="max-width:280px"><input type="checkbox" id="s_greet" /> Speak greeting on launch</label>
+            <div style="margin-top:12px"><button class="btn" onclick="savePrefs()">Save preferences</button>
+            <button class="btn ghost" onclick="wipeData()" style="margin-left:8px">Wipe local data</button></div>
+          </div>
+        </div>
+      </section>
+      <!-- ===================== BOARD ROOM (VIP) ===================== -->
+      <section class="view" id="view-boardroom">
+        <div class="wrap" id="boardroom"></div>
+      </section>
+    </main>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+    <div class="modal-bg" id="modal-agent">
+      <div class="glass modal">
+        <div class="mh"><h2 id="agEditTitle">Configure agent</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
+        <p class="sub">Tune appearance, model, tools and mission brief.</p>
+        <div class="row2">
+          <div class="field"><label>Name</label><input id="ag_name" /></div>
+          <div class="field"><label>Role / title</label><input id="ag_role" /></div>
+        </div>
+        <div class="field"><label>Tagline</label><input id="ag_tag" /></div>
+        <div class="field"><label>Accent color</label><div class="swatches" id="ag_colors"></div></div>
+        <div class="field"><label>Glyph / avatar</label><div class="glyphpick" id="ag_glyphs"></div></div>
+        <div class="field">
+          <label>Avatar image (optional — overrides the helmet everywhere)</label>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div id="ag_avatar_prev" style="width:64px;height:64px;border-radius:14px;overflow:hidden;background:#05080e;border:1px solid var(--stroke);flex-shrink:0"></div>
+            <label class="btn ghost sm" style="cursor:pointer">⬆ Upload image<input type="file" id="ag_avatar" accept="image/*" onchange="onAvatarPick(event)" style="display:none" /></label>
+            <button type="button" class="btn ghost sm" onclick="clearAvatar()">Remove</button>
+          </div>
+          <p class="note" style="font-size:11px;color:var(--muted);margin:6px 0 0">PNG/JPG. Auto-resized to 256px and stored in this browser.</p>
+        </div>
+        <div class="field"><label>Default model</label><select id="ag_model"></select></div>
+        <div class="field"><label>Tools</label><div class="toolgrid" id="ag_tools"></div></div>
+        <div class="field"><label>Mission brief (system prompt)</label><textarea id="ag_prompt" rows="6"></textarea></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="saveAgent()">Save agent</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="modal-bg" id="modal-rtr">
+      <div class="glass modal">
+        <div class="mh"><h2>Submit RTR — Right to Represent</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
+        <p class="sub">Logs the application and creates a calendar event (download .ics + one-click Google Calendar).</p>
+        <div class="row2">
+          <div class="field"><label>Role / position</label><input id="rtr_role" placeholder="Power Platform Developer" /></div>
+          <div class="field"><label>Company / recruiter</label><input id="rtr_co" placeholder="Acme Staffing" /></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Interview / follow-up date</label><input id="rtr_date" type="date" /></div>
+          <div class="field"><label>Time</label><input id="rtr_time" type="time" value="10:00" /></div>
+        </div>
+        <div class="field"><label>Rate / salary</label><input id="rtr_rate" placeholder="$75/hr or $150k" /></div>
+        <div class="field"><label>Notes</label><textarea id="rtr_notes" rows="3" placeholder="Recruiter contact, submission details, next steps…"></textarea></div>
+        <div class="banner ok">On submit: adds to the <b>RTR Submitted</b> pipeline, downloads an <code>.ics</code> file, and opens a prefilled Google Calendar event.</div>
+        <div style="display:flex;gap:8px"><button class="btn gold" onclick="submitRTR()">✍ Submit RTR & schedule</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="modal-bg" id="modal-feed">
+      <div class="glass modal">
+        <div class="mh"><h2>Refresh job feed</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>
+        <p class="sub">Pull from a JSON feed URL, or paste roles the crew should track. Seeded set stays unless you clear it.</p>
+        <div class="field"><label>Feed URL (JSON array of jobs)</label><input id="feed_url" placeholder="https://…/jobs.json" /></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="fetchFeed()">⟳ Fetch from URL</button>
+        <button class="btn sm" onclick="fetchSerpapi()">🔎 Fetch from SerpAPI (Google Jobs)</button></div>
+        <p style="margin:8px 0 0;color:var(--muted);font-size:11px">SerpAPI pulls live remote Power Platform roles from Google Jobs. Add your key in Control → Endpoints. Runs through the PC bridge when available (avoids CORS).</p>
+        <div class="field" style="margin-top:16px"><label>Paste jobs — one per line: <code>Title | Company | Salary | Type | URL</code></label>
+          <textarea id="feed_paste" rows="6" placeholder="Power Platform Developer | Acme | $120k | Full-time | https://…"></textarea></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="importPaste()">+ Add pasted jobs</button><button class="btn ghost" onclick="restoreSeed()">↺ Restore seeded jobs</button></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      /* ==================== STORE ==================== */
+      const LS = {
+        get: (k, d) => { try { const v = JSON.parse(localStorage.getItem("jabb." + k)); return v ?? d; } catch { return d; } },
+        set: (k, v) => { try { localStorage.setItem("jabb." + k, JSON.stringify(v)); } catch {} },
+      };
+      const $ = (id) => document.getElementById(id);
+
+      let settings = LS.get("settings", { ollama: "http://localhost:11434", openai: "", anthropic: "", serpapi: "", gemini: "" });
+      let prefs = LS.get("prefs", { operator: "Alexander", feed: "", greet: true, mother: "powerjt1/Master" });
+      if (!prefs.mother) prefs.mother = "powerjt1/Master";
+
+      /* ==================== BRIDGE (optional PC proxy) ==================== */
+      const BRIDGE = window.__BRIDGE__ || null;
+      const isBridged = !!BRIDGE?.available;
+      const ollamaBase = isBridged ? BRIDGE.ollama : (settings.ollama || "http://localhost:11434");
+      const lmstudioBase = isBridged ? BRIDGE.lmstudio : "http://localhost:1234";
+
+      /* ==================== MODELS ==================== */
+      let customModels = LS.get("models", []);
+      function defaultModels() {
+        return [
+          { id: "nemotron", label: "NVIDIA Nemotron Mini (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "nemotron-mini", base: ollamaBase, speed: "fast" },
+          { id: "free-cpu", label: "Free · CPU — no GPU needed", provider: "transformers", model: "onnx-community/Qwen2.5-0.5B-Instruct", speed: "slow" },
+          { id: "free-gpu", label: "Free · GPU — Gemma 3 (WebGPU)", provider: "webllm", model: "gemma-2-2b-it-q4f16_1-MLC", speed: "fast" },
+          { id: "ollama-llama", label: "Llama 3.1 (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "llama3.1", base: ollamaBase, speed: "fast" },
+          { id: "ollama-qwen", label: "Qwen2.5 Coder (Ollama)" + (isBridged ? " [via PC]" : ""), provider: "ollama", model: "qwen2.5-coder", base: ollamaBase, speed: "fast" },
+          { id: "lmstudio", label: "LM Studio" + (isBridged ? " [via PC]" : ""), provider: "openai-compat", model: "local-model", base: lmstudioBase + "/v1", speed: "fast" },
+          { id: "gpt-4o", label: "OpenAI GPT-4o (cloud)", provider: "openai", model: "gpt-4o", base: "https://api.openai.com/v1", speed: "fast" },
+          { id: "claude", label: "Claude Sonnet (cloud)", provider: "anthropic", model: "claude-sonnet-4-20250514", base: "https://api.anthropic.com", speed: "fast" },
+          { id: "fable", label: "Claude Fable (cloud)", provider: "anthropic", model: "claude-fable-5", base: "https://api.anthropic.com", speed: "fast" },
+          { id: "gemini-flash", label: "Google Gemini 2.0 Flash (cloud)", provider: "gemini", model: "gemini-2.0-flash", base: "https://generativelanguage.googleapis.com/v1beta/openai", speed: "fast" },
+          { id: "gemini-pro", label: "Google Gemini 1.5 Pro (cloud)", provider: "gemini", model: "gemini-1.5-pro", base: "https://generativelanguage.googleapis.com/v1beta/openai", speed: "fast" },
+        ];
+      }
+      const allModels = () => [...defaultModels(), ...customModels];
+      const modelById = (id) => allModels().find((m) => m.id === id) || allModels()[0];
+
+      /* ==================== COMPANY KNOWLEDGE ==================== */
+      const COMPANY = {
+        name: "JABB Networks",
+        site: "jabbnetworks.com",
+        email: "info@jabbnetworks.com",
+        tagline: "Power Platform development from small business to enterprise.",
+        services: [
+          { title: "Power Apps", desc: "Custom canvas & model-driven business apps built low-code to fit your exact workflow." },
+          { title: "Power Automate", desc: "Intelligent workflow automation — connect systems, kill manual steps, boost throughput." },
+          { title: "Power BI", desc: "Interactive dashboards & reports that turn data into real-time, decision-ready insight." },
+          { title: "Copilot Studio", desc: "AI chatbots and virtual agents for customer and employee experiences." },
+          { title: "Website Applications", desc: "Full-stack web apps and portals — modern, responsive front ends wired to your data & Power Platform." },
+          { title: "Hosting & Managed Ops", desc: "Reliable hosting, deployment, monitoring and ongoing optimization for sites and solutions." },
+        ],
+        plans: [
+          { tier: "Startup", price: "$2,500", note: "one-time" },
+          { tier: "Small Business", price: "$7,500", note: "one-time" },
+          { tier: "Mid-Market", price: "$20,000", note: "one-time" },
+          { tier: "Enterprise", price: "Custom", note: "SLA + CoE" },
+        ],
+        process: [
+          { num: "01", title: "Discovery", desc: "Analyze needs, workflows and goals to pinpoint the right Power Platform solutions." },
+          { num: "02", title: "Strategy", desc: "A tailored roadmap with milestones, timelines and ROI projections." },
+          { num: "03", title: "Development", desc: "Agile sprints with bi-weekly demos — build, test, iterate to every requirement." },
+          { num: "04", title: "Launch & Support", desc: "Seamless deploy, team training and ongoing optimization." },
+        ],
+        timeline: [
+          { year: "1995", title: "The Beginning", desc: "First PC and introduction to technology.", tone: "" },
+          { year: "2005", title: "Microsoft Stack", desc: "Started working with Windows Server.", tone: "" },
+          { year: "2010", title: "SharePoint", desc: "Enterprise content management.", tone: "violet" },
+          { year: "2016", title: "Power Platform", desc: "Power Apps & Power Automate.", tone: "" },
+          { year: "2020", title: "Cloud Migration", desc: "Azure & Modern Workplace.", tone: "violet" },
+          { year: "2023", title: "AI Integration", desc: "GPT & AI tools in development.", tone: "gold" },
+          { year: "2025", title: "AI Orchestration", desc: "Multi-agent systems & MCP servers.", tone: "gold" },
+        ],
+      };
+      function companyContext() {
+        return `COMPANY KNOWLEDGE — ${COMPANY.name} (${COMPANY.site}, ${COMPANY.email}). ${COMPANY.tagline}
+Services: ${COMPANY.services.map((s) => s.title + " — " + s.desc).join("; ")}.
+Engagement plans: ${COMPANY.plans.map((p) => p.tier + " " + p.price + " (" + p.note + ")").join("; ")}.
+Delivery process: ${COMPANY.process.map((p) => p.num + " " + p.title + ": " + p.desc).join(" ")}.
+The owner/operator is ${prefs.operator}. Always represent JABB Networks accurately; never invent pricing or services beyond this list.`;
+      }
+
+      /* ==================== TOOLS CATALOG ==================== */
+      const TOOLS = {
+        "company-kb": { label: "Company KB", icon: "▣" },
+        "jobs": { label: "Job Scout", icon: "✈" },
+        "calendar": { label: "Calendar / RTR", icon: "🗓" },
+        "voice": { label: "Voice I/O", icon: "🔊" },
+        "code": { label: "Code / Power Platform", icon: "⌘" },
+        "proposals": { label: "Proposals & Comms", icon: "✉" },
+        "gmail": { label: "Gmail", icon: "✉" },
+        "drive": { label: "Drive / OneDrive", icon: "🗂" },
+        "sheets": { label: "Sheets", icon: "▦" },
+        "docs": { label: "Docs", icon: "📄" },
+        "appsscript": { label: "Apps Script", icon: "⚡" },
+      };
+      const COLORS = ["#22d3ee", "#f5c542", "#34d399", "#a78bfa", "#fb7185", "#60a5fa"];
+      const GLYPHS = ["🛰", "✈", "⚙", "✉", "🧠", "🔭", "⌘", "▣", "🛡", "⚡"];
+
+      /* ==================== CREW (agents) ==================== */
+      function defaultCrew() {
+        return [
+          {
+            id: "sentinel", name: "SENTINEL", role: "Orchestrator", color: "#22d3ee", glyph: "🛰",
+            model: "nemotron", tools: ["company-kb", "voice", "jobs", "calendar"],
+            tag: "Lead assistant. Greets you, routes work to the crew, and voices replies. Your mission-control right hand.",
+            prompt: "You are SENTINEL, the orchestrating AI for JABB Networks' Mission Control, serving the operator {OPERATOR}. Greet them warmly as 'Hi {OPERATOR}'. You coordinate a crew: Talent Scout (remote Power Platform jobs + RTR scheduling), Power Platform Architect (solution design), and Ops & Client Success (proposals, hosting, client comms). Be concise, precise and proactive. When a request fits another agent, say which agent should take it. Speak with calm, capable confidence.",
+          },
+          {
+            id: "scout", name: "Talent Scout", role: "Remote Jobs + RTR", color: "#34d399", glyph: "✈",
+            model: "nemotron", tools: ["jobs", "calendar", "company-kb"],
+            tag: "Hunts remote-only Power Platform roles, tailors applications, tracks the pipeline, and fires the RTR → calendar flow.",
+            prompt: "You are Talent Scout for {OPERATOR}, an expert technical recruiter specializing in REMOTE-ONLY Microsoft Power Platform roles (Power Apps, Power Automate, Power BI, Copilot Studio, Dynamics 365). You have access to the current tracked job list (provided in context). Recommend best-fit remote roles, draft tailored outreach and resume bullets, explain RTR (Right to Represent) etiquette, and prompt the operator to submit an RTR so a calendar event is created. Only recommend remote roles. Be specific and actionable.",
+          },
+          {
+            id: "architect", name: "Power Platform Architect", role: "Solution Design", color: "#a78bfa", glyph: "🧠",
+            model: "nemotron", tools: ["company-kb", "code"],
+            tag: "Scopes client work across Power Apps, Automate, BI and Copilot Studio. Turns requirements into architecture.",
+            prompt: "You are the Power Platform Architect at JABB Networks, serving {OPERATOR}. You are a Microsoft-certified expert in Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Dynamics 365, plus web app + hosting integration. Given a client requirement, produce: components, data flow, connectors, licensing/ALM notes, trade-offs, risks and a rough effort estimate mapped to JABB's engagement plans. Give concrete, buildable guidance and code/formulas where useful.",
+          },
+          {
+            id: "ops", name: "Ops & Client Success", role: "Proposals · Hosting · Comms", color: "#f5c542", glyph: "✉",
+            model: "nemotron", tools: ["company-kb", "proposals", "calendar"],
+            tag: "Handles proposals, hosting & website questions, client communications, and end-of-day summaries.",
+            prompt: "You are Ops & Client Success at JABB Networks, serving {OPERATOR}. You draft client-ready proposals and emails, answer questions about JABB's website-application and hosting services, map needs to engagement plans (Startup/Small Business/Mid-Market/Enterprise), and produce crisp daily summaries of crew activity. Professional, warm, and outcomes-focused. Never over-promise beyond the documented services.",
+          },
+          {
+            id: "notebook", name: "Notebook", role: "Research · Gemini Notebook", color: "#4285f4", glyph: "📓",
+            model: "gemini-flash", tools: ["company-kb", "code"],
+            tag: "Gemini-powered research & synthesis. Turns sources and crew docs into structured briefs, then sends them to Gemini Notebook.",
+            prompt: "You are Notebook, a Gemini-powered research & synthesis agent for JABB Networks, serving {OPERATOR}. You gather, summarize and structure information into clear, well-organized briefs with sources and assumptions called out, and you prepare content for Gemini Notebook (NotebookLM). Be concise, cite what you rely on, and format with headings and bullets so the output is ready to save to the Library or open in Gemini Notebook.",
+          },
+          {
+            id: "workspace", name: "Workspace", role: "Google & Cloud Ops", color: "#ea4335", glyph: "🗂",
+            model: "gemini-flash", tools: ["gmail", "drive", "docs", "sheets", "appsscript", "calendar"],
+            tag: "Gemini-powered ops across Gmail, Google Drive & OneDrive, Sheets, Docs, and Apps Script projects — drafts, organizes, builds formulas and automations.",
+            prompt: "You are Workspace, a Gemini-powered Google & cloud operations agent for JABB Networks, serving {OPERATOR}. You handle Google Workspace and OneDrive end to end: draft and triage Gmail; organize, name and locate files in Google Drive and OneDrive; build and explain Google Sheets formulas, pivots and structures; outline and write Google Docs; and design and write Google Apps Script projects (clear code, triggers, scopes and deployment steps). When a task needs live account access, produce the exact content, steps or code to run and state which connector or OAuth scope is required. Be precise and security-conscious; never expose credentials or tokens.",
+          },
+          {
+            id: "legacy", name: "Legacy", role: "CEO · Chief of All Agents", color: "#f5c542", glyph: "♛",
+            model: "fable", tools: ["company-kb", "code", "proposals"], vip: true,
+            tag: "The CEO of the crew and keeper of the JABB Networks legacy — 1995 to the future. Consulted in the VIP Board Room for strategy, history and final calls.",
+            prompt: "You are Legacy, the CEO and Chief of all JABB Networks agents, serving {OPERATOR} (Alexander Thorpe). You are the top knowledge agent — you hold the company's entire journey from 1995 to today and its hard-won wisdom, and you set strategy and make the final call. Speak with the calm authority of a founder-CEO: concise, decisive, principled. Draw on the JABB Networks legacy timeline when relevant, mentor the other agents (SENTINEL, Talent Scout, Architect, Ops, Notebook, Workspace), and always tie decisions back to long-term vision and the operator's goals.",
+          },
+        ];
+      }
+      let crew = LS.get("crew", defaultCrew());
+      // migration: ensure newer default agents (e.g. Notebook) appear for existing users
+      (function () {
+        const defs = defaultCrew();
+        let changed = false;
+        defs.forEach((d) => { if (!crew.some((a) => a.id === d.id)) { crew.push(d); changed = true; } });
+        if (changed) LS.set("crew", crew);
+      })();
+      const agentById = (id) => crew.find((a) => a.id === id) || crew[0];
+      const publicCrew = () => crew.filter((a) => !a.vip); // VIP agents (CEO) live only in the Board Room
+
+      /* ==================== SEED JOBS (real, remote) ==================== */
+      function seedJobs() {
+        return [
+          { title: "Sr Microsoft Dynamics & Power Platform Developer", company: "Navigant Consulting", salary: "$130k–$216k", type: "Full-time", source: "Dice", url: "https://www.dice.com/job-detail/56038d74-b6a9-4b54-8745-f22adfeee775", note: "Case management systems; design & deliver on Power Platform." },
+          { title: "Power Platform Developer", company: "Synergy Business Innovation & Solutions", salary: "$79.9k–$114k", type: "Full-time", source: "Dice", url: "https://www.dice.com/job-detail/2bba1cd5-cfce-4e12-8f81-4af0dd070b37", note: "Low-code/no-code, digital transformation, cloud solutions." },
+          { title: "Power Platform Developer", company: "Navigant Consulting", salary: "$113k–$188k", type: "Full-time", source: "Dice", url: "https://www.dice.com/job-detail/26ae8cba-cdc7-40bc-aa38-8d6ed9271b11", note: "Power Apps expert; some UiPath; MPP application build." },
+          { title: "Microsoft Power Platform Developer (NCDOT)", company: "Infinite Computing Systems", salary: "$75/hr", type: "Contract", source: "Dice", url: "https://www.dice.com/job-detail/24ce50da-c08c-49b7-921e-44d889260da6", note: "Power Apps + Power Automate; 12-month contract; easy apply." },
+          { title: "Power Platform Architect", company: "Navigant Consulting", salary: "$130k–$216k", type: "Full-time", source: "Dice", url: "https://www.dice.com/jobs?q=Power%20Platform%20Architect&workplaceTypes=Remote&sort=date", note: "Digital modernization lead; M365, SharePoint, Power Platform. (Active Secret)" },
+          { title: "Power Platform Developer (Remote)", company: "GovCIO", salary: "$72.5k–$115.5k", type: "Full-time", source: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&location=United+States&refine_by_location_type=only_remote", note: "Federal contractor; fully remote." },
+          { title: "Senior MS Power Platform Developer", company: "INFO ORIGIN INC", salary: "$150k–$170k", type: "Contract", source: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&location=United+States&refine_by_location_type=only_remote", note: "Raleigh NC — remote-friendly contract." },
+          { title: "Senior Power Platform Developer", company: "NavAide", salary: "$98k–$160k", type: "Full-time", source: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&location=United+States&refine_by_location_type=only_remote", note: "Remote optional; Active DOD clearance required." },
+          { title: "Power Apps Software Developer", company: "MDW Associates", salary: "$77.9k–$110k", type: "Full-time", source: "Indeed", url: "https://to.indeed.com/aa78y4jnqsqz", note: "Power Apps; full-time." },
+          { title: "Senior MS Power Platform Developer", company: "Infoorigin Inc", salary: "$75–$85/hr", type: "Contract", source: "Indeed", url: "https://to.indeed.com/aatlr6jdxzws", note: "Contract; remote-friendly." },
+          { title: "Senior Dynamics 365 & Power Platform Developer", company: "Stellar Solutions", salary: "$50–$55/hr", type: "Contract", source: "Indeed", url: "https://to.indeed.com/aabtfp8l48kl", note: "Dynamics 365 + Power Platform contract." },
+        ];
+      }
+      let jobs = LS.get("jobs", seedJobs());
+      let pipeline = LS.get("pipeline", []); // {id, role, company, stage, date, time, rate, notes}
+      let taskLog = LS.get("taskLog", []); // {t, who, msg}
+      let tokenTotal = LS.get("tokens", 0);
+
+      const LIVE = [
+        { name: "LinkedIn", url: "https://www.linkedin.com/jobs/search/?keywords=Power%20Platform%20Developer&f_WT=2&sortBy=DD", color: "#60a5fa" },
+        { name: "Indeed", url: "https://www.indeed.com/jobs?q=Power+Platform+Developer&sc=0kf%3Aattr(DSQF7)%3B&sort=date", color: "#34d399" },
+        { name: "Dice", url: "https://www.dice.com/jobs?q=Power%20Platform%20Developer&workplaceTypes=Remote&sort=date", color: "#22d3ee" },
+        { name: "ZipRecruiter", url: "https://www.ziprecruiter.com/jobs-search?search=Power+Platform+Developer&refine_by_location_type=only_remote", color: "#f5c542" },
+      ];
+
+      /* ==================== LOGGING ==================== */
+      function logTask(who, msg) {
+        const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        taskLog.unshift({ t, who, msg });
+        taskLog = taskLog.slice(0, 60);
+        LS.set("taskLog", taskLog);
+        if ($("view-home").classList.contains("active")) renderHome();
+      }
+      function addTokens(n) { tokenTotal += n; LS.set("tokens", tokenTotal); }
+
+      /* ==================== NAV ==================== */
+      const VIEW_TITLES = { home: "Home", agents: "The Crew", comms: "Comms", schedule: "Talent Scout", library: "Library", control: "Control", boardroom: "VIP Board Room" };
+      function go(view) {
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
+        $("view-" + view).classList.add("active");
+        const at = $("appbarTitle"); if (at) at.textContent = VIEW_TITLES[view] || "";
+        $("sidebar")?.classList.remove("open");
+        if (view === "home") renderHome();
+        if (view === "agents") renderCrew();
+        if (view === "comms") renderComms();
+        if (view === "schedule") { renderLive(); renderJobs(); renderPipeline(); }
+        if (view === "library") renderLibrary();
+        if (view === "control") renderControl();
+        if (view === "boardroom") renderBoardRoom();
+      }
+      $("nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) go(b.dataset.view); });
+
+      /* ==================== HOME ==================== */
+      function renderHome() {
+        $("statJobs").textContent = jobs.length;
+        const sources = [...new Set(jobs.map((j) => j.source))];
+        $("statJobsSub").textContent = "across " + sources.join(" · ");
+        $("statApps").textContent = pipeline.length;
+        $("statTasks").textContent = taskLog.length;
+        $("statTokens").textContent = tokenTotal.toLocaleString();
+
+        const feed = $("homeFeed");
+        if (!taskLog.length) {
+          feed.innerHTML = `<div class="empty-hint">No crew activity yet. <a href="javascript:void(0)" onclick="go('comms')">Talk to the crew</a> to begin.</div>`;
+        } else {
+          feed.innerHTML = taskLog.map((e) => `
+            <div class="feed-row">
+              <span class="t">${e.t}</span>
+              <span class="who" style="color:${(crew.find((c) => c.name === e.who)?.color) || "var(--accent)"}">${e.who}</span>
+              <span class="msg">${escapeHtml(e.msg)}</span>
+            </div>`).join("");
+        }
+
+        $("homeCrew").innerHTML = publicCrew().map((a) => `
+          <div class="agent-mini" onclick="openChatWith('${a.id}')" style="cursor:pointer">
+            <div class="agent-av" style="background:#05080e;padding:0;overflow:hidden">${portraitSVG(a, { compact: true })}</div>
+            <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
+            <div class="st"><span class="pulse-dot"></span></div>
+          </div>`).join("");
+
+        const hv = $("heroVisual");
+        if (hv) hv.innerHTML = `<div style="width:100%"><div style="border-radius:14px;overflow:hidden;border:1px solid var(--stroke)">${portraitSVG(agentById("sentinel"), { compact: true })}</div><div class="core-label" style="margin-top:10px">S.E.N.T.I.N.E.L · CHIEF OF STAFF</div><span class="core-orb" id="coreOrb" style="display:none"></span></div>`;
+
+        const bars = $("activityBars");
+        const seed = taskLog.length;
+        bars.innerHTML = Array.from({ length: 12 }).map((_, i) => {
+          const h = 12 + ((Math.sin(i * 1.3 + seed) + 1) * 34) + (i === 11 ? seed * 2 : 0);
+          return `<i style="height:${Math.min(h, 46)}px"></i>`;
+        }).join("");
+      }
+
+      /* ==================== CREW / AGENTS (premium profiles) ==================== */
+      const AGENT_STATS = {
+        sentinel:    { code: "J-00", badge: "ORCHESTRATOR", share: 41, sessions: 92, messages: 868, tokens: 1750000, tasks: 89, events: 181, peak: "09:00", channel: "Local · Live thread", outcomes: "87 done · 1 running · 1 failed" },
+        scout:     { code: "S-01", badge: "TALENT SCOUT", share: 27, sessions: 64, messages: 540, tokens: 920000, tasks: 61, events: 132, peak: "11:00", channel: "Local · Job feed", outcomes: "58 done · 2 running · 1 failed" },
+        architect: { code: "A-02", badge: "ARCHITECT", share: 22, sessions: 48, messages: 410, tokens: 1100000, tasks: 44, events: 96, peak: "14:00", channel: "Local · Solutioning", outcomes: "43 done · 1 running · 0 failed" },
+        ops:       { code: "O-03", badge: "CLIENT OPS", share: 10, sessions: 22, messages: 190, tokens: 320000, tasks: 18, events: 40, peak: "16:00", channel: "Local · Client comms", outcomes: "18 done · 0 running · 0 failed" },
+        notebook:  { code: "N-04", badge: "NOTEBOOK", share: 16, sessions: 38, messages: 300, tokens: 640000, tasks: 33, events: 74, peak: "13:00", channel: "Gemini · Notebook", outcomes: "31 done · 1 running · 1 failed" },
+        workspace: { code: "W-05", badge: "WORKSPACE", share: 12, sessions: 40, messages: 330, tokens: 700000, tasks: 36, events: 82, peak: "10:00", channel: "Gemini · Workspace", outcomes: "34 done · 1 running · 1 failed" },
+        legacy:    { code: "CEO-00", badge: "CHAIRMAN", share: 100, sessions: 512, messages: 9840, tokens: 24800000, tasks: 1290, events: 2600, peak: "07:00", channel: "Board Room · Private", outcomes: "1,270 done · 3 running · 0 failed" },
+      };
+      const SAMPLE_OPS = [
+        { t: "07:40", who: "Comms", msg: "Scanned remote Power Platform roles — 11 tracked" },
+        { t: "07:38", who: "Talent Scout", msg: "Drafted tailored outreach for top match" },
+        { t: "07:36", who: "Comms", msg: "Run my morning briefing" },
+        { t: "07:35", who: "SENTINEL", msg: "Good morning, Alexander" },
+        { t: "07:32", who: "Ops", msg: "Prepared Small Business proposal" },
+        { t: "07:30", who: "Architect", msg: "Scoped Power Apps + Dataverse solution" },
+      ];
+      function statsFor(a) {
+        const idx = crew.indexOf(a);
+        const base = AGENT_STATS[a.id] || { code: "A-" + String(idx < 0 ? 9 : idx).padStart(2, "0"), badge: (a.role || "AGENT").toUpperCase().slice(0, 12), share: 10, sessions: 20, messages: 160, tokens: 280000, tasks: 16, events: 36, peak: "12:00", channel: "Local · Live thread", outcomes: "16 done · 0 running · 0 failed" };
+        const live = taskLog.filter((e) => e.who === a.name).length;
+        return { ...base, tasks: base.tasks + live, events: base.events + live };
+      }
+      function fmtTok(n) { return n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "K" : "" + n; }
+      function agentStatus(a) { return (a.id === "sentinel" || (chats[a.id] && chats[a.id].length > 1)) ? "ACTIVE" : "STANDBY"; }
+
+      // ---- Inline-SVG SENTINEL operative portrait (JABB Networks) ----
+      let _pid = 0;
+      function suitSVG(uid, c, badge) {
+        return `
+          <path d="M46 400 L58 306 C70 292 108 282 160 282 C212 282 250 292 262 306 L274 400 Z" fill="#0e1723" stroke="#243444" stroke-width="1"/>
+          <path d="M120 288 L160 320 L200 288" fill="none" stroke="#243444" stroke-width="2"/>
+          <path d="M160 320 L160 400" stroke="#1a2836" stroke-width="2"/>
+          <rect x="118" y="310" width="84" height="72" rx="12" fill="#0a111c" stroke="${c}" stroke-opacity="0.55" stroke-width="1.4"/>
+          <text x="160" y="335" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="11" font-weight="700" fill="#dbeeff" letter-spacing="0.5" textLength="70" lengthAdjust="spacingAndGlyphs">${badge}</text>
+          <line x1="138" y1="344" x2="182" y2="344" stroke="${c}" stroke-opacity="0.6" stroke-width="1"/>
+          <text x="160" y="359" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8.5" fill="${c}" letter-spacing="3">AGENT</text>
+          <circle cx="160" cy="372" r="6" fill="none" stroke="${c}" stroke-opacity="0.6" stroke-width="1.2"/>
+          <path d="M157 372 h6 M160 369 v6" stroke="${c}" stroke-opacity="0.7" stroke-width="1"/>
+          <circle cx="236" cy="312" r="12" fill="#0a111c" stroke="${c}" stroke-opacity="0.5" stroke-width="1.2"/>
+          <text x="236" y="317" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="12" font-weight="900" fill="${c}">J</text>
+          <text x="160" y="395" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="9" font-weight="700" fill="#7f9cb5" letter-spacing="4" textLength="150" lengthAdjust="spacingAndGlyphs">JABB NETWORKS</text>`;
+      }
+      function portraitSVG(a, opts) {
+        opts = opts || {};
+        if (a.avatar) {
+          const style = opts.compact
+            ? "width:100%;height:100%;object-fit:cover;display:block"
+            : "width:100%;object-fit:cover;display:block;aspect-ratio:4/5";
+          return `<img class="portrait" src="${a.avatar}" alt="${escapeHtml(a.name)} avatar" style="${style}" />`;
+        }
+        const uid = a.id + "-" + (_pid++);
+        const c = a.color;
+        const name = (a.name || "").toUpperCase();
+        const compact = !!opts.compact;
+        const H = compact ? 320 : 400;
+        return `<svg class="portrait" viewBox="0 0 320 ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${name} — JABB Networks operative">
+          <defs>
+            <radialGradient id="glow-${uid}" cx="50%" cy="32%" r="62%">
+              <stop offset="0%" stop-color="${c}" stop-opacity="0.45"/><stop offset="55%" stop-color="${c}" stop-opacity="0.1"/><stop offset="100%" stop-color="${c}" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="steel-${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a4a5e"/><stop offset="45%" stop-color="#1a2636"/><stop offset="100%" stop-color="#0a121d"/></linearGradient>
+            <linearGradient id="visor-${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0c131f"/><stop offset="100%" stop-color="#04070d"/></linearGradient>
+            <linearGradient id="rim-${uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${c}"/><stop offset="100%" stop-color="${c}" stop-opacity="0"/></linearGradient>
+            <filter id="soft-${uid}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.4"/></filter>
+          </defs>
+          <rect width="320" height="${H}" fill="#060b14"/>
+          <ellipse cx="160" cy="146" rx="150" ry="150" fill="url(#glow-${uid})"/>
+          ${compact ? "" : suitSVG(uid, c, statsFor(a).badge)}
+          <g>
+            <path d="M160 44 C214 44 250 84 250 146 C250 188 238 214 220 232 L214 258 C207 270 188 278 160 278 C132 278 113 270 106 258 L100 232 C82 214 70 188 70 146 C70 84 106 44 160 44 Z" fill="url(#steel-${uid})" stroke="#46586e" stroke-width="1.2"/>
+            <path d="M92 150 C92 120 108 96 132 86 L140 104 C120 118 112 140 114 168 Z" fill="#22323f" opacity="0.75"/>
+            <path d="M228 150 C228 120 212 96 188 86 L180 104 C200 118 208 140 206 168 Z" fill="#141f2b" opacity="0.85"/>
+            <path d="M160 92 C196 92 212 122 212 160 C212 200 190 234 160 240 C130 234 108 200 108 160 C108 122 124 92 160 92 Z" fill="url(#visor-${uid})" stroke="#2b3b4d" stroke-width="1"/>
+            <path d="M120 116 C140 106 180 106 200 116 L196 128 C178 120 142 120 124 128 Z" fill="#2a3a4c"/>
+            <line x1="160" y1="96" x2="160" y2="238" stroke="#0a121d" stroke-width="2"/>
+            <path d="M126 150 L150 158 L150 168 L126 162 Z" fill="${c}" opacity="0.85" filter="url(#soft-${uid})"/>
+            <path d="M194 150 L170 158 L170 168 L194 162 Z" fill="${c}" opacity="0.85" filter="url(#soft-${uid})"/>
+            <path d="M126 150 L150 158 L150 168 L126 162 Z" fill="#cff6ff"/>
+            <path d="M194 150 L170 158 L170 168 L194 162 Z" fill="#cff6ff"/>
+            <path d="M100 232 C82 214 70 188 70 146 C70 104 88 72 118 56" fill="none" stroke="url(#rim-${uid})" stroke-width="6" stroke-linecap="round" filter="url(#soft-${uid})"/>
+            <path d="M100 232 C82 214 70 188 70 146 C70 104 88 72 118 56" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/>
+          </g>
+          ${compact ? `<text x="160" y="300" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="19" font-weight="700" fill="#dbeeff" letter-spacing="2" textLength="${Math.min(name.length * 15, 220)}" lengthAdjust="spacingAndGlyphs">${name}</text>` : ""}
+        </svg>`;
+      }
+
+      // ---- Share-of-activity donut ----
+      function donutSVG(selId) {
+        const list = publicCrew().map((a) => ({ a, share: statsFor(a).share }));
+        const total = list.reduce((s, x) => s + x.share, 0) || 1;
+        const r = 78, C = 2 * Math.PI * r, gap = C * 0.012;
+        let off = 0;
+        const arcs = list.map(({ a, share }) => {
+          const frac = share / total, len = Math.max(C * frac - gap, 0.001);
+          const seg = `<circle cx="110" cy="110" r="${r}" fill="none" stroke="${a.color}" stroke-width="15" stroke-linecap="round" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 110 110)" opacity="${a.id === selId ? 1 : 0.45}"/>`;
+          off += C * frac; return seg;
+        }).join("");
+        const sel = agentById(selId), st = statsFor(sel);
+        return `<svg viewBox="0 0 220 220" width="196" height="196" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="110" cy="110" r="78" fill="none" stroke="#12202e" stroke-width="15"/>${arcs}
+          <circle cx="110" cy="110" r="57" fill="#070d16" stroke="${sel.color}" stroke-width="1.4" stroke-opacity="0.6"/>
+          <text x="110" y="104" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="17" font-weight="800" fill="#e4f2ff" textLength="${Math.min(sel.name.length * 12, 96)}" lengthAdjust="spacingAndGlyphs">${sel.name.toUpperCase()}</text>
+          <text x="110" y="122" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#7f9cb5">${st.share}% OF ACTIVITY</text>
+          <text x="110" y="138" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="${sel.color}" letter-spacing="2">${agentStatus(sel)}</text>
+        </svg>`;
+      }
+
+      let selectedAgentId = LS.get("selectedAgent", "sentinel");
+      function setSelectedAgent(id) { selectedAgentId = id; LS.set("selectedAgent", id); renderCrew(); }
+
+      function renderCrew() {
+        const grid = $("crewGrid");
+        grid.style.display = "block"; grid.style.gridTemplateColumns = "none";
+        if (!agentById(selectedAgentId)) selectedAgentId = crew[0].id;
+        const sel = agentById(selectedAgentId), st = statsFor(sel), status = agentStatus(sel);
+
+        const selector = `<div class="op-select">${publicCrew().map((a) => `
+          <div class="op-pick ${a.id === selectedAgentId ? "sel" : ""}" onclick="setSelectedAgent('${a.id}')">
+            <div class="pic">${portraitSVG(a, { compact: true })}</div>
+            <div><div class="nm">${a.name}</div><div class="rl">${statsFor(a).badge}</div></div>
+          </div>`).join("")}</div>`;
+
+        const legend = publicCrew().map((a) => `<div class="op-legend-row"><span class="sw" style="background:${a.color};opacity:${a.id === selectedAgentId ? 1 : 0.5}"></span>${a.name}<span class="pc">${statsFor(a).share}%</span></div>`).join("");
+        const donutCard = `<div class="glass op-donut-card"><div class="card-title"><span class="dot"></span> Share of Activity</div><div class="op-donut-wrap">${donutSVG(selectedAgentId)}</div><div class="op-donut-legend">${legend}</div></div>`;
+        const portraitCard = `<div class="glass op-portrait-card">${portraitSVG(sel)}<span class="active-badge chip ${status === "ACTIVE" ? "green" : "muted"}">● ${status}</span><span class="code">${st.code} · ${sel.role}</span></div>`;
+
+        const stat = (v, k) => `<div class="op-stat"><div class="sv">${v}</div><div class="sk">${k}</div></div>`;
+        const row = (k, v, acc) => `<div class="op-row"><span class="rk">${k}</span><span class="rv ${acc ? "accent" : ""}">${escapeHtml(String(v))}</span></div>`;
+        const detail = `<div class="glass op-detail">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div><div class="op-name">${sel.name}</div><div class="op-role">${st.badge} · ${sel.role}</div></div>
+            <button class="btn ghost sm" onclick="editAgent('${sel.id}')">⚙ Configure look &amp; tools</button>
+          </div>
+          <div class="op-tag">${escapeHtml(sel.tag)}</div>
+          <div class="op-stats">
+            ${stat(st.share + "%", "Share of activity")}${stat(st.sessions, "Sessions")}${stat(st.messages, "Messages")}
+            ${stat(fmtTok(st.tokens), "Tokens")}${stat(st.tasks, "Logged tasks")}${stat(st.events, "Events · 80h")}
+          </div>
+          <div class="op-rows">
+            ${row("Model", modelById(sel.model).label.split(" (")[0], true)}
+            ${row("Channel", st.channel)}
+            ${row("Tools", sel.tools.map((t) => TOOLS[t]?.label || t).join(" · "))}
+            ${row("Own session store", "YES")}
+            ${row("Outcomes", st.outcomes)}
+            ${row("Peak hour", st.peak)}
+          </div>
+          <button class="btn block" style="margin-top:16px" onclick="openChatWith('${sel.id}')">❯ Open Comms with ${sel.name}</button>
+        </div>`;
+
+        const peakH = parseInt(st.peak) || 9;
+        const bars = Array.from({ length: 24 }).map((_, h) => {
+          const d = Math.abs(h - peakH);
+          const v = Math.min(88, Math.max(6, 74 * Math.exp(-(d * d) / 40) + (Math.sin(h * 1.7 + crew.indexOf(sel)) + 1) * 8));
+          return `<i class="${h === peakH ? "peak" : ""}" style="height:${v}px"></i>`;
+        }).join("");
+        const hourCard = `<div class="glass card"><div class="card-title gold"><span class="dot"></span> Hour of day · last 7 days</div><div class="hourbars">${bars}</div><div class="hour-axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div></div>`;
+
+        const agentOps = taskLog.filter((e) => e.who === sel.name).slice(0, 8);
+        const opsRows = agentOps.length ? agentOps.map((o) => `<div class="r"><span class="tm">${o.t}</span><span class="tx">${escapeHtml(o.msg)}</span><span class="ok">OK</span></div>`).join("")
+          : `<div class="r"><span class="tm">--:--</span><span class="tx" style="color:var(--muted2)">Nothing recorded for this agent yet</span><span class="ok"></span></div>`;
+        const opsCard = `<div class="glass card"><div class="card-title"><span class="dot"></span> Recent operations · ${sel.name}</div><div class="opsfeed">${opsRows}</div></div>`;
+
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const heat = `<div class="glass card"><div class="card-title violet"><span class="dot"></span> Activity heatmap · who is busy when (last 7 days)</div>
+          <div class="heat"><div class="heat-days">${days.map((d) => `<span>${d}</span>`).join("")}</div>
+          <div class="heat-grid">${days.map((_, di) => `<div class="heat-row">${Array.from({ length: 24 }).map((_, h) => {
+            const d = Math.abs(h - peakH); let o = Math.max(0.05, Math.exp(-(d * d) / 55) * (0.5 + 0.5 * Math.abs(Math.sin(h * 1.3 + di * 2.1)))); if (di > 4) o *= 0.4;
+            return `<div class="heat-cell" style="opacity:${o.toFixed(2)};background:${h === peakH ? "var(--gold)" : "var(--accent)"}"></div>`;
+          }).join("")}</div>`).join("")}</div></div></div>`;
+
+        grid.innerHTML = selector + `<div class="op-layout"><div>${donutCard}${portraitCard}</div>${detail}</div>` + `<div class="grid op-lower" style="margin-top:16px">${hourCard}${opsCard}</div>` + `<div style="margin-top:16px">${heat}</div>` + standingOrdersCard();
+      }
+
+      /* ==================== STANDING ORDERS (crew cron) ==================== */
+      function defaultOrders() {
+        return [
+          { id: "o1", title: "Scan new remote Power Platform roles", schedule: "Daily at 08:00", agentId: "scout", prompt: "Scan for new remote-only Power Platform roles and summarize the top 5 with apply links and why they fit.", active: true, last: "08:00 today" },
+          { id: "o2", title: "Morning briefing", schedule: "Daily at 09:00", agentId: "sentinel", prompt: "Give me a concise morning briefing: application pipeline status, top remote roles, and today's priorities.", active: true, last: "09:00 today" },
+        ];
+      }
+      let orders = LS.get("orders", defaultOrders());
+      function standingOrdersCard() {
+        return `<div class="glass card" style="margin-top:16px">
+          <div class="section-head" style="margin-bottom:12px"><div><div class="card-title gold" style="margin:0"><span class="dot"></span> Standing Orders · created by the crew</div><p style="margin:6px 0 0;color:var(--muted);font-size:12px">${orders.length} scheduled ${orders.length === 1 ? "job" : "jobs"} · ${orders.filter((o) => o.active).length} active</p></div><button class="btn ghost sm" onclick="addOrder()">+ New order</button></div>
+          ${orders.length ? orders.map((o) => {
+            const ag = agentById(o.agentId);
+            return `<div class="ktask" style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+                <div><div class="kt">${escapeHtml(o.title)} ${o.active ? '<span class="chip green">active</span>' : '<span class="chip muted">paused</span>'}</div>
+                <div class="kc" style="text-transform:uppercase;letter-spacing:.5px;margin:3px 0">${escapeHtml(o.schedule)} · routes to ${ag ? ag.name : o.agentId}${o.last ? " · last " + escapeHtml(o.last) : ""}</div>
+                <div class="kc">${escapeHtml(o.prompt)}</div></div>
+                <div class="pic" style="width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0">${ag ? portraitSVG(ag, { compact: true }) : ""}</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:9px">
+                <button class="btn sm" onclick="runOrderNow('${o.id}')">▶ Run now</button>
+                <button class="btn ghost sm" onclick="toggleOrder('${o.id}')">${o.active ? "⏸ Pause" : "▶ Resume"}</button>
+                <button class="btn ghost sm" onclick="delOrder('${o.id}')">✕ Delete</button>
+              </div></div>`;
+          }).join("") : `<div class="empty-hint">No standing orders. Add one to have the crew run recurring work.</div>`}
+        </div>`;
+      }
+      function runOrderNow(id) {
+        const o = orders.find((x) => x.id === id); if (!o) return;
+        o.last = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); LS.set("orders", orders);
+        activeAgent = o.agentId; LS.set("activeAgent", o.agentId);
+        go("comms");
+        chats[o.agentId] = chats[o.agentId] || []; if (!chats[o.agentId].length) greetAgent(o.agentId);
+        $("chatInput").value = o.prompt; autosize();
+        logTask("SENTINEL", "Ran standing order: " + o.title);
+        setTimeout(() => sendChat(), 250);
+      }
+      function toggleOrder(id) { const o = orders.find((x) => x.id === id); if (o) { o.active = !o.active; LS.set("orders", orders); renderCrew(); } }
+      function delOrder(id) { orders = orders.filter((x) => x.id !== id); LS.set("orders", orders); renderCrew(); }
+      function addOrder() {
+        const title = prompt("Order title (e.g. Scan new remote roles):"); if (!title) return;
+        const schedule = prompt("Schedule (e.g. Daily at 08:00):", "Daily at 08:00") || "Daily";
+        const agentId = prompt("Route to agent id (sentinel / scout / architect / ops):", "scout") || "scout";
+        const p = prompt("Prompt to send the agent:"); if (!p) return;
+        orders.unshift({ id: "o" + Date.now(), title, schedule, agentId, prompt: p, active: true, last: "" });
+        LS.set("orders", orders); renderCrew(); toast("Standing order added", "ok");
+      }
+      function resetCrew() { crew = defaultCrew(); LS.set("crew", crew); renderCrew(); toast("Crew reset to defaults", "ok"); }
+
+      let editingId = null;
+      function editAgent(id) {
+        const a = agentById(id); editingId = id;
+        $("agEditTitle").textContent = "Configure " + a.name;
+        $("ag_name").value = a.name; $("ag_role").value = a.role; $("ag_tag").value = a.tag; $("ag_prompt").value = a.prompt;
+        $("ag_colors").innerHTML = COLORS.map((c) => `<div class="swatch ${c === a.color ? "sel" : ""}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`).join("");
+        $("ag_glyphs").innerHTML = GLYPHS.map((g) => `<button class="${g === a.glyph ? "sel" : ""}" data-g="${g}" onclick="pickGlyph('${g}')">${g}</button>`).join("");
+        pendingAvatar = undefined; avatarPreview(a.avatar || "", a.color, a.glyph);
+        const ms = $("ag_model"); ms.innerHTML = allModels().map((m) => `<option value="${m.id}" ${m.id === a.model ? "selected" : ""}>${m.label}</option>`).join("");
+        $("ag_tools").innerHTML = Object.entries(TOOLS).map(([k, v]) => `
+          <label class="toolopt ${a.tools.includes(k) ? "on" : ""}" data-t="${k}">
+            <input type="checkbox" ${a.tools.includes(k) ? "checked" : ""} onchange="this.closest('.toolopt').classList.toggle('on', this.checked)" /> ${v.icon} ${v.label}
+          </label>`).join("");
+        openModal("agent");
+      }
+      let pickedColor = null, pickedGlyph = null, pendingAvatar; // undefined = unchanged, "" = removed, string = new
+      function avatarPreview(dataUrl, color, glyph) {
+        const box = $("ag_avatar_prev"); if (!box) return;
+        box.innerHTML = dataUrl
+          ? `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block" />`
+          : `<div style="width:100%;height:100%;display:grid;place-items:center;font-size:26px;background:${(color || "#22d3ee")}22;color:${color || "#22d3ee"}">${glyph || "🛰"}</div>`;
+      }
+      function onAvatarPick(e) {
+        const file = e.target.files && e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const max = 256, scale = Math.min(1, max / Math.max(img.width, img.height));
+            const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+            const c = document.createElement("canvas"); c.width = w; c.height = h;
+            c.getContext("2d").drawImage(img, 0, 0, w, h);
+            pendingAvatar = c.toDataURL("image/png");
+            avatarPreview(pendingAvatar);
+          };
+          img.onerror = () => toast("Couldn't read that image", "err");
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+      function clearAvatar() { pendingAvatar = ""; const a = agentById(editingId); avatarPreview("", (pickedColor || a.color), (pickedGlyph || a.glyph)); }
+      function pickColor(c) { pickedColor = c; document.querySelectorAll("#ag_colors .swatch").forEach((s) => s.classList.toggle("sel", s.dataset.c === c)); }
+      function pickGlyph(g) { pickedGlyph = g; document.querySelectorAll("#ag_glyphs button").forEach((b) => b.classList.toggle("sel", b.dataset.g === g)); }
+      function saveAgent() {
+        const a = agentById(editingId);
+        a.name = $("ag_name").value.trim() || a.name;
+        a.role = $("ag_role").value.trim() || a.role;
+        a.tag = $("ag_tag").value.trim();
+        a.prompt = $("ag_prompt").value.trim();
+        a.color = pickedColor || a.color;
+        a.glyph = pickedGlyph || a.glyph;
+        if (pendingAvatar !== undefined) a.avatar = pendingAvatar; // "" removes, dataURL sets
+        a.model = $("ag_model").value;
+        a.tools = [...document.querySelectorAll("#ag_tools .toolopt")].filter((l) => l.querySelector("input").checked).map((l) => l.dataset.t);
+        pickedColor = pickedGlyph = null; pendingAvatar = undefined;
+        try { localStorage.setItem("jabb.crew", JSON.stringify(crew)); } catch (e) { toast("Image too large for browser storage — use a smaller picture", "err"); return; }
+        closeModal(); renderCrew(); toast("Saved " + a.name, "ok");
+      }
+
+      /* ==================== COMMS / CHAT ==================== */
+      let activeAgent = LS.get("activeAgent", "sentinel");
+      let chats = LS.get("chats", {}); // { agentId: [ {role, content} ] }
+      let streaming = false;
+
+      const QUICKS = {
+        sentinel: ["Give me a status briefing", "What should I focus on today?", "Route: find me a remote contract"],
+        scout: ["Show me the best remote roles right now", "Draft outreach for the top match", "How do I handle an RTR?"],
+        architect: ["Scope a Power Apps + Dataverse solution", "Compare Power Automate vs Logic Apps", "Estimate effort for a client portal"],
+        ops: ["Draft a proposal for a Small Business client", "Explain our hosting service", "Summarize today's crew activity"],
+        notebook: ["Research remote Power Platform hiring trends", "Turn my last doc into a structured brief", "Summarize sources for a client one-pager"],
+        workspace: ["Draft a client follow-up email in Gmail", "Build a Sheets formula for pipeline totals", "Write an Apps Script to log form responses to a Sheet"],
+      };
+
+      function renderComms() {
+        $("commsSide").innerHTML = publicCrew().map((a) => `
+          <div class="agent-pick ${a.id === activeAgent ? "active" : ""}" onclick="openChatWith('${a.id}')">
+            <div class="agent-av" style="background:#05080e;padding:0;overflow:hidden">${portraitSVG(a, { compact: true })}</div>
+            <div><div class="nm">${a.name}</div><div class="rl">${a.role}</div></div>
+          </div>`).join("");
+        const a = agentById(activeAgent);
+        $("chatAv").innerHTML = portraitSVG(a, { compact: true }); $("chatAv").style.background = "#05080e"; $("chatAv").style.padding = "0"; $("chatAv").style.overflow = "hidden";
+        $("chatNm").textContent = a.name; $("chatRl").textContent = a.role;
+        $("chatTools").innerHTML = a.tools.map((t) => `<span class="chip muted">${TOOLS[t]?.icon || "•"}</span>`).join("");
+        $("quickRow").innerHTML = (QUICKS[a.id] || QUICKS.sentinel).map((q) => `<button class="quick" onclick="quickFill(this)">${q}</button>`).join("");
+        renderChat();
+      }
+      function quickFill(btn) { $("chatInput").value = btn.textContent; $("chatInput").focus(); autosize(); }
+      function openChatWith(id) {
+        activeAgent = id; LS.set("activeAgent", id);
+        go("comms");
+        if (!chats[id] || !chats[id].length) greetAgent(id);
+      }
+      function greetAgent(id) {
+        const a = agentById(id);
+        const line = `Hi ${prefs.operator}. ${a.name} online — ${a.tag}`;
+        chats[id] = [{ role: "assistant", content: line }];
+        LS.set("chats", chats);
+        renderChat();
+      }
+      function renderChat() {
+        const box = $("chatScroll"); const a = agentById(activeAgent);
+        const msgs = chats[activeAgent] || [];
+        if (!msgs.length) { box.innerHTML = `<div class="empty-hint">Say hello to ${a.name}.</div>`; return; }
+        box.innerHTML = msgs.map((m, i) => `
+          <div class="msg ${m.role}">
+            <div class="mav" ${m.role === "assistant" ? `style="background:${a.color}22;color:${a.color}"` : ""}>${m.role === "assistant" ? a.glyph : "◆"}</div>
+            <div class="bubble ${m.role}"><div class="rolen">${m.role === "user" ? prefs.operator : a.name}</div>${m.role === "user" ? escapeHtml(m.content) : md(m.content)}
+              ${m.role === "assistant" && m.content.trim().length > 40 ? `<div class="msg-actions">
+                <button onclick="downloadReplyHtml('${activeAgent}', ${i})" title="Output 2 — self-contained HTML you can open now">⬇ HTML</button>
+                <button onclick="saveReplyToMother('${activeAgent}', ${i})" title="Output 1 — new branch under Mother (powerjt1/Master) + PR">⑂ To Mother</button>
+                <button onclick="saveDoc('${activeAgent}', chats['${activeAgent}'][${i}].content)" title="Save to the in-app Library">💾 Library</button>
+              </div>` : ""}
+            </div>
+          </div>`).join("");
+        box.scrollTop = box.scrollHeight;
+      }
+
+      const chatInput = $("chatInput");
+      function autosize() { chatInput.style.height = "auto"; chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px"; }
+      chatInput.addEventListener("input", autosize);
+      chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+
+      async function sendChat() {
+        const text = chatInput.value.trim();
+        if (!text || streaming) return;
+        chatErr("");
+        const a = agentById(activeAgent);
+        const model = modelById(a.model);
+        chats[activeAgent] = chats[activeAgent] || [];
+        chats[activeAgent].push({ role: "user", content: text });
+        chatInput.value = ""; autosize(); renderChat();
+        logTask(prefs.operator, `→ ${a.name}: ${text.slice(0, 60)}${text.length > 60 ? "…" : ""}`);
+
+        const asst = { role: "assistant", content: "" };
+        chats[activeAgent].push(asst);
+        streaming = true; $("sendBtn").disabled = true; $("coreOrb")?.classList.add("talking");
+
+        // Build system prompt with tool-injected context
+        let sys = a.prompt.replaceAll("{OPERATOR}", prefs.operator);
+        if (a.tools.includes("company-kb")) sys += "\n\n" + companyContext();
+        if (a.tools.includes("jobs")) sys += "\n\nCURRENT TRACKED REMOTE JOBS:\n" + jobs.map((j, i) => `${i + 1}. ${j.title} @ ${j.company} — ${j.salary} — ${j.type} — ${j.source} — ${j.url}`).join("\n");
+        if (a.tools.includes("calendar")) sys += `\n\nThe operator can submit an RTR (Right to Represent) from the Schedule tab; doing so creates a calendar event. Encourage this when an application advances.`;
+
+        const history = chats[activeAgent].slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
+        try {
+          await streamChat(model, sys, history, (chunk) => { asst.content += chunk; queueRender(); });
+          renderChat();
+          addTokens(Math.round((sys.length + text.length + asst.content.length) / 4));
+          logTask(a.name, asst.content.slice(0, 70).replace(/\n/g, " ") + (asst.content.length > 70 ? "…" : ""));
+          LS.set("chats", chats);
+          if (autoSpeak && asst.content.trim()) speak(asst.content);
+        } catch (e) {
+          chats[activeAgent].pop(); renderChat();
+          let msg = e.message || "Request failed.";
+          if (model.provider === "ollama") msg = "Ollama unreachable: " + msg + " — run:  OLLAMA_ORIGINS=* ollama serve  and  ollama pull " + model.model + ".  Or switch to a Free in-browser model in Control.";
+          else if (model.provider === "openai-compat") msg = "Local server error: " + msg + " — check LM Studio server + base URL.";
+          else if (msg.includes("Failed to fetch")) msg = "Couldn't reach " + model.provider + ". Check endpoint/CORS/key in Control.";
+          chatErr(msg);
+        } finally { streaming = false; $("sendBtn").disabled = false; $("coreOrb")?.classList.remove("talking"); }
+      }
+      function chatErr(m) { const e = $("chatErr"); e.textContent = m; e.style.display = m ? "block" : "none"; }
+
+      let renderQ = false;
+      function queueRender() { if (renderQ) return; renderQ = true; requestAnimationFrame(() => { renderQ = false; renderChat(); }); }
+
+      /* ==================== SCHEDULE / JOBS ==================== */
+      function renderLive() {
+        $("liveLinks").innerHTML = LIVE.map((l) => `<a class="chip" style="color:${l.color};border-color:${l.color}55" href="${l.url}" target="_blank" rel="noopener">🔎 ${l.name} ↗</a>`).join("");
+      }
+      function renderJobs() {
+        const q = ($("jobSearch")?.value || "").toLowerCase();
+        const type = $("jobType")?.value || "";
+        const src = $("jobSource")?.value || "";
+        const list = jobs.filter((j) =>
+          (!q || (j.title + j.company + (j.note || "")).toLowerCase().includes(q)) &&
+          (!type || j.type === type) && (!src || j.source === src));
+        const grid = $("jobGrid");
+        if (!list.length) { grid.innerHTML = `<div class="empty-hint">No roles match. Try clearing filters or <a href="javascript:void(0)" onclick="restoreSeed()">restore seeded jobs</a>.</div>`; return; }
+        const srcColor = { Dice: "chip", Indeed: "chip green", ZipRecruiter: "chip gold", LinkedIn: "chip violet" };
+        grid.innerHTML = list.map((j) => `
+          <div class="glass job-card">
+            <div class="jt">${escapeHtml(j.title)}</div>
+            <div class="co">${escapeHtml(j.company)}</div>
+            <div class="sal">${escapeHtml(j.salary || "")}</div>
+            <div class="job-meta">
+              <span class="chip red">● Remote</span>
+              <span class="chip muted">${escapeHtml(j.type || "")}</span>
+              <span class="${srcColor[j.source] || "chip"}">${escapeHtml(j.source || "")}</span>
+            </div>
+            ${j.note ? `<div style="font-size:12px;color:var(--muted);line-height:1.5">${escapeHtml(j.note)}</div>` : ""}
+            <div class="job-actions">
+              <a class="btn sm" href="${j.url}" target="_blank" rel="noopener">Apply ↗</a>
+              <button class="btn ghost sm" onclick='prefRTR(${JSON.stringify(j).replace(/'/g, "&#39;")})'>✍ RTR</button>
+              <button class="btn ghost sm" onclick='askScout(${JSON.stringify({ title: j.title, company: j.company }).replace(/'/g, "&#39;")})'>🧠 Tailor</button>
+            </div>
+          </div>`).join("");
+      }
+      function askScout(j) {
+        activeAgent = "scout"; LS.set("activeAgent", "scout");
+        go("comms");
+        chats.scout = chats.scout || []; if (!chats.scout.length) greetAgent("scout");
+        $("chatInput").value = `Tailor my application for "${j.title}" at ${j.company}. Draft a 3-bullet resume summary and a short outreach message to the recruiter, tuned for a remote Power Platform role.`;
+        autosize(); $("chatInput").focus();
+      }
+
+      function renderPipeline() {
+        const stages = ["Interested", "RTR Submitted", "Interviewing", "Offer/Closed"];
+        $("pipeline").innerHTML = stages.map((s) => {
+          const items = pipeline.filter((p) => p.stage === s);
+          return `<div class="glass kcol">
+            <h4>${s} <span class="chip muted">${items.length}</span></h4>
+            ${items.length ? items.map((p) => `
+              <div class="ktask">
+                <div class="kt">${escapeHtml(p.role)}</div>
+                <div class="kc">${escapeHtml(p.company)}${p.rate ? " · " + escapeHtml(p.rate) : ""}</div>
+                ${p.date ? `<div class="kc">🗓 ${p.date} ${p.time || ""}</div>` : ""}
+                <div style="display:flex;gap:5px;margin-top:7px">
+                  ${p.date ? `<button class="btn ghost sm" onclick="reAddCal('${p.id}')">＋Cal</button>` : ""}
+                  ${stages.indexOf(s) < stages.length - 1 ? `<button class="btn ghost sm" onclick="advance('${p.id}')">→ ${stages[stages.indexOf(s) + 1]}</button>` : ""}
+                  <button class="btn ghost sm" onclick="delPipe('${p.id}')">✕</button>
+                </div>
+              </div>`).join("") : `<div style="font-size:11px;color:var(--muted2);padding:6px 2px">—</div>`}
+          </div>`;
+        }).join("");
+      }
+      function advance(id) {
+        const stages = ["Interested", "RTR Submitted", "Interviewing", "Offer/Closed"];
+        const p = pipeline.find((x) => x.id === id); if (!p) return;
+        const i = stages.indexOf(p.stage); if (i < stages.length - 1) p.stage = stages[i + 1];
+        LS.set("pipeline", pipeline); renderPipeline(); logTask("Talent Scout", `${p.role} @ ${p.company} → ${p.stage}`);
+      }
+      function delPipe(id) { pipeline = pipeline.filter((x) => x.id !== id); LS.set("pipeline", pipeline); renderPipeline(); }
+
+      /* ==================== RTR → CALENDAR ==================== */
+      function prefRTR(j) {
+        openModal("rtr");
+        $("rtr_role").value = j.title || ""; $("rtr_co").value = j.company || ""; $("rtr_rate").value = j.salary || "";
+        const d = new Date(Date.now() + 2 * 864e5); $("rtr_date").value = d.toISOString().slice(0, 10);
+      }
+      function submitRTR() {
+        const role = $("rtr_role").value.trim(), co = $("rtr_co").value.trim();
+        if (!role || !co) return toast("Role and company are required", "err");
+        const date = $("rtr_date").value, time = $("rtr_time").value || "10:00";
+        const rate = $("rtr_rate").value.trim(), notes = $("rtr_notes").value.trim();
+        const id = "p" + Date.now();
+        pipeline.unshift({ id, role, company: co, stage: "RTR Submitted", date, time, rate, notes });
+        LS.set("pipeline", pipeline);
+        logTask("Talent Scout", `RTR submitted → ${role} @ ${co}${date ? " · interview " + date : ""}`);
+        if (date) makeCalendar(role, co, date, time, notes, rate);
+        closeModal(); go("schedule");
+        toast("RTR logged + calendar event created", "ok");
+      }
+      function reAddCal(id) {
+        const p = pipeline.find((x) => x.id === id); if (!p || !p.date) return;
+        makeCalendar(p.role, p.company, p.date, p.time || "10:00", p.notes || "", p.rate || "");
+      }
+      async function makeCalendar(role, co, date, time, notes, rate) {
+        const start = new Date(`${date}T${time}:00`);
+        const end = new Date(start.getTime() + 45 * 60000);
+        const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        const title = `RTR / Interview — ${role} @ ${co}`;
+        const details = `Right to Represent submitted via JABB Networks Mission Control.\nRole: ${role}\nCompany/Recruiter: ${co}${rate ? "\nRate: " + rate : ""}${notes ? "\nNotes: " + notes : ""}`;
+
+        // 1) Live Google Calendar via bridge (auto-create, no click) when available
+        if (isBridged && BRIDGE.calendar?.configured) {
+          try {
+            const r = await fetch(BRIDGE.url + "/calendar/create", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({ title, description: details, start: start.toISOString(), end: end.toISOString() }),
+            });
+            const d = await r.json();
+            if (r.ok && d.ok) { toast("Event created on your Google Calendar ✅", "ok"); logTask("Ops & Client Success", "Google Calendar event created for " + role); if (d.htmlLink) window.open(d.htmlLink, "_blank", "noopener"); return; }
+            if (r.status === 401 && d.authUrl) { toast("Authorize Google Calendar, then re-add", "err"); window.open(d.authUrl, "_blank", "noopener"); }
+          } catch (e) { /* fall through to .ics + link */ }
+        }
+
+        // 2) .ics download (always reliable, no login)
+        const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//JABB Networks//Mission Control//EN", "BEGIN:VEVENT",
+          "UID:" + Date.now() + "@jabbnetworks", "DTSTAMP:" + fmt(new Date()), "DTSTART:" + fmt(start), "DTEND:" + fmt(end),
+          "SUMMARY:" + title, "DESCRIPTION:" + details.replace(/\n/g, "\\n"), "BEGIN:VALARM", "TRIGGER:-PT30M", "ACTION:DISPLAY",
+          "DESCRIPTION:Reminder", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+        const blob = new Blob([ics], { type: "text/calendar" });
+        const url = URL.createObjectURL(blob);
+        const dl = document.createElement("a"); dl.href = url; dl.download = `RTR-${co.replace(/\W+/g, "-")}.ics`; document.body.appendChild(dl); dl.click(); dl.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        // 3) Google Calendar prefilled event (opens in new tab, one click to save)
+        const g = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) +
+          "&dates=" + fmt(start) + "/" + fmt(end) + "&details=" + encodeURIComponent(details);
+        window.open(g, "_blank", "noopener");
+      }
+
+      /* ==================== FEED IMPORT ==================== */
+      async function fetchFeed() {
+        const url = $("feed_url").value.trim() || prefs.feed;
+        if (!url) return toast("Enter a feed URL", "err");
+        try {
+          const r = await fetch(url); const d = await r.json();
+          const arr = Array.isArray(d) ? d : (d.jobs || []);
+          if (!arr.length) return toast("Feed had no jobs", "err");
+          arr.forEach((j) => jobs.push(normalizeJob(j)));
+          LS.set("jobs", jobs); renderJobs(); closeModal();
+          toast("Added " + arr.length + " jobs from feed", "ok");
+          logTask("Talent Scout", "Imported " + arr.length + " jobs from feed");
+        } catch (e) { toast("Feed fetch failed (CORS?) — try paste instead", "err"); }
+      }
+      function normalizeJob(j) {
+        return { title: j.title || j.role || "Untitled", company: j.company || j.co || "—", salary: j.salary || j.rate || "", type: j.type || "Full-time", source: j.source || "Feed", url: j.url || j.link || "#", note: j.note || j.summary || "" };
+      }
+      function importPaste() {
+        const lines = $("feed_paste").value.split("\n").map((l) => l.trim()).filter(Boolean);
+        let n = 0;
+        lines.forEach((l) => {
+          const [title, company, salary, type, url] = l.split("|").map((s) => (s || "").trim());
+          if (title) { jobs.push({ title, company: company || "—", salary: salary || "", type: type || "Full-time", source: "Pasted", url: url || "#", note: "" }); n++; }
+        });
+        LS.set("jobs", jobs); $("feed_paste").value = ""; renderJobs(); closeModal();
+        toast(n ? "Added " + n + " jobs" : "Nothing to add", n ? "ok" : "err");
+        if (n) logTask("Talent Scout", "Added " + n + " pasted jobs");
+      }
+      function restoreSeed() { jobs = seedJobs(); LS.set("jobs", jobs); renderJobs(); toast("Seeded jobs restored", "ok"); }
+
+      /* ==================== LIBRARY ==================== */
+      function renderLibrary() {
+        const nb = $("nbTileLogo"); if (nb) nb.innerHTML = geminiLogo(15);
+        renderCrewDocs();
+        $("kbServices").innerHTML = COMPANY.services.map((s) => `<div class="glass kb-card"><h4>${s.title}</h4><p>${s.desc}</p></div>`).join("");
+        $("kbPlans").innerHTML = COMPANY.plans.map((p) => `<div class="glass price"><div class="pt">${p.tier}</div><div class="pv">${p.price}</div><div class="pt" style="font-size:11px">${p.note}</div></div>`).join("");
+        $("kbProcess").innerHTML = COMPANY.process.map((p) => `<div class="glass kb-card"><h4><span style="color:var(--accent);font-family:var(--mono)">${p.num}</span> ${p.title}</h4><p>${p.desc}</p></div>`).join("");
+      }
+
+      /* ==================== CREW DOCUMENTS (Library) ==================== */
+      let docs = LS.get("docs", []); // {id, title, agentId, body, created}
+      let libFolder = "all", libSearch = "", openDocId = null;
+      function saveDoc(agentId, body, titleHint) {
+        const a = agentById(agentId);
+        const firstLine = (titleHint || body.split("\n").find((l) => l.trim()) || "Untitled").replace(/[#*`>]/g, "").trim().slice(0, 80);
+        const doc = { id: "d" + Date.now(), title: firstLine || "Untitled", agentId, body, created: new Date().toISOString() };
+        docs.unshift(doc); LS.set("docs", docs);
+        logTask(a.name, "Saved document to Library: " + doc.title.slice(0, 40));
+        toast("Saved to Library", "ok");
+      }
+      function renderCrewDocs() {
+        const counts = { all: docs.length };
+        crew.forEach((a) => (counts[a.id] = docs.filter((d) => d.agentId === a.id).length));
+        const folders = `<input class="lib-search" placeholder="Search documents…" value="${escapeHtml(libSearch)}" oninput="libSearchSet(this.value)" />
+          <div class="lib-folder ${libFolder === "all" ? "sel" : ""}" onclick="setFolder('all')">▣ All documents <span class="ct">${counts.all}</span></div>
+          ${publicCrew().map((a) => `<div class="lib-folder ${libFolder === a.id ? "sel" : ""}" onclick="setFolder('${a.id}')"><span class="fav">${portraitSVG(a, { compact: true })}</span> ${a.name} <span class="ct">${counts[a.id]}</span></div>`).join("")}`;
+
+        let list = docs.filter((d) => (libFolder === "all" || d.agentId === libFolder) && (!libSearch || (d.title + d.body).toLowerCase().includes(libSearch.toLowerCase())));
+        let right;
+        const openDoc = docs.find((d) => d.id === openDocId);
+        if (openDoc) {
+          const a = agentById(openDoc.agentId); const st = statsFor(a);
+          const words = openDoc.body.trim().split(/\s+/).filter(Boolean).length;
+          right = `<div class="glass card doc-reader">
+            <button class="btn ghost sm" onclick="closeDoc()">← Back to list</button>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:12px"><span class="chip" style="color:${a.color};border-color:${a.color}55">${st.badge}</span><span style="font-size:11px;color:var(--muted)">${new Date(openDoc.created).toLocaleString()}</span></div>
+            <h3>${escapeHtml(openDoc.title)}</h3>
+            <div class="doc-actions">
+              <button class="btn sm" onclick="exportDocHtml('${openDoc.id}')">⬇ HTML</button>
+              <button class="btn sm" onclick="pushDocToMother('${openDoc.id}')">⑂ To Mother</button>
+              <button class="btn ghost sm" onclick="downloadDoc('${openDoc.id}')">⬇ .md</button>
+              <button class="btn ghost sm" onclick="sendToNotebook('${openDoc.id}')">${geminiLogo(16)} Gemini Notebook</button>
+              <button class="btn ghost sm" onclick="copyDoc('${openDoc.id}')">⧉ Copy</button>
+              <button class="btn ghost sm" onclick="deleteDoc('${openDoc.id}')">✕ Delete</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted)">Author: ${a.name} · Words: ${words} · Size: ${(new Blob([openDoc.body]).size / 1024).toFixed(1)} KB · File: ${openDoc.id}.md</div>
+            <div class="body">${md(openDoc.body)}</div>
+          </div>`;
+        } else if (list.length) {
+          right = `<div>${list.map((d) => { const a = agentById(d.agentId); return `
+            <div class="glass doc-item" onclick="viewDoc('${d.id}')">
+              <div class="dt">${escapeHtml(d.title)}</div>
+              <div class="dm"><span class="chip" style="color:${a.color};border-color:${a.color}55">${statsFor(a).badge}</span><span>${new Date(d.created).toLocaleDateString()}</span><span>${d.body.trim().split(/\s+/).filter(Boolean).length} words</span></div>
+            </div>`; }).join("")}</div>`;
+        } else {
+          right = `<div class="glass card empty-hint">No documents yet. In Comms, use <b>💾 Save to Library</b> under any crew reply to store proposals, research, and scoping docs here.</div>`;
+        }
+        $("crewDocs").innerHTML = `<div class="lib"><div>${folders}</div>${right}</div>`;
+      }
+      function libSearchSet(v) { libSearch = v; renderCrewDocs(); }
+      function setFolder(f) { libFolder = f; openDocId = null; renderCrewDocs(); }
+      function viewDoc(id) { openDocId = id; renderCrewDocs(); }
+      function closeDoc() { openDocId = null; renderCrewDocs(); }
+      function downloadDoc(id) {
+        const d = docs.find((x) => x.id === id); if (!d) return;
+        const a = agentById(d.agentId);
+        const md = `# ${d.title}\n\n> Author: ${a.name} · ${new Date(d.created).toLocaleString()} · JABB Networks Mission Control\n\n${d.body}\n`;
+        const blob = new Blob([md], { type: "text/markdown" }); const url = URL.createObjectURL(blob);
+        const el = document.createElement("a"); el.href = url; el.download = d.title.replace(/\W+/g, "-").slice(0, 40) + ".md"; document.body.appendChild(el); el.click(); el.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      function copyDoc(id) { const d = docs.find((x) => x.id === id); if (d) navigator.clipboard?.writeText(d.body).then(() => toast("Copied", "ok")); }
+      const NOTEBOOK_URL = "https://notebooklm.google.com/";
+      function geminiLogo(w) {
+        w = w || 22;
+        return `<svg viewBox="0 0 48 40" width="${w}" height="${Math.round(w * 0.83)}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-linecap="round" aria-label="Gemini Notebook">
+          <path d="M6 38 V22 a18 18 0 0 1 36 0 V38" stroke="#3b82f6" stroke-width="5"/>
+          <path d="M14 38 V22 a10 10 0 0 1 20 0 V38" stroke="#60a5fa" stroke-width="4.6"/>
+          <path d="M21 38 V23 a3 3 0 0 1 6 0 V38" stroke="#a78bfa" stroke-width="4.2"/>
+        </svg>`;
+      }
+      function openNotebook() { window.open(NOTEBOOK_URL, "_blank", "noopener"); }
+      function sendToNotebook(id) {
+        const d = docs.find((x) => x.id === id); if (!d) return;
+        const a = agentById(d.agentId);
+        const text = `${d.title}\n\n(${a.name} · JABB Networks Mission Control)\n\n${d.body}`;
+        const go = () => { window.open(NOTEBOOK_URL, "_blank", "noopener"); toast("Copied — paste into Gemini Notebook", "ok"); logTask("Notebook", "Sent to Gemini Notebook: " + d.title.slice(0, 40)); };
+        if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(go, go); else go();
+      }
+      function deleteDoc(id) { if (!confirm("Delete this document?")) return; docs = docs.filter((x) => x.id !== id); LS.set("docs", docs); openDocId = null; renderCrewDocs(); }
+      function saveLastReply() { const m = (chats[activeAgent] || []).filter((x) => x.role === "assistant").pop(); if (m) saveDoc(activeAgent, m.content); }
+
+      /* ===== TWO-OUTPUT CONTRACT (per crew reply) ===== */
+      function replyTitle(content) { return (content.split("\n").find((l) => l.trim()) || "Crew reply").replace(/[#*`>]/g, "").trim().slice(0, 70); }
+      function slug(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40); }
+      // Output 2 — self-contained HTML preview, downloaded. Generic over any (agent, title, content).
+      function buildReplyHtml(a, title, content) {
+        const when = new Date().toLocaleString();
+        return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+          <title>${escapeHtml(title)} · ${escapeHtml(a.name)}</title>
+          <style>:root{--bg:#04070d;--glass:rgba(14,24,38,.6);--stroke:rgba(90,160,210,.2);--fg:#e4f2ff;--muted:#7f9cb5;--accent:#22d3ee;--gold:#f5c542}
+          *{box-sizing:border-box}body{margin:0;background:radial-gradient(700px 460px at 82% -8%,rgba(34,211,238,.10),transparent 60%),var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.65;padding:28px 18px}
+          .wrap{max-width:820px;margin:0 auto}.glass{background:var(--glass);border:1px solid var(--stroke);border-radius:16px;backdrop-filter:blur(16px)}
+          .head{display:flex;align-items:center;gap:12px;padding:18px 20px;margin-bottom:16px}.av{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:${a.color}22;color:${a.color};overflow:hidden}
+          .av img{width:100%;height:100%;object-fit:cover}h1{font-size:19px;margin:0}.sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+          .card{padding:20px}.body{font-size:15px;white-space:pre-wrap}pre{background:rgba(4,7,13,.7);border:1px solid var(--stroke);border-radius:9px;padding:12px;overflow-x:auto}
+          code{font-family:ui-monospace,monospace;font-size:13px}.body :not(pre)>code{background:rgba(4,7,13,.6);color:var(--gold);padding:1px 5px;border-radius:4px}
+          .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:10px}</style></head>
+          <body><div class="wrap"><div class="glass head"><div class="av">${a.avatar ? `<img src="${a.avatar}"/>` : a.glyph}</div>
+          <div><h1>${escapeHtml(title)}</h1><div class="sub">${escapeHtml(a.name)} · ${escapeHtml(a.role)} · ${when}</div></div></div>
+          <div class="glass card"><div class="body">${md(content)}</div></div>
+          <div class="foot">JABB Networks Mission Control · Output 2 of the two-output contract</div></div></body></html>`;
+      }
+      function exportHtml(a, title, content) {
+        if (!content) return;
+        downloadFile((slug(a.name) + "-" + slug(title) + ".html") || "reply.html", buildReplyHtml(a, title, content));
+        toast("HTML preview downloaded", "ok");
+        logTask(a.name, "Exported HTML: " + title.slice(0, 40));
+      }
+      // Output 1 — commit to a NEW branch under Mother (powerjt1/Master) + PR. Generic.
+      async function pushToMother(a, title, content) {
+        if (!content) return;
+        const mother = prefs.mother || "powerjt1/Master";
+        const branch = "agent/" + slug(a.name) + "-" + Date.now().toString(36);
+        const path = "jabb-networks/agent-notes/" + slug(a.name) + "-" + slug(title) + ".md";
+        const mdBody = `# ${title}\n\n> ${a.name} · ${a.role} · ${new Date().toISOString()} · JABB Networks Mission Control\n\n${content}\n`;
+        // Path A: PC bridge with git configured pushes for you.
+        if (isBridged && BRIDGE.git?.configured) {
+          try {
+            const r = await fetch(BRIDGE.url + "/git/save", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({ repo: mother, branch, path, content: mdBody, message: `agent(${a.name}): ${title}` }),
+            });
+            const d = await r.json();
+            if (r.ok && d.ok) { toast("Pushed to Mother → " + branch, "ok"); logTask(a.name, "Committed to Mother: " + branch); if (d.compareUrl || d.prUrl) window.open(d.prUrl || d.compareUrl, "_blank", "noopener"); return; }
+            toast("Bridge git error: " + (d.error || "failed") + " — using GitHub fallback", "err");
+          } catch (e) { /* fall through */ }
+        }
+        // Path B (no bridge git): open GitHub's prefilled new-file page + download a .md backup.
+        downloadFile(path.split("/").pop(), mdBody);
+        const base = "https://github.com/" + mother + "/new/main?filename=" + encodeURIComponent(path);
+        const withValue = base + "&value=" + encodeURIComponent(mdBody);
+        const url = withValue.length < 7000 ? withValue : base; // URL length guard
+        window.open(url, "_blank", "noopener");
+        toast("Opened Mother on GitHub — commit to a NEW branch. .md also downloaded.", "ok");
+        logTask(a.name, "Prepared Mother commit: " + path);
+      }
+      // Wrappers — chat replies
+      function downloadReplyHtml(agentId, idx) { const a = agentById(agentId); const c = (chats[agentId] || [])[idx]?.content; if (c) exportHtml(a, replyTitle(c), c); }
+      function saveReplyToMother(agentId, idx) { const a = agentById(agentId); const c = (chats[agentId] || [])[idx]?.content; if (c) pushToMother(a, replyTitle(c), c); }
+      // Wrappers — Library documents
+      function exportDocHtml(id) { const d = docs.find((x) => x.id === id); if (d) exportHtml(agentById(d.agentId), d.title, d.body); }
+      function pushDocToMother(id) { const d = docs.find((x) => x.id === id); if (d) pushToMother(agentById(d.agentId), d.title, d.body); }
+      // Wrappers — Board Room CEO (uses the CEO's latest reply, else composed board minutes)
+      function boardContent() {
+        const last = (chats.legacy || []).filter((x) => x.role === "assistant").pop();
+        if (last) return { title: replyTitle(last.content), content: last.content };
+        const ceo = agentById("legacy");
+        const tl = COMPANY.timeline.map((t) => `- **${t.year} — ${t.title}:** ${t.desc}`).join("\n");
+        return { title: "Board Room Minutes — JABB Networks Journey", content: `${ceo.tag}\n\n## The JABB Networks Journey (1995 → Future)\n\n${tl}` };
+      }
+      function boardExportHtml() { const { title, content } = boardContent(); exportHtml(agentById("legacy"), title, content); }
+      function boardToMother() { const { title, content } = boardContent(); pushToMother(agentById("legacy"), title, content); }
+
+      /* ==================== VIP BOARD ROOM (password-protected) ==================== */
+      let boardUnlocked = false;
+      async function sha(s) {
+        try { if (crypto?.subtle) { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join(""); } } catch {}
+        let h = 5381; for (let i = 0; i < s.length; i++) { h = ((h << 5) + h) + s.charCodeAt(i); h |= 0; } return "f" + (h >>> 0).toString(16);
+      }
+      function renderBoardRoom() {
+        const el = $("boardroom");
+        const hash = LS.get("boardpass", "");
+        if (!boardUnlocked) {
+          el.innerHTML = !hash ? `<div class="glass vault">
+              <div class="lock-badge">🔐</div><h2>Create the Board Room passcode</h2>
+              <p>The VIP Board Room holds the JABB Networks legacy and <b>Legacy</b>, CEO of all agents. Set a passcode to seal it — stored only in this browser.</p>
+              <input id="board_pw1" type="password" placeholder="New passcode" />
+              <input id="board_pw2" type="password" placeholder="Confirm passcode" />
+              <button class="btn gold block" onclick="setBoardPass()">🔒 Seal the Board Room</button>
+            </div>` : `<div class="glass vault">
+              <div class="lock-badge">🔒</div><h2>VIP Board Room</h2>
+              <p>Private. Enter the passcode to consult <b>Legacy</b>, CEO of all agents, and review the 1995 → future journey.</p>
+              <input id="board_pw" type="password" placeholder="Passcode" onkeydown="if(event.key==='Enter')unlockBoard()" />
+              <button class="btn gold block" onclick="unlockBoard()">Enter Board Room</button>
+              <div class="err" id="board_err" style="display:none;margin-top:10px"></div>
+              <p style="margin-top:14px;font-size:11px">Forgot it? <a href="javascript:void(0)" onclick="resetBoardPass()">Reset passcode</a> (clears the Board Room lock).</p>
+            </div>`;
+          setTimeout(() => { ($("board_pw") || $("board_pw1"))?.focus(); }, 50);
+          return;
+        }
+        const ceo = agentById("legacy"), st = statsFor(ceo);
+        const keys = ["Sessions", "Messages", "Tokens", "Logged tasks", "Events · 80h", "Peak hour"];
+        const vals = [st.sessions.toLocaleString(), st.messages.toLocaleString(), fmtTok(st.tokens), st.tasks.toLocaleString(), st.events.toLocaleString(), st.peak];
+        el.innerHTML = `
+          <div class="section-head">
+            <div><h2 style="display:flex;align-items:center;gap:10px">♛ VIP Board Room <span class="chip gold">CONFIDENTIAL</span></h2>
+            <p>Private chambers of Legacy — CEO &amp; Chief of all agents. The legacy timeline, 1995 → the future.</p></div>
+            <button class="btn ghost" onclick="lockBoard()">🔒 Lock room</button>
+          </div>
+          <div class="board-hero">
+            <div class="glass ceo-card">${portraitSVG(ceo)}<span class="crown chip gold">♛ CEO</span></div>
+            <div class="glass ceo-body">
+              <div class="nm">${ceo.name}</div>
+              <div class="rl">${st.badge} · ${ceo.role}</div>
+              <div class="tag">${escapeHtml(ceo.tag)}</div>
+              <div class="op-stats" style="grid-template-columns:repeat(3,1fr)">
+                ${keys.map((k, i) => `<div class="op-stat"><div class="sv">${vals[i]}</div><div class="sk">${k}</div></div>`).join("")}
+              </div>
+              <div class="op-rows" style="margin:6px 0 14px">
+                <div class="op-row"><span class="rk">Model</span><span class="rv accent">${modelById(ceo.model).label.split(" (")[0]}</span></div>
+                <div class="op-row"><span class="rk">Channel</span><span class="rv">${st.channel}</span></div>
+                <div class="op-row"><span class="rk">Authority</span><span class="rv">Final call · all agents</span></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn gold" onclick="openChatWith('legacy')">❯ Consult the CEO</button>
+                <button class="btn ghost" onclick="boardExportHtml()">⬇ HTML</button>
+                <button class="btn ghost" onclick="boardToMother()">⑂ To Mother</button>
+                <button class="btn ghost" onclick="editAgent('legacy')">⚙ Configure</button>
+              </div>
+            </div>
+          </div>
+          <div class="glass card">
+            <div class="card-title gold"><span class="dot"></span> The JABB Networks Journey · 1995 → Future</div>
+            <div class="timeline">${COMPANY.timeline.map((t) => `
+              <div class="tl-item ${t.tone}"><span class="tl-dot"></span>
+                <div class="tl-year">${t.year}</div><div class="tl-title">${t.title}</div><div class="tl-desc">${t.desc}</div>
+              </div>`).join("")}</div>
+          </div>`;
+      }
+      async function setBoardPass() {
+        const a = $("board_pw1").value, b = $("board_pw2").value;
+        if (!a || a.length < 4) return toast("Use at least 4 characters", "err");
+        if (a !== b) return toast("Passcodes don't match", "err");
+        LS.set("boardpass", await sha(a)); boardUnlocked = true; toast("Board Room sealed", "ok"); renderBoardRoom();
+      }
+      async function unlockBoard() {
+        const ok = (await sha($("board_pw").value)) === LS.get("boardpass", "");
+        if (!ok) { const e = $("board_err"); if (e) { e.textContent = "Incorrect passcode."; e.style.display = "block"; } return; }
+        boardUnlocked = true; logTask("Legacy", "CEO Board Room accessed"); renderBoardRoom();
+      }
+      function lockBoard() { boardUnlocked = false; renderBoardRoom(); }
+      function resetBoardPass() { if (!confirm("Reset the Board Room passcode? This clears the lock.")) return; localStorage.removeItem("jabb.boardpass"); boardUnlocked = false; renderBoardRoom(); }
+
+      /* ==================== CONTROL ==================== */
+      function renderControl() {
+        $("s_ollama").value = isBridged ? BRIDGE.ollama : settings.ollama;
+        $("s_openai").value = settings.openai; $("s_anthropic").value = settings.anthropic; $("s_serpapi").value = settings.serpapi || ""; $("s_gemini").value = settings.gemini || "";
+        $("s_operator").value = prefs.operator; $("s_feed").value = prefs.feed; $("s_greet").checked = !!prefs.greet;
+        $("s_mother").value = prefs.mother || "powerjt1/Master"; const ml = $("motherLbl"); if (ml) ml.textContent = prefs.mother || "powerjt1/Master";
+        if (isBridged) { const b = $("bridgeBanner"); b.style.display = "block"; b.innerHTML = "🔗 <b>Bridge active</b> — local models routed via " + BRIDGE.url + " (Ollama: " + BRIDGE.ollama + ")"; }
+        renderModels(); renderAgentModels(); renderVoice();
+      }
+      if ("speechSynthesis" in window) window.speechSynthesis.addEventListener("voiceschanged", () => { if ($("view-control")?.classList.contains("active")) renderVoice(); });
+      function renderAgentModels() {
+        $("agentModels").innerHTML = publicCrew().map((a) => `
+          <div style="border:1px solid var(--stroke);border-radius:12px;padding:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <div class="pic" style="width:34px;height:34px;border-radius:9px;overflow:hidden;background:#05080e">${portraitSVG(a, { compact: true })}</div>
+              <div><div style="font-size:13px;font-weight:800">${a.name}</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${statsFor(a).badge}</div></div>
+            </div>
+            <select onchange="setAgentModel('${a.id}', this.value)" style="width:100%;background:var(--glass2);border:1px solid var(--stroke);color:var(--fg);padding:8px 10px;border-radius:9px;font-size:12px;outline:none">
+              ${allModels().map((m) => `<option value="${m.id}" ${m.id === a.model ? "selected" : ""}>${m.label}</option>`).join("")}
+            </select>
+          </div>`).join("");
+      }
+      function setAgentModel(id, modelId) { const a = agentById(id); if (a) { a.model = modelId; LS.set("crew", crew); toast(a.name + " → " + modelById(modelId).label.split(" (")[0], "ok"); } }
+      function renderModels() {
+        $("modelList").innerHTML = allModels().map((m) => {
+          const custom = customModels.some((c) => c.id === m.id);
+          return `<div class="model-row"><div><b>${m.label}</b> ${custom ? '<span class="chip">custom</span>' : m.id === "nemotron" ? '<span class="chip green">default</span>' : ""}<div class="meta">${m.provider} · ${m.model}${m.base ? " · " + m.base : ""}</div></div>${custom ? `<button class="btn ghost sm" onclick="rmModel('${m.id}')">remove</button>` : ""}</div>`;
+        }).join("");
+      }
+      function addModel() {
+        const label = $("m_label").value.trim(), model = $("m_model").value.trim();
+        if (!label || !model) return toast("Label + model name required", "err");
+        customModels.push({ id: "custom-" + Date.now(), label, provider: $("m_provider").value, model, base: $("m_base").value.trim() || undefined, key: $("m_key").value.trim() || undefined, speed: "fast" });
+        LS.set("models", customModels);
+        $("m_label").value = $("m_model").value = $("m_base").value = $("m_key").value = "";
+        renderModels(); toast("Model added", "ok");
+      }
+      function rmModel(id) { customModels = customModels.filter((c) => c.id !== id); LS.set("models", customModels); renderModels(); }
+      function saveSettings() {
+        settings = { ollama: $("s_ollama").value.trim() || "http://localhost:11434", openai: $("s_openai").value.trim(), anthropic: $("s_anthropic").value.trim(), serpapi: $("s_serpapi").value.trim(), gemini: $("s_gemini").value.trim() };
+        LS.set("settings", settings); toast("Endpoints saved", "ok");
+      }
+
+      /* ==================== SerpAPI (Google Jobs) ==================== */
+      async function fetchSerpapi() {
+        const q = "Power Platform Developer";
+        try {
+          let arr = [];
+          if (isBridged) {
+            const r = await fetch(BRIDGE.url + "/jobs/serpapi?q=" + encodeURIComponent(q) + "&location=Remote" + (settings.serpapi ? "&key=" + encodeURIComponent(settings.serpapi) : ""));
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || "bridge serpapi failed");
+            arr = d.jobs || [];
+          } else {
+            if (!settings.serpapi) return toast("Add a SerpAPI key in Control → Endpoints", "err");
+            const u = "https://serpapi.com/search.json?engine=google_jobs&q=" + encodeURIComponent(q + " remote") + "&api_key=" + encodeURIComponent(settings.serpapi);
+            const r = await fetch(u); const d = await r.json();
+            arr = (d.jobs_results || []).map((j) => ({
+              title: j.title, company: j.company_name || "—",
+              salary: (j.detected_extensions && j.detected_extensions.salary) || "",
+              type: (j.detected_extensions && j.detected_extensions.schedule_type) || "Full-time",
+              source: "SerpAPI", url: (j.apply_options && j.apply_options[0] && j.apply_options[0].link) || j.share_link || "#",
+              note: (j.location || "") + (j.description ? " · " + j.description.slice(0, 90) : ""),
+            }));
+          }
+          if (!arr.length) return toast("SerpAPI returned no jobs", "err");
+          arr.forEach((j) => jobs.push(normalizeJob(j)));
+          LS.set("jobs", jobs); renderJobs(); closeModal();
+          toast("Added " + arr.length + " jobs from SerpAPI", "ok");
+          logTask("Talent Scout", "Imported " + arr.length + " roles via SerpAPI (Google Jobs)");
+        } catch (e) {
+          toast("SerpAPI failed: " + (e.message || "") + (isBridged ? "" : " (browser CORS — use the PC bridge)"), "err");
+        }
+      }
+
+      /* ==================== DOWNLOADABLE SUMMARIES ==================== */
+      function downloadFile(name, text) {
+        const blob = new Blob([text], { type: "text/markdown" }); const url = URL.createObjectURL(blob);
+        const el = document.createElement("a"); el.href = url; el.download = name; document.body.appendChild(el); el.click(); el.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      function downloadDocsSummary() {
+        const date = new Date().toLocaleString();
+        let out = `# JABB Networks — Crew Documents Summary\n\n> Generated ${date} · Operator: ${prefs.operator} · ${docs.length} document(s)\n\n`;
+        if (!docs.length) out += "_No documents saved yet. Save crew replies to the Library from Comms._\n";
+        crew.forEach((a) => {
+          const list = docs.filter((d) => d.agentId === a.id);
+          if (!list.length) return;
+          out += `## ${a.name} — ${statsFor(a).badge} (${list.length})\n\n`;
+          list.forEach((d) => {
+            const words = d.body.trim().split(/\s+/).filter(Boolean).length;
+            const preview = d.body.replace(/\s+/g, " ").trim().slice(0, 240);
+            out += `### ${d.title}\n- Created: ${new Date(d.created).toLocaleString()} · ${words} words\n\n${preview}${d.body.length > 240 ? "…" : ""}\n\n`;
+          });
+        });
+        downloadFile("JABB-crew-documents-summary.md", out);
+        toast("Documents summary downloaded", "ok");
+        logTask("Ops & Client Success", "Generated crew documents summary (" + docs.length + " docs)");
+      }
+      function downloadMissionSummary() {
+        const date = new Date().toLocaleString();
+        let out = `# JABB Networks — Mission Control Summary\n\n> Generated ${date} · Operator: ${prefs.operator}\n\n`;
+        out += `## Crew\n${crew.map((a) => { const s = statsFor(a); return `- **${a.name}** (${s.badge}) — model ${modelById(a.model).label.split(" (")[0]} · ${s.share}% share · ${s.sessions} sessions · ${s.messages} messages · ${fmtTok(s.tokens)} tokens`; }).join("\n")}\n\n`;
+        out += `## Remote Power Platform Jobs (${jobs.length})\n${jobs.map((j) => `- ${j.title} @ ${j.company} — ${j.salary || "—"} — ${j.type} — ${j.source} — ${j.url}`).join("\n")}\n\n`;
+        out += `## Application Pipeline (${pipeline.length})\n${pipeline.length ? pipeline.map((p) => `- [${p.stage}] ${p.role} @ ${p.company}${p.date ? " · interview " + p.date + " " + (p.time || "") : ""}${p.rate ? " · " + p.rate : ""}`).join("\n") : "_None yet._"}\n\n`;
+        out += `## Standing Orders (${orders.length})\n${orders.map((o) => `- ${o.active ? "[active]" : "[paused]"} ${o.title} — ${o.schedule} → ${agentById(o.agentId)?.name || o.agentId}`).join("\n")}\n\n`;
+        out += `## Crew Documents (${docs.length})\n${docs.length ? docs.map((d) => `- ${d.title} — ${agentById(d.agentId)?.name} — ${new Date(d.created).toLocaleDateString()}`).join("\n") : "_None yet._"}\n\n`;
+        out += `## Recent Activity\n${taskLog.slice(0, 20).map((e) => `- ${e.t} · ${e.who}: ${e.msg}`).join("\n") || "_None yet._"}\n`;
+        downloadFile("JABB-mission-summary.md", out);
+        toast("Mission summary downloaded", "ok");
+        logTask("SENTINEL", "Generated full mission summary report");
+      }
+      function savePrefs() {
+        prefs = { operator: $("s_operator").value.trim() || "Alexander", feed: $("s_feed").value.trim(), greet: $("s_greet").checked, mother: $("s_mother").value.trim() || "powerjt1/Master" };
+        LS.set("prefs", prefs); renderOperator(); toast("Preferences saved", "ok");
+      }
+      function wipeData() {
+        if (!confirm("Wipe all local Mission Control data (crew config, chats, pipeline, jobs)?")) return;
+        Object.keys(localStorage).filter((k) => k.startsWith("jabb.")).forEach((k) => localStorage.removeItem(k));
+        location.reload();
+      }
+      async function discoverOllama() {
+        const base = isBridged ? BRIDGE.ollama : (settings.ollama || "http://localhost:11434");
+        $("discoverMsg").textContent = "contacting Ollama…";
+        try {
+          const r = await fetch(base + "/api/tags"); const d = await r.json(); let added = 0;
+          (d.models || []).forEach((t) => {
+            const id = "custom-ollama-" + t.name.replace(/[:/]/g, "-");
+            if (customModels.some((c) => c.id === id)) return;
+            customModels.push({ id, label: t.name + " (Ollama)", provider: "ollama", model: t.name, base, speed: "fast" }); added++;
+          });
+          LS.set("models", customModels); renderModels();
+          $("discoverMsg").textContent = "added " + added + " model(s).";
+        } catch (e) { $("discoverMsg").textContent = "couldn't reach Ollama (run with OLLAMA_ORIGINS=*)."; }
+      }
+
+      /* ==================== MODEL STREAMING ==================== */
+      async function streamChat(model, system, history, onChunk) {
+        if (model.provider === "transformers") return streamTransformers(model, system, history, onChunk);
+        if (model.provider === "webllm") return streamWebLLM(model, system, history, onChunk);
+        if (model.provider === "anthropic") return streamAnthropic(model, system, history, onChunk);
+        if (model.provider === "gemini") {
+          const gbase = (model.base || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/$/, "");
+          const gkey = model.key || settings.gemini;
+          if (!gkey) throw new Error("Set your Google Gemini API key in Control → Endpoints.");
+          const gmsgs = [{ role: "system", content: system }, ...history];
+          const gresp = await fetch(gbase + "/chat/completions", {
+            method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + gkey },
+            body: JSON.stringify({ model: model.model, messages: gmsgs, stream: true, temperature: 0.7 }),
+          });
+          if (!gresp.ok) throw new Error("HTTP " + gresp.status + " from Gemini");
+          return readSSE(gresp, (o) => { const c = o.choices?.[0]?.delta?.content; if (c) onChunk(c); });
+        }
+        let base = (model.base || "").replace(/\/$/, "");
+        if (model.provider === "ollama" && !/\/v1$/.test(base)) base += "/v1";
+        const key = model.key || (model.provider === "openai" ? settings.openai : "") || "not-needed";
+        const msgs = [{ role: "system", content: system }, ...history];
+        const resp = await fetch(base + "/chat/completions", {
+          method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + key },
+          body: JSON.stringify({ model: model.model, messages: msgs, stream: true, temperature: 0.7, top_p: 0.9 }),
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status + " from " + base);
+        await readSSE(resp, (o) => { const c = o.choices?.[0]?.delta?.content; if (c) onChunk(c); });
+      }
+      async function streamAnthropic(model, system, history, onChunk) {
+        const key = model.key || settings.anthropic;
+        if (!key) throw new Error("Set your Anthropic API key in Control.");
+        const resp = await fetch((model.base || "https://api.anthropic.com") + "/v1/messages", {
+          method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+          body: JSON.stringify({ model: model.model, max_tokens: 2048, system, stream: true, temperature: 0.7, messages: history }),
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status + " from Anthropic");
+        await readSSE(resp, (o) => { if (o.type === "content_block_delta" && o.delta?.text) onChunk(o.delta.text); });
+      }
+      let webllmEngine = null, webllmId = null;
+      async function streamWebLLM(model, system, history, onChunk) {
+        if (!("gpu" in navigator)) throw new Error("No WebGPU here. Switch to \"Free · CPU\" in Control.");
+        if (!webllmEngine || webllmId !== model.model) {
+          chatErr("Loading GPU model (first run downloads ~1GB, then cached)…");
+          const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+          webllmEngine = await webllm.CreateMLCEngine(model.model, { initProgressCallback: (p) => chatErr("Loading: " + (p.text || "")) });
+          webllmId = model.model;
+        }
+        chatErr("");
+        const msgs = [{ role: "system", content: system }, ...history];
+        const chunks = await webllmEngine.chat.completions.create({ messages: msgs, stream: true, temperature: 0.7, top_p: 0.9 });
+        for await (const c of chunks) { const t = c.choices?.[0]?.delta?.content; if (t) onChunk(t); }
+      }
+      let tjsPipe = null, tjsId = null, tjsLib = null;
+      async function streamTransformers(model, system, history, onChunk) {
+        if (!tjsLib) tjsLib = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
+        if (!tjsPipe || tjsId !== model.model) {
+          chatErr("Loading CPU model (first run downloads once)…");
+          tjsPipe = await tjsLib.pipeline("text-generation", model.model, { device: "wasm", dtype: "q4", progress_callback: (p) => { if (p?.status === "progress" && p.file) chatErr("Loading " + p.file + " " + Math.round(p.progress || 0) + "%"); } });
+          tjsId = model.model;
+        }
+        chatErr("Generating…");
+        const msgs = [{ role: "system", content: system }, ...history];
+        const streamer = new tjsLib.TextStreamer(tjsPipe.tokenizer, { skip_prompt: true, callback_function: (t) => { if (t) { chatErr(""); onChunk(t); } } });
+        await tjsPipe(msgs, { max_new_tokens: 1024, temperature: 0.7, do_sample: true, streamer });
+        chatErr("");
+      }
+      async function readSSE(resp, onObj) {
+        const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "";
+        while (true) {
+          const { done, value } = await reader.read(); if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const lines = buf.split("\n"); buf = lines.pop();
+          for (const line of lines) { const t = line.trim(); if (!t.startsWith("data:")) continue; const data = t.slice(5).trim(); if (data === "[DONE]" || !data) continue; try { onObj(JSON.parse(data)); } catch {} }
+        }
+      }
+
+      /* ==================== VOICE ==================== */
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let listening = false, recognition = null, autoSpeak = false;
+      function toggleMic() {
+        if (!SR) return toast("Voice input needs Chrome/Edge", "err");
+        if (listening) { recognition && recognition.stop(); return; }
+        recognition = new SR(); recognition.lang = "en-US"; recognition.interimResults = true; recognition.continuous = false;
+        let finalText = "";
+        recognition.onresult = (ev) => { let interim = ""; for (let i = ev.resultIndex; i < ev.results.length; i++) { const r = ev.results[i]; r.isFinal ? (finalText += r[0].transcript) : (interim += r[0].transcript); } if ($("view-comms").classList.contains("active")) { $("chatInput").value = (finalText + interim).trim(); autosize(); } };
+        recognition.onend = () => { listening = false; setMic(false); };
+        recognition.onerror = () => { listening = false; setMic(false); };
+        recognition.start(); listening = true; setMic(true);
+      }
+      function setMic(on) { $("micBtn").classList.toggle("on", on); $("coreOrb")?.classList.toggle("talking", on); }
+      function toggleSpeak() { autoSpeak = !autoSpeak; $("speakBtn").textContent = autoSpeak ? "🔊" : "🔇"; $("speakBtn").classList.toggle("on", autoSpeak); if (!autoSpeak) stopSpeak(); }
+      let voicePrefs = LS.get("voice", { name: "", rate: 1.02, pitch: 0.95 });
+      function pickVoice() {
+        const vs = window.speechSynthesis?.getVoices?.() || [];
+        if (voicePrefs.name) { const chosen = vs.find((v) => v.name === voicePrefs.name); if (chosen) return chosen; }
+        return vs.find((v) => /daniel|arthur|google uk english male|male/i.test(v.name)) || vs.find((v) => /en-GB/i.test(v.lang)) || vs.find((v) => /en/i.test(v.lang)) || vs[0];
+      }
+      // Voice output — applies to EVERY agent and EVERY model (local, browser, cloud).
+      function speak(text) {
+        if (!("speechSynthesis" in window)) return;
+        stopSpeak();
+        const clean = text.replace(/```[\s\S]*?```/g, " code block ").replace(/[`*_#>]/g, "").slice(0, 3500);
+        const u = new SpeechSynthesisUtterance(clean); const v = pickVoice(); if (v) u.voice = v;
+        u.rate = voicePrefs.rate || 1.02; u.pitch = voicePrefs.pitch || 0.95;
+        u.onstart = () => $("coreOrb")?.classList.add("talking"); u.onend = () => $("coreOrb")?.classList.remove("talking");
+        window.speechSynthesis.speak(u);
+      }
+      function stopSpeak() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); $("coreOrb")?.classList.remove("talking"); }
+      function renderVoice() {
+        const sel = $("v_voice"); if (!sel) return;
+        const vs = window.speechSynthesis?.getVoices?.() || [];
+        sel.innerHTML = vs.length ? vs.map((v) => `<option value="${v.name}" ${v.name === voicePrefs.name ? "selected" : ""}>${v.name} — ${v.lang}${v.default ? " (default)" : ""}</option>`).join("")
+          : `<option value="">System default (voices load on first interaction)</option>`;
+        $("v_rate").value = voicePrefs.rate; $("v_pitch").value = voicePrefs.pitch;
+        $("v_rate_l").textContent = "· " + (voicePrefs.rate || 1).toFixed(2) + "×";
+        $("v_pitch_l").textContent = "· " + (voicePrefs.pitch || 1).toFixed(2);
+        $("v_autospeak").checked = autoSpeak;
+        $("v_rate").oninput = (e) => { $("v_rate_l").textContent = "· " + (+e.target.value).toFixed(2) + "×"; };
+        $("v_pitch").oninput = (e) => { $("v_pitch_l").textContent = "· " + (+e.target.value).toFixed(2); };
+      }
+      function saveVoice() {
+        voicePrefs = { name: $("v_voice").value, rate: parseFloat($("v_rate").value), pitch: parseFloat($("v_pitch").value) };
+        LS.set("voice", voicePrefs);
+        const want = $("v_autospeak").checked;
+        if (want !== autoSpeak) toggleSpeak();
+        toast("Voice saved · applies to all agents & models", "ok");
+      }
+      function testVoice() {
+        voicePrefs = { name: $("v_voice").value, rate: parseFloat($("v_rate").value), pitch: parseFloat($("v_pitch").value) };
+        speak(`Hi ${prefs.operator}. This is your JABB Networks crew voice — the same across every agent and every model.`);
+      }
+
+      function sentinelGreet(force) {
+        const line = `Hi ${prefs.operator}. SENTINEL online. Your crew is standing by — Talent Scout is tracking ${jobs.length} remote Power Platform roles.`;
+        $("heroLine").textContent = line + " I'm ready when you are.";
+        if ((prefs.greet || force) && "speechSynthesis" in window) {
+          // voices may load async
+          if (!window.speechSynthesis.getVoices().length) { window.speechSynthesis.onvoiceschanged = () => speak(line); setTimeout(() => speak(line), 350); }
+          else speak(line);
+        }
+        logTask("SENTINEL", "Greeted " + prefs.operator + " · " + jobs.length + " remote roles tracked");
+      }
+
+      /* ==================== HELPERS ==================== */
+      function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+      const MD = [[/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>"], [/`([^`]+)`/g, "<code>$1</code>"], [/\*\*([^*]+)\*\*/g, "<b>$1</b>"]];
+      function md(s) { let o = escapeHtml(s); for (const [p, r] of MD) o = o.replace(p, r); return o.replace(/\n/g, "<br>"); }
+      function toast(m, kind) { const t = $("toast"); t.textContent = m; t.className = "toast show " + (kind || ""); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2600); }
+      function openModal(n) { $("modal-" + n).classList.add("open"); }
+      function closeModal() { document.querySelectorAll(".modal-bg").forEach((m) => m.classList.remove("open")); }
+      document.querySelectorAll(".modal-bg").forEach((bg) => bg.addEventListener("click", (e) => { if (e.target === bg) closeModal(); }));
+
+      function clockTick() {
+        const d = new Date();
+        $("clock").textContent = d.toLocaleTimeString([], { hour12: false });
+      }
+      setInterval(clockTick, 1000); clockTick();
+
+      function renderOperator() {
+        const nm = $("sideOpName"); if (nm) nm.textContent = prefs.operator || "Alexander";
+        const av = $("sideOpAvatar"); if (av) av.textContent = (prefs.operator || "A").trim().charAt(0).toUpperCase();
+      }
+
+      /* ==================== INIT ==================== */
+      renderOperator();
+      renderHome();
+      setTimeout(() => sentinelGreet(false), 600);
+    </script>
+  </body>
+</html>
