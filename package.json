@@ -11,14 +11,19 @@
     "install:power-platform-skills": "node scripts/install-power-platform-skills.js"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.92.2",
+    "@stripe/stripe-js": "^9.16.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.116.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^1.47.0",
     "next": "^16.3.5",
+    "plaid": "^47.0.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-plaid-link": "^5.0.0",
+    "stripe": "^22.6.2",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

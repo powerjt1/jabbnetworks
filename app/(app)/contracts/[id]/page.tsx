@@ -5,9 +5,12 @@ import {
   CheckCircle2,
   Circle,
   MessageSquare,
+  Video,
 } from "lucide-react";
 import { AttachmentList } from "@/components/attachment-list";
+import { EscrowControls } from "@/components/escrow-controls";
 import { NotesPanel } from "@/components/notes-panel";
+import { ViewAsToggle } from "@/components/view-as-toggle";
 import {
   Avatar,
   Badge,
@@ -18,26 +21,26 @@ import {
 } from "@/components/ui";
 import {
   getContract,
-  getContracts,
   getConversations,
   getCurrentUser,
   getJob,
   getNotes,
   getUser,
 } from "@/lib/data";
+import { providers } from "@/lib/payments/config";
+import { getEscrow } from "@/lib/payments/seed";
 import { CONTRACT_TONE, MILESTONE_LABEL, MILESTONE_TONE } from "@/lib/status";
 import { dueLabel, formatCurrency, formatDate } from "@/lib/utils";
 
-export function generateStaticParams() {
-  return getContracts().map((c) => ({ id: c.id }));
-}
-
 export default async function ContractDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ as?: string }>;
 }) {
   const { id } = await params;
+  const { as } = await searchParams;
   const contract = getContract(id);
   if (!contract) notFound();
 
@@ -50,6 +53,11 @@ export default async function ContractDetailPage({
   const conversation = getConversations(user.id).find(
     (c) => c.jobId === contract.jobId,
   );
+
+  // Without auth, default to whichever side this user actually is on the
+  // contract, and let the toggle override it.
+  const viewerIsClient =
+    as === "client" ? true : as === "freelancer" ? false : user.id === contract.clientId;
 
   const outstanding = contract.totalValue - contract.paidToDate;
   const approved = contract.milestones.filter(
@@ -81,12 +89,22 @@ export default async function ContractDetailPage({
             – {formatDate(contract.dueDate)}
           </p>
         </div>
-        {conversation && (
-          <ButtonLink href={`/messages/${conversation.id}`} variant="secondary">
-            <MessageSquare className="size-4" />
-            Message client
+        <div className="flex flex-wrap items-center gap-2">
+          <ViewAsToggle
+            current={viewerIsClient ? "client" : "freelancer"}
+            basePath={`/contracts/${contract.id}`}
+          />
+          <ButtonLink href={`/meetings/${contract.id}`} variant="secondary">
+            <Video className="size-4" />
+            Join call
           </ButtonLink>
-        )}
+          {conversation && (
+            <ButtonLink href={`/messages/${conversation.id}`} variant="secondary">
+              <MessageSquare className="size-4" />
+              Message client
+            </ButtonLink>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
@@ -190,18 +208,20 @@ export default async function ContractDetailPage({
                       </span>
                     </div>
 
-                    {m.status === "active" && (
-                      <div className="mt-3 flex gap-2">
-                        <ButtonLink href={`/contracts/${contract.id}`} size="sm">
-                          Submit for approval
-                        </ButtonLink>
-                      </div>
-                    )}
                     {m.status === "submitted" && (
                       <p className="mt-3 text-xs text-caution">
                         Waiting on {client?.name} to approve.
                       </p>
                     )}
+
+                    <EscrowControls
+                      milestoneId={m.id}
+                      contractId={contract.id}
+                      amount={Math.round(m.amount * 100)}
+                      initialStatus={getEscrow(m.id)?.status ?? "unfunded"}
+                      viewerIsClient={viewerIsClient}
+                      configured={providers.stripe.configured}
+                    />
                   </Card>
                 );
               })}

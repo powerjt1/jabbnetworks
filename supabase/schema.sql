@@ -244,3 +244,118 @@ create policy "you may upload attachments"
 create policy "notes are private to their author"
   on notes for all using (author_id = auth.uid())
   with check (author_id = auth.uid());
+
+-- Payments ----------------------------------------------------------------
+
+create type escrow_status as enum (
+  'unfunded', 'funding', 'funded', 'releasing', 'released', 'refunded', 'failed'
+);
+create type funding_method as enum ('ach', 'card');
+create type payout_rail as enum ('stripe', 'paypal');
+create type connect_status as enum ('not_started', 'onboarding', 'restricted', 'active');
+
+-- Where the freelancer's money goes. Stripe Connect holds their identity and
+-- tax details, not this database.
+create table payout_accounts (
+  profile_id uuid primary key references profiles on delete cascade,
+  rail payout_rail not null default 'stripe',
+  status connect_status not null default 'not_started',
+  stripe_account_id text unique,
+  paypal_email text,
+  payouts_enabled boolean not null default false,
+  requirements_due text[] not null default '{}',
+  updated_at timestamptz not null default now()
+);
+
+-- Linked via Plaid. Account and routing numbers are deliberately absent: Plaid
+-- hands Stripe a processor token and neither number ever reaches this table.
+create table bank_accounts (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references profiles on delete cascade,
+  institution text not null,
+  last4 text not null check (length(last4) = 4),
+  account_type text not null default 'checking',
+  stripe_payment_method_id text,
+  verified boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+-- One row per milestone. This is the system of record for held money, so it
+-- carries the uniqueness constraint that stops a milestone being funded twice.
+create table escrows (
+  id uuid primary key default gen_random_uuid(),
+  milestone_id uuid not null unique references milestones on delete cascade,
+  contract_id uuid not null references contracts on delete cascade,
+  status escrow_status not null default 'unfunded',
+  amount_cents bigint not null check (amount_cents > 0),
+  funding_method funding_method not null default 'ach',
+  payout_rail payout_rail not null default 'stripe',
+  stripe_payment_intent_id text unique,
+  stripe_transfer_id text unique,
+  paypal_payout_batch_id text unique,
+  failure_reason text,
+  funded_at timestamptz,
+  released_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index escrows_contract_idx on escrows (contract_id, status);
+
+-- Append-only ledger. Never update a row here; correct with a compensating
+-- entry so the history of what moved stays intact for reconciliation.
+create table transactions (
+  id uuid primary key default gen_random_uuid(),
+  contract_id uuid not null references contracts on delete cascade,
+  milestone_id uuid references milestones on delete set null,
+  kind text not null check (kind in ('funding', 'release', 'refund', 'fee')),
+  amount_cents bigint not null,
+  fee_cents bigint not null default 0,
+  status text not null default 'pending'
+    check (status in ('pending', 'settled', 'failed')),
+  method text not null,
+  description text not null default '',
+  created_at timestamptz not null default now(),
+  settled_at timestamptz
+);
+
+create index transactions_contract_idx on transactions (contract_id, created_at desc);
+
+-- Stripe retries webhooks, and the same event will arrive more than once.
+-- Inserting the event id first makes handlers idempotent.
+create table processed_webhook_events (
+  id text primary key,
+  provider text not null default 'stripe',
+  processed_at timestamptz not null default now()
+);
+
+alter table payout_accounts enable row level security;
+alter table bank_accounts enable row level security;
+alter table escrows enable row level security;
+alter table transactions enable row level security;
+
+create policy "you see your own payout account"
+  on payout_accounts for select using (profile_id = auth.uid());
+
+create policy "you see your own bank accounts"
+  on bank_accounts for all using (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
+-- Escrow is readable by both sides of the contract but writable by neither:
+-- only the service role, acting from a webhook or a route handler, moves money.
+create policy "escrow visible to both parties"
+  on escrows for select using (
+    exists (
+      select 1 from contracts c
+      where c.id = escrows.contract_id
+        and (c.client_id = auth.uid() or c.freelancer_id = auth.uid())
+    )
+  );
+
+create policy "transactions visible to both parties"
+  on transactions for select using (
+    exists (
+      select 1 from contracts c
+      where c.id = transactions.contract_id
+        and (c.client_id = auth.uid() or c.freelancer_id = auth.uid())
+    )
+  );

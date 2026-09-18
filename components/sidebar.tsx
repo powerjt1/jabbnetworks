@@ -10,6 +10,8 @@ import {
   ScrollText,
   Settings,
   Users,
+  Video,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +21,8 @@ const NAV = [
   { href: "/proposals", label: "Proposals", icon: FileText },
   { href: "/contracts", label: "Contracts", icon: ScrollText },
   { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/meetings", label: "Meetings", icon: Video },
+  { href: "/payments", label: "Payments", icon: Wallet },
   { href: "/talent", label: "Talent", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
