@@ -62,6 +62,13 @@ the queries up happens in one file rather than across every page.
 - Agency-backed proposals that name who is staffed on the work and what each
   of them earns from it
 
+**Money, accounting and tax**
+- Milestone escrow over Stripe Connect, with PayPal as a second payout rail
+- QuickBooks Online sync: funding posts an Invoice, release posts a Bill, so
+  only the platform fee reads as revenue rather than the gross flow
+- W-9 collection and 1099 threshold tracking for payees on rails Stripe does
+  not report on — see `lib/tax/README.md` for how TINs are handled
+
 **Communication**
 - Message inbox with threads attached to their job
 - Chat room with attachments and ⌘↵ to send
@@ -77,13 +84,17 @@ the queries up happens in one file rather than across every page.
 app/
   (auth)/          signup, login, onboarding
   (app)/           the portal: dashboard, jobs, proposals, contracts,
-                   messages, meetings, payments, talent, agencies, settings
+                   messages, meetings, payments, accounting, tax,
+                   talent, agencies, settings
 components/        UI primitives and feature components
 lib/
   types.ts         domain model
   seed.ts          demo data
   data.ts          data access — the Supabase seam
   skills.ts        the ten disciplines
+  payments/        Stripe, PayPal, Plaid, fee model
+  accounting/      QuickBooks Online
+  tax/             W-9, 1099 thresholds — read its README first
 supabase/
   schema.sql       tables, enums, RLS policies
 ```

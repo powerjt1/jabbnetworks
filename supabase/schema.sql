@@ -487,3 +487,112 @@ create policy "assignments visible to the parties involved"
         and (p.freelancer_id = auth.uid() or j.client_id = auth.uid())
     )
   );
+
+-- Tax & accounting --------------------------------------------------------
+
+create type tax_form_type as enum ('w9', 'w8ben', 'w8ben_e');
+create type tax_form_status as enum (
+  'not_requested', 'requested', 'submitted', 'verified', 'invalid', 'expired'
+);
+
+-- Note what is absent: there is no column for the taxpayer identification
+-- number. The full TIN goes to the verification provider and is never stored
+-- here. See lib/tax/README.md — that omission is the design, not a gap.
+create table tax_forms (
+  id uuid primary key default gen_random_uuid(),
+  payee_profile_id uuid references profiles on delete cascade,
+  payee_agency_id uuid references agencies on delete cascade,
+  form_type tax_form_type not null default 'w9',
+  status tax_form_status not null default 'not_requested',
+  legal_name text not null,
+  business_name text,
+  classification text not null default 'individual',
+  address_line1 text,
+  address_line2 text,
+  city text,
+  state text,
+  postal_code text,
+  country text default 'US',
+  tin_last4 text check (tin_last4 is null or length(tin_last4) = 4),
+  tin_type text check (tin_type in ('ssn', 'ein')),
+  certified_at timestamptz,
+  submitted_at timestamptz,
+  verified_at timestamptz,
+  invalid_reason text,
+  expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint tax_form_has_payee check (
+    num_nonnulls(payee_profile_id, payee_agency_id) = 1
+  )
+);
+
+-- Year-to-date totals per payee.
+--
+-- reportable_cents counts only money the platform paid directly. Stripe files
+-- its own 1099s for Stripe-rail payments, so those are tracked separately in
+-- stripe_reported_cents and deliberately excluded from the threshold test —
+-- counting them would report the same income twice.
+create table payee_tax_years (
+  payee_profile_id uuid references profiles on delete cascade,
+  payee_agency_id uuid references agencies on delete cascade,
+  tax_year int not null,
+  reportable_cents bigint not null default 0,
+  stripe_reported_cents bigint not null default 0,
+  withheld_cents bigint not null default 0,
+  updated_at timestamptz not null default now(),
+  constraint tax_year_has_payee check (
+    num_nonnulls(payee_profile_id, payee_agency_id) = 1
+  )
+);
+
+create unique index payee_tax_years_profile_idx
+  on payee_tax_years (payee_profile_id, tax_year)
+  where payee_profile_id is not null;
+create unique index payee_tax_years_agency_idx
+  on payee_tax_years (payee_agency_id, tax_year)
+  where payee_agency_id is not null;
+
+-- OAuth connection to an accounting provider. The refresh token is a bearer
+-- credential for the company's entire ledger: encrypt it at rest, and note
+-- that Intuit rotates it on every use, so this row is updated, never appended.
+create table accounting_connections (
+  provider text primary key,
+  realm_id text not null,
+  refresh_token text not null,
+  access_token_expires_at timestamptz,
+  connected_by uuid references profiles on delete set null,
+  company_name text,
+  updated_at timestamptz not null default now()
+);
+
+-- The unique constraint here is what actually prevents a duplicate Bill when
+-- the Stripe webhook that drives the sync retries. A duplicated bill is a real
+-- accounting error someone has to unpick by hand.
+create table accounting_sync_log (
+  id uuid primary key default gen_random_uuid(),
+  milestone_id uuid not null references milestones on delete cascade,
+  event text not null check (event in ('funded', 'released')),
+  provider text not null default 'quickbooks',
+  document_id text not null,
+  amount_cents bigint not null,
+  synced_at timestamptz not null default now(),
+  unique (milestone_id, event, provider)
+);
+
+alter table tax_forms enable row level security;
+alter table payee_tax_years enable row level security;
+alter table accounting_connections enable row level security;
+alter table accounting_sync_log enable row level security;
+
+-- A payee sees their own form and nothing else. Platform staff read these
+-- through the service role, not through a policy, so that access is auditable
+-- rather than ambient.
+create policy "payees see their own tax form"
+  on tax_forms for select using (payee_profile_id = auth.uid());
+
+create policy "payees see their own totals"
+  on payee_tax_years for select using (payee_profile_id = auth.uid());
+
+-- No policies on accounting_connections or accounting_sync_log: the ledger
+-- connection is platform infrastructure and is reachable only by the service
+-- role. RLS with no policy denies everyone.
