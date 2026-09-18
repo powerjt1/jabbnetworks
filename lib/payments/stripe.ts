@@ -113,6 +113,7 @@ export async function fundMilestone(params: {
  */
 export async function releaseMilestone(params: {
   milestoneId: string;
+  contractId: string;
   /** Milestone value in cents, as escrowed. */
   amount: number;
   destinationAccountId: string;
@@ -127,6 +128,9 @@ export async function releaseMilestone(params: {
     transfer_group: transferGroup(params.milestoneId),
     metadata: {
       milestone_id: params.milestoneId,
+      // Carried so the webhook can resolve the contract when the transfer
+      // event arrives — Stripe echoes metadata back, nothing else does.
+      contract_id: params.contractId,
       platform_fee: String(fee),
     },
     description: `Milestone ${params.milestoneId} released`,

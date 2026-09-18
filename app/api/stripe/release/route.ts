@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { syncMilestone } from "@/lib/accounting/sync";
 import { sendPayout } from "@/lib/payments/paypal";
 import { platformFee } from "@/lib/payments/fees";
 import { releaseMilestone, stripe } from "@/lib/payments/stripe";
@@ -62,6 +63,16 @@ export async function POST(request: Request) {
         senderItemId: milestoneId,
         note: `Milestone released — ${milestoneId}`,
       });
+      // A PayPal payout never produces a Stripe event, so there is no webhook
+      // to carry the bookkeeping. Sync here instead, and flag the vendor
+      // 1099-eligible: Stripe is not reporting this one.
+      await syncMilestone({
+        milestoneId,
+        contractId,
+        event: "released",
+        rail: "paypal",
+      });
+
       return NextResponse.json({
         rail,
         payoutBatchId: payout.batchId,
@@ -86,6 +97,7 @@ export async function POST(request: Request) {
 
     const transfer = await releaseMilestone({
       milestoneId,
+      contractId,
       amount: milestone.amount,
       destinationAccountId: body.destinationAccountId,
     });

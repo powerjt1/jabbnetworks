@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { syncMilestone } from "@/lib/accounting/sync";
 import { stripe } from "@/lib/payments/stripe";
 
 /**
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
         const transfer = event.data.object as Stripe.Transfer;
         await onPayoutSent({
           milestoneId: transfer.metadata.milestone_id,
+          contractId: transfer.metadata.contract_id,
           transferId: transfer.id,
         });
         break;
@@ -127,6 +129,17 @@ async function onEscrowFunded(params: {
   console.info("Escrow funded", params);
   // UPDATE escrow SET status='funded', funded_at=now() WHERE milestone_id=$1
   // then notify the freelancer that they are clear to start.
+
+  if (params.milestoneId && params.contractId) {
+    // Bookkeeping, not money movement: syncMilestone never throws, so a
+    // QuickBooks outage cannot fail this webhook and send Stripe into a retry
+    // loop over the escrow transition above.
+    await syncMilestone({
+      milestoneId: params.milestoneId,
+      contractId: params.contractId,
+      event: "funded",
+    });
+  }
 }
 
 async function onEscrowFailed(params: {
@@ -140,10 +153,22 @@ async function onEscrowFailed(params: {
 
 async function onPayoutSent(params: {
   milestoneId?: string;
+  contractId?: string;
   transferId: string;
 }) {
   console.info("Payout sent", params);
   // UPDATE escrow SET status='released', transfer_id=$2 WHERE milestone_id=$1
+
+  if (params.milestoneId && params.contractId) {
+    await syncMilestone({
+      milestoneId: params.milestoneId,
+      contractId: params.contractId,
+      event: "released",
+      // A Stripe transfer is by definition the Stripe rail, so this payment is
+      // reported by Stripe and the vendor is not flagged 1099-eligible here.
+      rail: "stripe",
+    });
+  }
 }
 
 async function onConnectAccountUpdated(params: {
