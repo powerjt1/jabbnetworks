@@ -1,4 +1,5 @@
 import {
+  AGENCIES,
   CONTRACTS,
   CONVERSATIONS,
   CURRENT_USER_ID,
@@ -9,6 +10,8 @@ import {
   USERS,
 } from "./seed";
 import type {
+  Agency,
+  AgencyMember,
   Contract,
   Conversation,
   Job,
@@ -140,4 +143,58 @@ export function getDashboardStats(userId: string) {
     openMilestones,
     unreadMessages: unread,
   };
+}
+
+/* -------------------------------------------------------------------------
+ * Agencies
+ * ---------------------------------------------------------------------- */
+
+export function getAgencies(filters: { skills?: SkillCategory[] } = {}): Agency[] {
+  let agencies = [...AGENCIES];
+  if (filters.skills?.length) {
+    agencies = agencies.filter((a) =>
+      a.skills.some((s) => filters.skills!.includes(s)),
+    );
+  }
+  return agencies.sort((a, b) => b.rating - a.rating);
+}
+
+export function getAgency(id: string): Agency | undefined {
+  return AGENCIES.find((a) => a.id === id);
+}
+
+/** Agencies this user belongs to, in any role. */
+export function getAgenciesForUser(userId: string): Agency[] {
+  return AGENCIES.filter((a) => a.members.some((m) => m.userId === userId));
+}
+
+export function getMembership(
+  agencyId: string,
+  userId: string,
+): AgencyMember | undefined {
+  return getAgency(agencyId)?.members.find((m) => m.userId === userId);
+}
+
+/** Members resolved to full user records, owner first. */
+export function getRoster(agencyId: string) {
+  const agency = getAgency(agencyId);
+  if (!agency) return [];
+  const rank = { owner: 0, admin: 1, member: 2 } as const;
+  return agency.members
+    .map((member) => ({ member, user: getUser(member.userId) }))
+    .filter((r): r is { member: AgencyMember; user: User } => Boolean(r.user))
+    .sort((a, b) => rank[a.member.role] - rank[b.member.role]);
+}
+
+export function getAgencyContracts(agencyId: string): Contract[] {
+  return CONTRACTS.filter((c) => c.agencyId === agencyId);
+}
+
+/**
+ * A member may act for the agency when they own or administer it. Plain
+ * members appear on the roster and get paid, but cannot bid or change the team.
+ */
+export function canActForAgency(agencyId: string, userId: string): boolean {
+  const role = getMembership(agencyId, userId)?.role;
+  return role === "owner" || role === "admin";
 }

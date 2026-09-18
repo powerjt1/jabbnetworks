@@ -55,6 +55,13 @@ the queries up happens in one file rather than across every page.
   and released budget
 - Private notes, pinnable, on jobs and contracts
 
+**Agencies**
+- Agency directory and public profiles with a full roster
+- Team management: roles (owner/admin/member), invites, and a revenue-split
+  editor that will not save unless the shares total exactly 100%
+- Agency-backed proposals that name who is staffed on the work and what each
+  of them earns from it
+
 **Communication**
 - Message inbox with threads attached to their job
 - Chat room with attachments and ⌘↵ to send
@@ -69,8 +76,8 @@ the queries up happens in one file rather than across every page.
 ```
 app/
   (auth)/          signup, login, onboarding
-  (app)/           the portal: dashboard, jobs, proposals,
-                   contracts, messages, talent, settings
+  (app)/           the portal: dashboard, jobs, proposals, contracts,
+                   messages, meetings, payments, talent, agencies, settings
 components/        UI primitives and feature components
 lib/
   types.ts         domain model

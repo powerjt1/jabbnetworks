@@ -94,10 +94,64 @@ export interface Job {
   featured: boolean;
 }
 
+export type AgencyRole = "owner" | "admin" | "member";
+
+export interface AgencyMember {
+  userId: string;
+  role: AgencyRole;
+  /** Role on this agency's work, which need not match their public title. */
+  title: string;
+  joinedAt: string;
+}
+
+export interface Agency {
+  id: string;
+  name: string;
+  tagline: string;
+  bio: string;
+  avatarInitials: string;
+  location: string;
+  foundedAt: string;
+  /** Union of what the roster can deliver. */
+  skills: SkillCategory[];
+  members: AgencyMember[];
+  rating: number;
+  reviewCount: number;
+  contractsCompleted: number;
+  verified: boolean;
+  /** Blended day rate in USD, for work priced by time. */
+  dayRate: number;
+  /**
+   * Where released milestone money lands. The agency is paid as one party and
+   * splits internally — see `assignments` on a proposal.
+   */
+  stripeAccountId?: string;
+}
+
+/**
+ * Who on the roster is actually doing the work, named at proposal time.
+ *
+ * On a six-figure migration the client is buying specific people, not a logo.
+ * An agency bid that will not say who is staffing it is the thing clients
+ * complain about most, so the roster is part of the offer rather than a
+ * detail settled after signature.
+ */
+export interface Assignment {
+  userId: string;
+  /** What they are doing on this contract. */
+  role: string;
+  /** Share of the contract value, in basis points. Must total 10,000. */
+  splitBps: number;
+}
+
 export interface Proposal {
   id: string;
   jobId: string;
   freelancerId: string;
+  /** Set when the bid comes from an agency rather than an individual. */
+  agencyId?: string;
+  /** Named roster for an agency bid, and how the money divides. */
+  assignments?: Assignment[];
   status: ProposalStatus;
   coverLetter: string;
   bidAmount: number;
@@ -113,6 +167,9 @@ export interface Contract {
   jobId: string;
   clientId: string;
   freelancerId: string;
+  /** Set when an agency holds the contract; freelancerId is then its lead. */
+  agencyId?: string;
+  assignments?: Assignment[];
   status: ContractStatus;
   totalValue: number;
   paidToDate: number;

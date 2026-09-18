@@ -9,6 +9,7 @@ import {
   MessageSquare,
   ScrollText,
   Settings,
+  Building2,
   Users,
   Video,
   Wallet,
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/meetings", label: "Meetings", icon: Video },
   { href: "/payments", label: "Payments", icon: Wallet },
   { href: "/talent", label: "Talent", icon: Users },
+  { href: "/agencies", label: "Agencies", icon: Building2 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

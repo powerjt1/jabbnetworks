@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  Building2,
   CalendarClock,
   CheckCircle2,
   Layers,
@@ -9,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { AttachmentList } from "@/components/attachment-list";
+import { AssignmentTable } from "@/components/roster";
 import { NotesPanel } from "@/components/notes-panel";
 import {
   Avatar,
@@ -18,6 +20,7 @@ import {
   SkillChip,
 } from "@/components/ui";
 import {
+  getAgency,
   getCurrentUser,
   getJob,
   getJobs,
@@ -183,18 +186,35 @@ export default async function JobDetailPage({
                 {proposals.map((p) => {
                   const author = getUser(p.freelancerId);
                   if (!author) return null;
+                  const agency = p.agencyId ? getAgency(p.agencyId) : undefined;
                   return (
                     <Card key={p.id} className="p-4">
                       <div className="flex items-start gap-3">
-                        <Avatar initials={author.avatarInitials} size="sm" />
+                        <Avatar
+                          initials={agency?.avatarInitials ?? author.avatarInitials}
+                          size="sm"
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="font-medium">
-                              {author.name}
+                            <p className="flex flex-wrap items-center gap-2 font-medium">
+                              {agency ? (
+                                <>
+                                  <Link
+                                    href={`/agencies/${agency.id}`}
+                                    className="transition-colors hover:text-brand-soft"
+                                  >
+                                    {agency.name}
+                                  </Link>
+                                  <Badge tone="brand">
+                                    <Building2 className="size-3" />
+                                    Agency
+                                  </Badge>
+                                </>
+                              ) : (
+                                author.name
+                              )}
                               {author.id === user.id && (
-                                <span className="ml-2 text-xs text-ink-3">
-                                  (you)
-                                </span>
+                                <span className="text-xs text-ink-3">(you)</span>
                               )}
                             </p>
                             <div className="flex items-center gap-2">
@@ -208,10 +228,35 @@ export default async function JobDetailPage({
                               </Badge>
                             </div>
                           </div>
-                          <p className="text-sm text-ink-3">{author.title}</p>
+                          <p className="text-sm text-ink-3">
+                            {agency
+                              ? `${agency.tagline} · led by ${author.name}`
+                              : author.title}
+                          </p>
                           <p className="mt-2 line-clamp-3 text-sm text-ink-2 whitespace-pre-wrap">
                             {p.coverLetter}
                           </p>
+                          {p.assignments && p.assignments.length > 0 && (
+                            <div className="mt-3 rounded-lg border border-line-soft bg-surface p-3">
+                              <p className="mb-1 text-xs font-medium tracking-wide text-ink-3 uppercase">
+                                Staffed by
+                              </p>
+                              <AssignmentTable
+                                assignments={p.assignments}
+                                users={
+                                  new Map(
+                                    p.assignments
+                                      .map((a) => getUser(a.userId))
+                                      .filter((u): u is NonNullable<typeof u> =>
+                                        Boolean(u),
+                                      )
+                                      .map((u) => [u.id, u]),
+                                  )
+                                }
+                                contractValue={p.bidAmount}
+                              />
+                            </div>
+                          )}
                           <p className="mt-2 text-xs text-ink-3">
                             {p.estimatedDuration} · submitted{" "}
                             {relativeTime(p.submittedAt)}

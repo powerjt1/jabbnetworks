@@ -359,3 +359,131 @@ create policy "transactions visible to both parties"
         and (c.client_id = auth.uid() or c.freelancer_id = auth.uid())
     )
   );
+
+-- Agencies ----------------------------------------------------------------
+
+create type agency_role as enum ('owner', 'admin', 'member');
+
+create table agencies (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  tagline text not null default '',
+  bio text not null default '',
+  location text default '',
+  skills text[] not null default '{}',
+  day_rate numeric(10, 2),
+  rating numeric(2, 1) default 0,
+  review_count int default 0,
+  contracts_completed int default 0,
+  verified boolean not null default false,
+  stripe_account_id text unique,
+  founded_at date,
+  created_at timestamptz not null default now()
+);
+
+create table agency_members (
+  agency_id uuid not null references agencies on delete cascade,
+  profile_id uuid not null references profiles on delete cascade,
+  role agency_role not null default 'member',
+  title text not null default '',
+  joined_at timestamptz not null default now(),
+  primary key (agency_id, profile_id)
+);
+
+create index agency_members_profile_idx on agency_members (profile_id);
+
+-- Who is staffed on a bid or a contract, and how the money divides.
+--
+-- Splits are basis points rather than a percentage so they sum exactly; the
+-- constraint below is what stops a contract being awarded against shares that
+-- do not add up, which is a dispute waiting to happen once money moves.
+create table assignments (
+  id uuid primary key default gen_random_uuid(),
+  proposal_id uuid references proposals on delete cascade,
+  contract_id uuid references contracts on delete cascade,
+  profile_id uuid not null references profiles on delete cascade,
+  role text not null default '',
+  split_bps int not null check (split_bps between 0 and 10000),
+  created_at timestamptz not null default now(),
+  constraint assignment_has_parent check (
+    num_nonnulls(proposal_id, contract_id) = 1
+  )
+);
+
+create index assignments_proposal_idx on assignments (proposal_id);
+create index assignments_contract_idx on assignments (contract_id);
+
+-- Enforce that a parent's shares total exactly 100%. Deferred so a multi-row
+-- insert can complete before the check runs.
+create or replace function assert_splits_balance() returns trigger as $$
+declare
+  parent_proposal uuid := coalesce(new.proposal_id, old.proposal_id);
+  parent_contract uuid := coalesce(new.contract_id, old.contract_id);
+  total int;
+begin
+  if parent_proposal is not null then
+    select sum(split_bps) into total from assignments
+      where proposal_id = parent_proposal;
+  else
+    select sum(split_bps) into total from assignments
+      where contract_id = parent_contract;
+  end if;
+
+  if total is not null and total <> 10000 then
+    raise exception 'Assignment splits must total 100%% (got %.2f%%)', total / 100.0;
+  end if;
+  return null;
+end;
+$$ language plpgsql;
+
+create constraint trigger assignments_balance
+  after insert or update or delete on assignments
+  deferrable initially deferred
+  for each row execute function assert_splits_balance();
+
+alter table agencies enable row level security;
+alter table agency_members enable row level security;
+alter table assignments enable row level security;
+
+create policy "agencies are readable by everyone"
+  on agencies for select using (true);
+
+-- Only owners and admins may change the agency or its roster. Plain members
+-- appear on it and get paid, but cannot bid or restaff.
+create policy "owners and admins manage the agency"
+  on agencies for update using (
+    exists (
+      select 1 from agency_members m
+      where m.agency_id = agencies.id
+        and m.profile_id = auth.uid()
+        and m.role in ('owner', 'admin')
+    )
+  );
+
+create policy "roster is readable by everyone"
+  on agency_members for select using (true);
+
+create policy "owners and admins manage the roster"
+  on agency_members for all using (
+    exists (
+      select 1 from agency_members m
+      where m.agency_id = agency_members.agency_id
+        and m.profile_id = auth.uid()
+        and m.role in ('owner', 'admin')
+    )
+  );
+
+create policy "assignments visible to the parties involved"
+  on assignments for select using (
+    profile_id = auth.uid()
+    or exists (
+      select 1 from contracts c
+      where c.id = assignments.contract_id
+        and (c.client_id = auth.uid() or c.freelancer_id = auth.uid())
+    )
+    or exists (
+      select 1 from proposals p join jobs j on j.id = p.job_id
+      where p.id = assignments.proposal_id
+        and (p.freelancer_id = auth.uid() or j.client_id = auth.uid())
+    )
+  );

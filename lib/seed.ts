@@ -1,4 +1,5 @@
 import type {
+  Agency,
   Attachment,
   Contract,
   Conversation,
@@ -444,6 +445,12 @@ export const PROPOSALS: Proposal[] = [
     id: "p_1",
     jobId: "job_1",
     freelancerId: "u_you",
+    agencyId: "ag_1",
+    assignments: [
+      { userId: "u_you", role: "Principal architect — inventory & wave 2", splitBps: 5000 },
+      { userId: "u_free_4", role: "RPA lead — wave 1 conversion", splitBps: 3000 },
+      { userId: "u_free_2", role: "SharePoint specialist — legacy sites", splitBps: 2000 },
+    ],
     status: "shortlisted",
     bidAmount: 64000,
     budgetType: "fixed",
@@ -711,5 +718,107 @@ export const NOTES: Note[] = [
     body: "Dana wants whole-invoice exceptions rather than line-level. Simplifies the queue UI — drop the partial-commit path before the build milestone closes.",
     createdAt: "2026-09-17T17:40:00Z",
     pinned: true,
+  },
+];
+
+/* -------------------------------------------------------------------------
+ * Agencies
+ * ---------------------------------------------------------------------- */
+
+export const AGENCIES: Agency[] = [
+  {
+    id: "ag_1",
+    name: "Northbound Automation",
+    tagline: "Nintex and UiPath estates, decommissioned properly",
+    bio: "Four specialists who have spent the last decade taking legacy workflow estates off life support. We take the engagements that are too big for one contractor and too specific for a systems integrator — the ones where somebody has to read 240 workflows and decide which of them deserve to survive.",
+    avatarInitials: "NA",
+    location: "Distributed — US & EU",
+    foundedAt: "2023-02-09T00:00:00Z",
+    skills: [
+      "nintex-migration",
+      "power-platform",
+      "uipath",
+      "rpa",
+      "sharepoint",
+      "power-automate-desktop",
+    ],
+    members: [
+      {
+        userId: "u_you",
+        role: "owner",
+        title: "Principal architect",
+        joinedAt: "2023-02-09T00:00:00Z",
+      },
+      {
+        userId: "u_free_4",
+        role: "admin",
+        title: "RPA lead",
+        joinedAt: "2023-04-17T00:00:00Z",
+      },
+      {
+        userId: "u_free_2",
+        role: "member",
+        title: "Migration specialist",
+        joinedAt: "2024-01-22T00:00:00Z",
+      },
+    ],
+    rating: 4.9,
+    reviewCount: 27,
+    contractsCompleted: 31,
+    verified: true,
+    dayRate: 2400,
+    stripeAccountId: "acct_demo_northbound",
+  },
+  {
+    id: "ag_2",
+    name: "Halden & Roe",
+    tagline: "Tenant migrations for regulated industries",
+    bio: "We move content between Microsoft 365 tenants for organisations that get audited. Healthcare, financial services and public sector. Permission fidelity and an auditable trail are the whole job; the tooling is incidental.",
+    avatarInitials: "HR",
+    location: "London, UK",
+    foundedAt: "2021-11-30T00:00:00Z",
+    skills: ["sharegate", "sharepoint", "msm-tools", "power-platform"],
+    members: [
+      {
+        userId: "u_free_2",
+        role: "owner",
+        title: "Managing partner",
+        joinedAt: "2021-11-30T00:00:00Z",
+      },
+      {
+        userId: "u_free_3",
+        role: "member",
+        title: "Platform engineer",
+        joinedAt: "2023-08-14T00:00:00Z",
+      },
+    ],
+    rating: 4.8,
+    reviewCount: 19,
+    contractsCompleted: 22,
+    verified: true,
+    dayRate: 2100,
+  },
+  {
+    id: "ag_3",
+    name: "Third Signal",
+    tagline: "Applied AI for internal tooling",
+    bio: "Retrieval pipelines, Copilot agents and the evaluation harnesses that keep them honest. We will not ship an assistant we cannot measure, which makes us slower than some and a great deal cheaper than the rebuild.",
+    avatarInitials: "3S",
+    location: "Bengaluru, IN",
+    foundedAt: "2024-06-03T00:00:00Z",
+    skills: ["ai-solutions", "web-apps", "power-platform"],
+    members: [
+      {
+        userId: "u_free_3",
+        role: "owner",
+        title: "Founder",
+        joinedAt: "2024-06-03T00:00:00Z",
+      },
+    ],
+    rating: 4.7,
+    reviewCount: 11,
+    contractsCompleted: 13,
+    verified: false,
+    dayRate: 1650,
   },
 ];
