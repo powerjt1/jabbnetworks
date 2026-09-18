@@ -1,0 +1,8 @@
+{
+  "name": "jabb-sentinel-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "JABB Sentinel Backend API — multi-LLM brain + OpenCode hands (dependency-free).",
+  "scripts": { "start": "node server.js", "dev": "node --watch server.js" }
+}

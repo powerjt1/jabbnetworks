@@ -148,6 +148,7 @@
       <li><a href="#process" onclick={(e) => { e.preventDefault(); scrollTo('process'); }}>Process</a></li>
       <li><a href="#solutions" onclick={(e) => { e.preventDefault(); scrollTo('solutions'); }}>Solutions</a></li>
       <li><a href="#contact" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Contact</a></li>
+      <li><a href="/mission-control.html" class="nav-tool">Mission Control</a></li>
       <li><a href="/opencoder-lite.html" class="nav-tool">AI Coder</a></li>
       <li><a href="#contact" class="nav-cta" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Get Started</a></li>
     </ul>
@@ -182,6 +183,52 @@
           <span class="stat-label">{stat.label}</span>
         </div>
       {/each}
+    </div>
+  </div>
+</section>
+
+<!-- EDITIONS: self-select -->
+<section id="editions" class="editions" data-section="editions" class:visible={visibleSections.has('editions')}>
+  <div class="container">
+    <div class="section-header reveal-up">
+      <p class="section-tag">Choose your path</p>
+      <h2>Local, Business, or Enterprise</h2>
+      <p class="section-subtitle">Start private and free, scale to a managed team platform, or deploy a fully governed edition for regulated organizations.</p>
+    </div>
+    <div class="editions-grid">
+      <div class="edition-card reveal-up">
+        <span class="edition-badge">Local</span>
+        <h3>Private &amp; free</h3>
+        <p>Runs on your device with free local AI models — nothing leaves your machine. The full Mission Control experience, no cloud required.</p>
+        <ul class="edition-list">
+          <li>Free local models (Ollama / Nemotron)</li>
+          <li>Voice, agents, Board Room, offline</li>
+          <li>Zero setup, zero cost</li>
+        </ul>
+        <a href="/mission-control.html" class="btn btn-outline">Open Mission Control</a>
+      </div>
+      <div class="edition-card featured reveal-up">
+        <span class="edition-badge">Business</span>
+        <h3>Managed team platform</h3>
+        <p>Hosted and managed for your team — managed cloud AI, connectors, and a DLP baseline. The fastest path to value.</p>
+        <ul class="edition-list">
+          <li>Managed AI + Power Platform connectors</li>
+          <li>Shared crew, docs &amp; scheduling</li>
+          <li>DLP baseline &amp; SSO</li>
+        </ul>
+        <a href="#contact" class="btn btn-primary" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Talk to us</a>
+      </div>
+      <div class="edition-card enterprise reveal-up">
+        <span class="edition-badge">Enterprise</span>
+        <h3>Governed &amp; compliant</h3>
+        <p>Deployed in your Azure tenant and mapped to your controls — Managed Identity, Conditional Access, DLP, Purview, Sentinel, and ALM.</p>
+        <ul class="edition-list">
+          <li>Azure AI Foundry orchestration</li>
+          <li>Entra ID P2, DLP, Purview, Sentinel</li>
+          <li>SOC 2 / ISO 27001 / NIST aligned</li>
+        </ul>
+        <a href="https://github.com/powerjt1/jabb-mission-control/blob/main/docs/enterprise.md" target="_blank" rel="noopener" class="btn btn-outline">Read the architecture ↗</a>
+      </div>
     </div>
   </div>
 </section>
@@ -451,6 +498,7 @@
           <li><a href="#process" onclick={(e) => { e.preventDefault(); scrollTo('process'); }}>Process</a></li>
           <li><a href="#solutions" onclick={(e) => { e.preventDefault(); scrollTo('solutions'); }}>Solutions</a></li>
           <li><a href="#contact" onclick={(e) => { e.preventDefault(); scrollTo('contact'); }}>Contact</a></li>
+          <li><a href="/mission-control.html">Mission Control</a></li>
           <li><a href="/opencoder-lite.html">AI Coder</a></li>
         </ul>
       </div>
@@ -686,6 +734,33 @@
     font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.2;
   }
   .section-subtitle { color: #666; font-size: 1.1rem; line-height: 1.6; }
+
+  /* ===== EDITIONS ===== */
+  .editions { padding: 120px 0; }
+  .editions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .edition-card {
+    position: relative; background: white; border: 1px solid #eee; border-radius: 16px;
+    padding: 36px 28px; display: flex; flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .edition-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); border-color: #0078d4; }
+  .edition-card.featured { border-color: #0078d4; box-shadow: 0 8px 30px rgba(0,120,212,0.12); }
+  .edition-card.enterprise { background: linear-gradient(160deg, #0a0a1a, #12122a); color: #fff; border-color: #2a2a4a; }
+  .edition-card.enterprise h3 { color: #fff; }
+  .edition-card.enterprise p { color: #b8c0e0; }
+  .edition-badge {
+    align-self: flex-start; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 100px; margin-bottom: 16px;
+    background: rgba(0,120,212,0.1); color: #0078d4;
+  }
+  .edition-card.enterprise .edition-badge { background: linear-gradient(135deg, #22d3ee, #a78bfa); color: #04070d; }
+  .edition-card h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; }
+  .edition-card > p { font-size: 0.95rem; line-height: 1.6; margin-bottom: 18px; color: #555; }
+  .edition-list { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+  .edition-list li { font-size: 0.9rem; padding: 7px 0 7px 22px; position: relative; }
+  .edition-list li::before { content: '✓'; position: absolute; left: 0; color: #0078d4; font-weight: 700; }
+  .edition-card.enterprise .edition-list li::before { color: #22d3ee; }
+  .edition-card .btn { margin-top: auto; justify-content: center; width: 100%; }
 
   /* ===== ABOUT ===== */
   .about { padding: 120px 0; background: #fafbfe; }
@@ -923,7 +998,7 @@
     .hero-stats { flex-direction: column; gap: 24px; }
     .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
     .about-visual { display: none; }
-    .services-grid, .solutions-grid, .timeline { grid-template-columns: 1fr; }
+    .services-grid, .solutions-grid, .timeline, .editions-grid { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr; gap: 40px; }
     .section-header h2, .about-content h2, .contact-info h2 { font-size: 1.8rem; }
