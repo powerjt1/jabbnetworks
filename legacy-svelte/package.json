@@ -1,0 +1,21 @@
+{
+  "name": "jabb-networks",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "setup": "npm run install:power-platform-skills",
+    "install:power-platform-skills": "node scripts/install-power-platform-skills.js"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "svelte": "^5.56.8",
+    "vite": "^8.2.0"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.8.0"
+  }
+}

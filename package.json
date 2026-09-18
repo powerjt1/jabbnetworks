@@ -1,21 +1,32 @@
 {
   "name": "jabb-networks",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "setup": "npm run install:power-platform-skills",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "install:power-platform-skills": "node scripts/install-power-platform-skills.js"
   },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.2.0",
-    "svelte": "^5.56.8",
-    "vite": "^8.2.0"
-  },
   "dependencies": {
-    "puppeteer-core": "^25.8.0"
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.116.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^1.47.0",
+    "next": "^16.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.0"
   }
 }
