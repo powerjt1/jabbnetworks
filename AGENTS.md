@@ -144,4 +144,64 @@ Aesthetic: **dark glassmorphism** — `--accent` cyan `#22d3ee`, `--gold` `#f5c5
 
 ---
 
+## 8) EXTERNAL TOOLS — FLOWSINT (OSINT graph investigation)
+
+**Flowsint** is an open-source OSINT graph exploration tool for ethical investigation only.
+
+- **Upstream**: https://github.com/reconurge/flowsint (Apache-2.0)
+- **Fork (operator account)**: https://github.com/powerjt1/flowsint (if fork completed)
+- **Also referenced in**: `powerjt1/LucyOnGPT` (Lucy command center / agent context)
+
+### Mandatory before any use or extension
+Read `ETHICS.md` and `DISCLAIMER.md` in the flowsint repo. Use **only** for ethical investigation.
+
+### Layout (reference)
+- Backend: `flowsint-api`, `flowsint-core`, `flowsint-enrichers`, `flowsint-types` (Python, `uv`)
+- Frontend: `flowsint-app` (`yarn`)
+- Infra: `docker-compose.dev.yml`, `docker-compose.prod.yml`, `neo4j-migrations`
+- Data stores: PostgreSQL, Redis, Neo4j
+
+### Quick start (Linux/macOS — needs Docker + Make)
+```bash
+git clone https://github.com/reconurge/flowsint.git   # or powerjt1/flowsint after fork
+cd flowsint
+make prod        # pulls pre-built images and starts the stack
+```
+- UI: http://localhost:5173 — register at `/register` (no default credentials)
+- API proxied at http://localhost:5173/api
+
+### Windows (no Make)
+```bash
+copy .env.example .env
+copy .env.example flowsint-api\.env
+copy .env.example flowsint-core\.env
+copy .env.example flowsint-app\.env
+docker compose -f docker-compose.prod.yml up -d
+```
+
+### Common commands
+- `make dev` — hot-reload dev stack
+- `make infra-dev` — postgres, redis, neo4j only
+- `make api` / `make frontend` / `make celery` — run services locally without Docker
+- `make install` — `uv sync` + Alembic migrations
+- `make alembic-revision m="msg"` — create migration
+- `make migrate-dev` — Neo4j migrations
+- `make test` / `make lint` / `make lint-fix`
+- `make status` / `make logs-prod` / `make down`
+- `make clean` — **removes ALL Docker data**; confirm first
+
+### Before exposing to a network
+- Change `AUTH_SECRET`, `MASTER_VAULT_KEY_V1`, `NEO4J_PASSWORD` in `.env`
+- Add hostname/IP to Host-header allowlist in `flowsint-app/nginx.conf`
+- Only port 5173 exposed; put HTTPS reverse proxy in front beyond trusted LAN
+- `make migrate-prod` alters production data — never run unattended
+
+### Built-in enrichers (examples)
+Domain (DNS, reverse DNS, subdomains, WHOIS, history, root domain, ASN), IP (info, ASN),
+ASN→CIDRs, CIDR→IPs, Maigret username search.
+
+Agents may reference Flowsint for OSINT graph work but must never use it for unethical purposes.
+
+---
+
 _Last updated by an agent: keep this file current when the architecture changes._
