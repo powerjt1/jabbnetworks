@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "JABB Sentinel — the guardian of your AI agents (SvelteKit app: landing + mission-control dashboard).",
+  "author": "JABBNETWORKS",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
