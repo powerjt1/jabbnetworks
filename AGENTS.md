@@ -1,207 +1,24 @@
-# JABB NETWORKS — MASTER AGENT TEMPLATE
+# JABB NETWORKS — AGENT NOTES (mirror)
 
-> **START HERE. Do not start over.** This file is the single source of truth for any
-> agent (human or AI) picking up work on JABB Networks. Read it top to bottom, then
-> continue the existing project — never rebuild from scratch.
+**Canonical:** `powerjt1/Master` → **`AGENTS.md`** + **`CFO_PLAN.md`**.
 
-Operator: **Alexander Thorpe** — always greet as **“Hi Alexander.”**
-Founder/legacy persona: **Legacy** (CEO of all agents), 1995 → present.
+Operator / CFO: **Alexander Thorpe** — greet **“Hi Alexander.”**  
+Brand: **JABBNETWORKS**.
 
 ---
 
-## 0) THE TWO-OUTPUT CONTRACT  ⭐ (MANDATORY — every task, every agent)
+## Scenario B (ACTIVE) — all agents
 
-Every change you make MUST produce **two outputs**:
+- **Balanced hybrid:** services-led cash + product push (Business / Enterprise seats).
+- **Free app:** Sentinel Local ($0).
+- **Paid apps:** Business $25–40/user/mo · Enterprise $50–100/user/mo.
+- **Bridge:** protect cash; do not assume full Year-1 revenue is booked.
+- **Tiers detail:** `docs/PRODUCT_TIERS.md`.
 
-**Output 1 — Git (canonical): a NEW branch under “Mother.”**
-- **Mother = `powerjt1/Master`** (the canonical repo). This is home base.
-- Create a **new branch per task**, named `agent/<yourname>-<short-task>`
-  (e.g., `agent/sentinel-add-billing-view`, `agent/workspace-gmail-triage`).
-- Commit there and **open a Pull Request into `Master:main`**. Never push straight to `main`.
-- The JABB Networks app lives under **`jabb-networks/`** in Mother. Put app changes there.
-- Do **not** touch the Ivy Building Management files at the repo root.
-- Mirrors kept in sync (optional, ask first): `powerjt1/jabb-mission-control` (`main`),
-  `powerjt1/jabbnetworks` (feature branch). Mother is authoritative.
-
-**Output 2 — a downloadable HTML change preview the operator can open instantly.**
-- Produce a single, self-contained `.html` file summarizing **what you changed and why**,
-  with before/after notes and (for UI work) the rendered/screenshotted screen inline.
-- Use the reusable template at **`templates/change-preview.template.html`** — fill in the
-  `{{PLACEHOLDERS}}`. Keep it self-contained (no external requests except Google Fonts).
-- Deliver it as a **download** (in Claude Code: `SendUserFile`), and also commit it to the
-  branch under `previews/<date>-<short-task>.html`.
-
-If you can only do one before running out of room, do **Output 1** (git) first, then Output 2.
+Follow Mother two-output contract for code changes under the fleet repos.
 
 ---
 
-## 1) WHAT THIS PROJECT IS
+## Flowsint
 
-A SENTINEL-themed **“Sentinel · Mission Control”** dashboard for JABB Networks (a Microsoft
-Power Platform + web/hosting consultancy) plus supporting pieces. It is deliberately
-**self-contained and offline-first**, defaulting to **free local AI models**.
-
-Key surfaces:
-- **`jabb-networks/public/mission-control.html`** — the whole dashboard, one self-contained
-  file (HTML + CSS + JS, no build step, no external scripts except Google Fonts and the
-  optional in-browser model libraries loaded on demand). **This is where most work happens.**
-- **`jabb-networks/open-coder-bridge.mjs`** — a dependency-free Node bridge (run on the
-  operator’s PC): proxies Ollama/LM Studio, serves the dashboard, does Google Calendar
-  OAuth for RTR events, and proxies SerpAPI (Google Jobs).
-- **`jabb-networks/extension/`** — a Manifest V3 Chrome extension: hands-free voice + live
-  video (webcam/screen) connection to the crew and free local models.
-- **`jabb-networks/src/`, `index.html`** — the Svelte/Vite marketing site (jabbnetworks.com),
-  with nav links to `/mission-control.html`.
-- **`jabb-networks/public/opencoder-lite.html`** — an older standalone AI chat tool.
-
----
-
-## 2) THE CREW (agents in the dashboard)
-
-Public crew (shown in Agents/Comms/Home, editable, saved to `localStorage`):
-| id | name | role | default model | notes |
-|----|------|------|---------------|-------|
-| `sentinel` | SENTINEL | Orchestrator | Nemotron (Ollama) | greets operator, routes work, voices replies |
-| `scout` | Talent Scout | Remote jobs + RTR | Nemotron | remote-only Power Platform jobs, RTR→calendar |
-| `architect` | Power Platform Architect | Solution design | Nemotron | Power Apps/Automate/BI/Copilot Studio |
-| `ops` | Ops & Client Success | Proposals/hosting/comms | Nemotron | proposals, website+hosting, summaries |
-| `notebook` | Notebook | Research (Gemini Notebook) | Gemini 2.0 Flash | synthesis; “Open in Gemini Notebook” |
-| `workspace` | Workspace | Google & cloud ops | Gemini 2.0 Flash | Gmail, Drive/OneDrive, Sheets, Docs, Apps Script |
-
-VIP (Board Room only, hidden from normal crew via `publicCrew()`):
-| id | name | role | model | notes |
-|----|------|------|-------|-------|
-| `legacy` | Legacy | CEO · Chief of All Agents | Claude Fable | password-gated Board Room; owns the 1995→2025 journey |
-
-Each agent object: `{ id, name, role, color, glyph, model, tools[], tag, prompt, avatar?, vip? }`.
-Agents support an **uploaded avatar image** (`a.avatar`, a resized data URL) that overrides the
-helmet portrait everywhere; else an inline-SVG helmet portrait is drawn (`portraitSVG(a)`).
-
-Models available (`defaultModels()`): Nemotron/Llama/Qwen via Ollama, LM Studio, free
-in-browser CPU (transformers.js) & GPU (WebLLM), OpenAI GPT-4o, **Claude Sonnet**,
-**Claude Fable (`claude-fable-5`)**, **Google Gemini 2.0 Flash / 1.5 Pro**.
-
----
-
-## 3) VIEWS (single-page app, switched by `go(view)`)
-
-`home` · `agents` · `comms` · `schedule` (Talent Scout jobs + RTR) · `library`
-(company KB + Crew Documents) · `control` (models, endpoints, voice, reports) ·
-`boardroom` (🔒 VIP: CEO Legacy + 1995→2025 journey timeline).
-
-Layout: **left sidebar nav** + slim app-bar (view title, mission clock, mic/auto-speak).
-Aesthetic: **dark glassmorphism** — `--accent` cyan `#22d3ee`, `--gold` `#f5c542`,
-`--violet` `#a78bfa`; `.glass` cards; Orbitron display font. **Keep this look.**
-
----
-
-## 4) STATE (localStorage, prefix `jabb.`)
-
-`settings` (ollama/openai/anthropic/serpapi/gemini) · `prefs` (operator/feed/greet) ·
-`crew` · `models` (custom) · `chats` · `activeAgent` · `selectedAgent` · `jobs` ·
-`pipeline` · `taskLog` · `tokens` · `docs` · `orders` (standing orders) · `voice` ·
-`boardpass` (SHA-256 of the Board Room passcode).
-
----
-
-## 5) HOW TO EXTEND (common recipes)
-
-- **Add a model** → push an entry into `defaultModels()`; if it needs a key/provider,
-  handle it in `streamChat()` (see the `gemini` branch as a pattern) and add a key field
-  in Control → Endpoints + `settings`.
-- **Add an agent** → add to `defaultCrew()` (+ `AGENT_STATS`, `QUICKS`); the migration
-  block auto-adds new default agents for existing users. Mark `vip:true` to keep it out of
-  the normal crew and inside the Board Room.
-- **Add a tool** → add to the `TOOLS` catalog; wire any context injection in `sendChat()`
-  (see how `company-kb`/`jobs`/`calendar` are injected into the system prompt).
-- **Add a view** → add a `<section class="view" id="view-x">`, a sidebar `<button data-view="x">`,
-  a `VIEW_TITLES` entry, and a `render X()` call in `go()`.
-
----
-
-## 6) DEFINITION OF DONE (run before every PR)
-
-1. **Parse-check** the dashboard JS:
-   `node -e "const s=require('fs').readFileSync('jabb-networks/public/mission-control.html','utf8');new Function(s.match(/<script>([\\s\\S]*)<\\/script>/)[1]);console.log('JS OK')"`
-2. **Build** the site (if `src/` touched): `cd jabb-networks && npm i && npm run build`.
-3. **Render-check** with the preinstalled Chromium (no downloads):
-   `playwright-core` + `executablePath:'/opt/pw-browsers/chromium'`; load the file, assert
-   **0 `pageerror`s**, screenshot each touched view.
-4. Keep changes **self-contained** (no new external hosts; CSP-safe for the extension).
-5. Produce **both outputs** (§0). Open the PR into `Master:main`. Report what changed.
-
----
-
-## 7) GUARDRAILS
-
-- Never delete or overwrite the Ivy files at Mother’s root.
-- Never push straight to `Master:main` — always a task branch + PR.
-- Keep the glassy SENTINEL aesthetic and the helmet portrait system.
-- The Board Room passcode is **client-side only** (localStorage) — it gates the UI on one
-  browser; it is not server-enforced auth. Don’t claim otherwise.
-- Local models need `OLLAMA_ORIGINS=* ollama serve`; cloud/Gemini/Fable need the operator’s
-  keys (stored only in the browser). Everything degrades gracefully without them.
-
----
-
-## 8) EXTERNAL TOOLS — FLOWSINT (OSINT graph investigation)
-
-**Flowsint** is an open-source OSINT graph exploration tool for ethical investigation only.
-
-- **Upstream**: https://github.com/reconurge/flowsint (Apache-2.0)
-- **Fork (operator account)**: https://github.com/powerjt1/flowsint (if fork completed)
-- **Also referenced in**: `powerjt1/LucyOnGPT` (Lucy command center / agent context)
-
-### Mandatory before any use or extension
-Read `ETHICS.md` and `DISCLAIMER.md` in the flowsint repo. Use **only** for ethical investigation.
-
-### Layout (reference)
-- Backend: `flowsint-api`, `flowsint-core`, `flowsint-enrichers`, `flowsint-types` (Python, `uv`)
-- Frontend: `flowsint-app` (`yarn`)
-- Infra: `docker-compose.dev.yml`, `docker-compose.prod.yml`, `neo4j-migrations`
-- Data stores: PostgreSQL, Redis, Neo4j
-
-### Quick start (Linux/macOS — needs Docker + Make)
-```bash
-git clone https://github.com/reconurge/flowsint.git   # or powerjt1/flowsint after fork
-cd flowsint
-make prod        # pulls pre-built images and starts the stack
-```
-- UI: http://localhost:5173 — register at `/register` (no default credentials)
-- API proxied at http://localhost:5173/api
-
-### Windows (no Make)
-```bash
-copy .env.example .env
-copy .env.example flowsint-api\.env
-copy .env.example flowsint-core\.env
-copy .env.example flowsint-app\.env
-docker compose -f docker-compose.prod.yml up -d
-```
-
-### Common commands
-- `make dev` — hot-reload dev stack
-- `make infra-dev` — postgres, redis, neo4j only
-- `make api` / `make frontend` / `make celery` — run services locally without Docker
-- `make install` — `uv sync` + Alembic migrations
-- `make alembic-revision m="msg"` — create migration
-- `make migrate-dev` — Neo4j migrations
-- `make test` / `make lint` / `make lint-fix`
-- `make status` / `make logs-prod` / `make down`
-- `make clean` — **removes ALL Docker data**; confirm first
-
-### Before exposing to a network
-- Change `AUTH_SECRET`, `MASTER_VAULT_KEY_V1`, `NEO4J_PASSWORD` in `.env`
-- Add hostname/IP to Host-header allowlist in `flowsint-app/nginx.conf`
-- Only port 5173 exposed; put HTTPS reverse proxy in front beyond trusted LAN
-- `make migrate-prod` alters production data — never run unattended
-
-### Built-in enrichers (examples)
-Domain (DNS, reverse DNS, subdomains, WHOIS, history, root domain, ASN), IP (info, ASN),
-ASN→CIDRs, CIDR→IPs, Maigret username search.
-
-Agents may reference Flowsint for OSINT graph work but must never use it for unethical purposes.
-
----
-
-_Last updated by an agent: keep this file current when the architecture changes._
+Upstream: https://github.com/reconurge/flowsint — ethical investigation only. Read ETHICS.md / DISCLAIMER.md.
